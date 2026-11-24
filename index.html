@@ -11,32 +11,33 @@
       box-sizing: border-box;
       user-select: none;
     }
-    
-    /* ================= 修复手机端变形问题 ================= */
     body {
-      background: #2b1e16; /* 深色背景，上下留白更美观 */
+      background: #2b1e16;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      margin: 0;
       overflow: hidden;
       font-family: 'Comic Sans MS', 'Chalkboard SE', 'Microsoft YaHei', cursive, sans-serif;
     }
-
+    
+    /* 核心修复：让容器始终保持 16:9 居中 */
     #app {
       position: relative;
-      /* 强制 16:9 比例，无论在手机还是电脑上都不会被拉伸 */
+      width: min(100vw, calc(100vh * 16 / 9));
       aspect-ratio: 16 / 9;
-      width: 100vw;
-      max-width: 1100px;
-      max-height: 100vh;
-      flex-shrink: 0;
+      max-width: 1100px; /* 电脑端最大宽度 */
       background: #a7d8e8;
       overflow: hidden;
-      /* 手机端不需要大圆角 */
-      border-radius: 0;
-      box-shadow: none;
+      cursor: default;
+    }
+
+    /* 电脑端（大屏幕）才显示圆角卡片样式 */
+    @media (min-width: 1101px) {
+      #app {
+        border-radius: 32px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 0 0 6px #fbe9d0, inset 0 0 0 12px #d9b382;
+      }
     }
 
     canvas {
@@ -46,29 +47,20 @@
       touch-action: none;
     }
 
-    /* 电脑端恢复卡片圆角样式 */
-    @media (min-width: 1100px) and (min-height: 620px) {
-      #app {
-        width: 1100px;
-        height: 620px;
-        border-radius: 32px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 0 0 6px #fbe9d0, inset 0 0 0 12px #d9b382;
-      }
-    }
-    /* ======================================================== */
-
     .ui-layer {
       position: absolute;
       inset: 0;
       pointer-events: none;
       z-index: 10;
     }
+
+    /* 面板样式通用 */
     .panel {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 80%;
+      width: 85%;
       max-width: 780px;
       background: #fff7ec;
       border-radius: 48px 48px 32px 32px;
@@ -77,13 +69,11 @@
       pointer-events: auto;
       display: none;
       flex-direction: column;
-      max-height: 84%;
+      max-height: 88%;
       border: 4px solid #b28b5c;
       z-index: 20;
     }
-    .panel.active {
-      display: flex;
-    }
+    .panel.active { display: flex; }
     .panel h2 {
       font-size: 1.8rem;
       color: #4a2c1a;
@@ -113,431 +103,172 @@
       gap: 16px;
     }
 
-    /* 手机端弹窗适配 */
+    /* 手机端面板自适应 */
     @media (max-width: 768px) {
       .panel {
-        width: 94%;
-        max-height: 88%;
+        width: 92%;
         padding: 16px 16px 20px;
-        border-radius: 32px 32px 24px 24px;
+        border-radius: 24px;
       }
-      .panel h2 {
-        font-size: 1.4rem;
-        margin-bottom: 8px;
-      }
+      .panel h2 { font-size: 1.4rem; }
+      .setting-row { flex-direction: column; align-items: flex-start; gap: 8px; }
     }
 
-    /* 河流相册 */
     .photo-flow {
-      display: flex;
-      gap: 12px;
-      overflow-x: auto;
-      padding: 12px 4px;
-      scrollbar-width: thin;
+      display: flex; gap: 12px; overflow-x: auto; padding: 12px 4px; scrollbar-width: thin;
     }
     .photo-card {
-      flex: 0 0 120px;
-      height: 120px;
-      border-radius: 24px 12px 24px 12px;
-      background: #ffe8d4;
-      border: 3px dashed #d9a066;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-      color: #d9a066;
-      transition: transform 0.2s;
-      cursor: pointer;
+      flex: 0 0 120px; height: 120px; border-radius: 24px 12px 24px 12px;
+      background: #ffe8d4; border: 3px dashed #d9a066;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; color: #d9a066; transition: transform 0.2s; cursor: pointer;
     }
-    .photo-card:hover {
-      transform: scale(1.05);
-    }
-    .upload-row {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
+    .photo-card:hover { transform: scale(1.05); }
+    
+    .upload-row { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; }
     .btn {
-      background: #f7c948;
-      border: none;
-      border-radius: 40px;
-      padding: 10px 22px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: #4a2c1a;
-      box-shadow: 0 5px 0 #b28b5c;
-      cursor: pointer;
-      transition: 0.1s;
-      font-family: inherit;
-      pointer-events: auto;
+      background: #f7c948; border: none; border-radius: 40px;
+      padding: 10px 22px; font-size: 1.1rem; font-weight: bold; color: #4a2c1a;
+      box-shadow: 0 5px 0 #b28b5c; cursor: pointer; transition: 0.1s;
+      font-family: inherit; pointer-events: auto;
     }
-    .btn:active {
-      transform: translateY(4px);
-      box-shadow: 0 1px 0 #b28b5c;
-    }
-    .btn.secondary {
-      background: #c1d9d0;
-      box-shadow: 0 5px 0 #7f9e91;
-    }
-    .btn.small {
-      padding: 6px 16px;
-      font-size: 0.9rem;
-    }
-    .btn.danger {
-      background: #f4a3a3;
-      box-shadow: 0 5px 0 #b35959;
-    }
-    /* 果树视频 */
-    .fruit-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-      gap: 14px;
-    }
+    .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #b28b5c; }
+    .btn.secondary { background: #c1d9d0; box-shadow: 0 5px 0 #7f9e91; }
+    .btn.small { padding: 6px 16px; font-size: 0.9rem; }
+    .btn.danger { background: #f4a3a3; box-shadow: 0 5px 0 #b35959; }
+
+    .fruit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 14px; }
     .fruit-item {
-      aspect-ratio: 1;
-      background: #ffb882;
-      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
+      aspect-ratio: 1; background: #ffb882; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      display: flex; align-items: center; justify-content: center; font-size: 2rem;
       box-shadow: inset -8px -8px 0 rgba(0, 0, 0, 0.1), 0 6px 0 #b35959;
-      cursor: pointer;
-      transition: 0.15s;
-      border: 2px solid #e07a5f;
+      cursor: pointer; transition: 0.15s; border: 2px solid #e07a5f;
     }
-    .fruit-item:hover {
-      transform: scale(1.1) rotate(3deg);
-    }
-    /* 宠物 */
+    .fruit-item:hover { transform: scale(1.1) rotate(3deg); }
+
     .pet-card {
-      background: #f5ede1;
-      border-radius: 32px;
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      flex-wrap: wrap;
-      border: 2px solid #d9b382;
+      background: #f5ede1; border-radius: 32px; padding: 16px 20px;
+      display: flex; align-items: center; gap: 20px; flex-wrap: wrap; border: 2px solid #d9b382;
     }
     .pet-avatar {
-      font-size: 3rem;
-      width: 70px;
-      height: 70px;
-      background: #fff;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 0 #b28b5c;
+      font-size: 3rem; width: 70px; height: 70px; background: #fff; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 0 #b28b5c;
     }
-    .pet-info {
-      flex: 1;
-      min-width: 140px;
-    }
+    .pet-info { flex: 1; min-width: 140px; }
     .affinity-bar {
-      height: 16px;
-      background: #e0d0bc;
-      border-radius: 20px;
-      margin: 6px 0;
-      overflow: hidden;
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+      height: 16px; background: #e0d0bc; border-radius: 20px; margin: 6px 0;
+      overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     .affinity-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #f7b267, #f4845f);
-      border-radius: 20px;
-      transition: width 0.4s;
+      height: 100%; width: 0%; background: linear-gradient(90deg, #f7b267, #f4845f);
+      border-radius: 20px; transition: width 0.4s;
     }
-    .pet-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    /* 房屋 */
-    .room-tabs {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 8px;
-    }
+    .pet-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .room-tabs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px; }
     .room-tab {
-      background: #e3d5c4;
-      border: none;
-      border-radius: 30px;
-      padding: 8px 20px;
-      font-weight: bold;
-      color: #5a3e28;
-      cursor: pointer;
-      font-family: inherit;
-      font-size: 1rem;
-      transition: 0.1s;
-      pointer-events: auto;
+      background: #e3d5c4; border: none; border-radius: 30px; padding: 8px 20px;
+      font-weight: bold; color: #5a3e28; cursor: pointer; font-family: inherit;
+      font-size: 1rem; transition: 0.1s; pointer-events: auto;
     }
-    .room-tab.active {
-      background: #f7c948;
-      box-shadow: 0 4px 0 #b28b5c;
-    }
-    .style-selector {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
-    }
+    .room-tab.active { background: #f7c948; box-shadow: 0 4px 0 #b28b5c; }
+
+    .style-selector { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
     .style-btn {
-      background: #fff;
-      border: 2px solid #b28b5c;
-      border-radius: 24px;
-      padding: 6px 16px;
-      font-weight: bold;
-      color: #4a2c1a;
-      cursor: pointer;
-      font-family: inherit;
-      font-size: 0.95rem;
-      transition: 0.1s;
-      pointer-events: auto;
+      background: #fff; border: 2px solid #b28b5c; border-radius: 24px;
+      padding: 6px 16px; font-weight: bold; color: #4a2c1a; cursor: pointer;
+      font-family: inherit; font-size: 0.95rem; transition: 0.1s; pointer-events: auto;
     }
-    .style-btn.active {
-      background: #b28b5c;
-      color: #fff;
-    }
+    .style-btn.active { background: #b28b5c; color: #fff; }
+
     .room-canvas-wrap {
-      position: relative;
-      background: #d9c8b2;
-      border-radius: 24px;
-      overflow: hidden;
-      aspect-ratio: 16 / 10;
-      border: 4px solid #b28b5c;
-      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
-      cursor: crosshair;
-      pointer-events: auto;
+      position: relative; background: #d9c8b2; border-radius: 24px; overflow: hidden;
+      aspect-ratio: 16 / 10; border: 4px solid #b28b5c;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1); cursor: crosshair; pointer-events: auto;
     }
-    @media (max-width: 768px) {
-      .room-canvas-wrap {
-        aspect-ratio: 4 / 3; /* 手机端房间稍微方一点 */
-      }
-    }
-    .room-bg {
-      position: absolute;
-      inset: 0;
-      background-size: cover;
-      transition: background 0.3s;
-    }
-    .room-bg.raw {
-      background: #c0b0a0;
-      background-image: repeating-linear-gradient(45deg, #b8a898 0px, #b8a898 20px, #c8b8a8 20px, #c8b8a8 40px);
-    }
-    .room-bg.chinese {
-      background: linear-gradient(135deg, #dfc8a8, #c9a87c);
-    }
-    .room-bg.american {
-      background: linear-gradient(135deg, #b8c4b0, #8a9a80);
-    }
-    .room-bg.european {
-      background: linear-gradient(135deg, #e8d8c8, #c8b8a8);
-    }
-    .room-bg.modern {
-      background: linear-gradient(135deg, #d0d8e0, #a8b8c8);
-    }
+    .room-bg { position: absolute; inset: 0; background-size: cover; transition: background 0.3s; }
+    .room-bg.raw { background: #c0b0a0; background-image: repeating-linear-gradient(45deg, #b8a898 0px, #b8a898 20px, #c8b8a8 20px, #c8b8a8 40px); }
+    .room-bg.chinese { background: linear-gradient(135deg, #dfc8a8, #c9a87c); }
+    .room-bg.american { background: linear-gradient(135deg, #b8c4b0, #8a9a80); }
+    .room-bg.european { background: linear-gradient(135deg, #e8d8c8, #c8b8a8); }
+    .room-bg.modern { background: linear-gradient(135deg, #d0d8e0, #a8b8c8); }
+    
     .placed-furniture {
-      position: absolute;
-      width: 50px;
-      height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.8rem;
-      cursor: grab;
-      transition: 0.05s;
-      filter: drop-shadow(2px 4px 4px rgba(0, 0, 0, 0.2));
-      user-select: none;
-      transform-origin: center bottom;
-      pointer-events: auto;
+      position: absolute; width: 50px; height: 50px; display: flex; align-items: center;
+      justify-content: center; font-size: 1.8rem; cursor: grab; transition: 0.05s;
+      filter: drop-shadow(2px 4px 4px rgba(0, 0, 0, 0.2)); user-select: none;
+      transform-origin: center bottom; pointer-events: auto;
     }
-    .placed-furniture:active {
-      cursor: grabbing;
-      z-index: 100 !important;
-    }
+    .placed-furniture:active { cursor: grabbing; z-index: 100 !important; }
+    
     .furniture-palette {
-      display: flex;
-      gap: 10px;
-      overflow-x: auto;
-      padding: 10px 4px;
-      flex-wrap: wrap;
-      max-height: 120px;
-      overflow-y: auto;
+      display: flex; gap: 10px; overflow-x: auto; padding: 10px 4px;
+      flex-wrap: wrap; max-height: 120px; overflow-y: auto;
     }
     .furniture-btn {
-      background: #fff;
-      border: 2px solid #d9b382;
-      border-radius: 16px;
-      padding: 6px 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      cursor: pointer;
-      font-family: inherit;
-      font-size: 1.8rem;
-      min-width: 64px;
-      transition: 0.1s;
-      pointer-events: auto;
+      background: #fff; border: 2px solid #d9b382; border-radius: 16px;
+      padding: 6px 10px; display: flex; flex-direction: column; align-items: center;
+      gap: 2px; cursor: pointer; font-family: inherit; font-size: 1.8rem;
+      min-width: 64px; transition: 0.1s; pointer-events: auto;
     }
-    .furniture-btn span {
-      font-size: 0.7rem;
-      color: #4a2c1a;
-    }
-    .furniture-btn:active {
-      transform: scale(0.95);
-      background: #f7e4c8;
-    }
-    .hint-text {
-      text-align: center;
-      color: #8b6b4b;
-      font-size: 0.9rem;
-      margin-top: 6px;
-    }
+    .furniture-btn span { font-size: 0.7rem; color: #4a2c1a; }
+    .furniture-btn:active { transform: scale(0.95); background: #f7e4c8; }
+    
+    .hint-text { text-align: center; color: #8b6b4b; font-size: 0.9rem; margin-top: 6px; }
+    
     .upload-label {
-      background: #f7c948;
-      border: none;
-      border-radius: 40px;
-      padding: 10px 22px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: #4a2c1a;
-      box-shadow: 0 5px 0 #b28b5c;
-      cursor: pointer;
-      font-family: inherit;
-      pointer-events: auto;
-      display: inline-block;
-      transition: 0.1s;
+      background: #f7c948; border: none; border-radius: 40px; padding: 10px 22px;
+      font-size: 1.1rem; font-weight: bold; color: #4a2c1a; box-shadow: 0 5px 0 #b28b5c;
+      cursor: pointer; font-family: inherit; pointer-events: auto; display: inline-block; transition: 0.1s;
     }
-    .upload-label:active {
-      transform: translateY(4px);
-      box-shadow: 0 1px 0 #b28b5c;
-    }
-    input[type="file"] {
-      display: none;
-    }
-    /* 设置面板 */
+    .upload-label:active { transform: translateY(4px); box-shadow: 0 1px 0 #b28b5c; }
+    input[type="file"] { display: none; }
+
     .setting-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      padding: 10px 4px;
-      border-bottom: 2px dashed #e8d8c4;
-      flex-wrap: wrap;
+      display: flex; align-items: center; justify-content: space-between; gap: 14px;
+      padding: 10px 4px; border-bottom: 2px dashed #e8d8c4; flex-wrap: wrap;
     }
-    .setting-row label {
-      color: #4a2c1a;
-      font-weight: bold;
-      font-size: 1.02rem;
-    }
+    .setting-row label { color: #4a2c1a; font-weight: bold; font-size: 1.02rem; }
     .setting-row input {
-      width: 96px;
-      padding: 8px 12px;
-      border-radius: 18px;
-      border: 2px solid #d9b382;
-      font-family: inherit;
-      font-size: 1rem;
-      text-align: center;
-      background: #fff;
-      color: #4a2c1a;
-      pointer-events: auto;
-      outline: none;
+      width: 96px; padding: 8px 12px; border-radius: 18px; border: 2px solid #d9b382;
+      font-family: inherit; font-size: 1rem; text-align: center; background: #fff;
+      color: #4a2c1a; pointer-events: auto; outline: none;
     }
-    .setting-row input:focus {
-      border-color: #f7c948;
-    }
+    .setting-row input:focus { border-color: #f7c948; }
+
     #settingsBtn {
-      position: absolute;
-      top: 16px;
-      right: 20px;
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      background: #f7c948;
-      border: none;
-      box-shadow: 0 5px 0 #b28b5c;
-      font-size: 1.5rem;
-      cursor: pointer;
-      pointer-events: auto;
-      z-index: 15;
-      transition: 0.1s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: absolute; top: 16px; right: 20px; width: 52px; height: 52px;
+      border-radius: 50%; background: #f7c948; border: none; box-shadow: 0 5px 0 #b28b5c;
+      font-size: 1.5rem; cursor: pointer; pointer-events: auto; z-index: 15;
+      transition: 0.1s; display: flex; align-items: center; justify-content: center;
     }
-    #settingsBtn:active {
-      transform: translateY(4px);
-      box-shadow: 0 1px 0 #b28b5c;
-    }
-    /* 视频播放弹窗 */
+    #settingsBtn:active { transform: translateY(4px); box-shadow: 0 1px 0 #b28b5c; }
+
     .video-modal {
-      position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.85);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      pointer-events: auto;
+      position: absolute; inset: 0; background: rgba(0, 0, 0, 0.85);
+      display: none; align-items: center; justify-content: center; z-index: 100; pointer-events: auto;
     }
-    .video-modal.active {
-      display: flex;
-    }
-    .video-modal video {
-      max-width: 90%;
-      max-height: 80%;
-      border-radius: 24px;
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-    }
+    .video-modal.active { display: flex; }
+    .video-modal video { max-width: 90%; max-height: 80%; border-radius: 24px; box-shadow: 0 0 40px rgba(0, 0, 0, 0.5); }
     .video-modal .close-video {
-      position: absolute;
-      top: 20px;
-      right: 30px;
-      font-size: 3rem;
-      color: #fff;
-      cursor: pointer;
-      background: none;
-      border: none;
-      font-weight: bold;
+      position: absolute; top: 20px; right: 30px; font-size: 3rem;
+      color: #fff; cursor: pointer; background: none; border: none; font-weight: bold;
     }
+    
     .toast {
-      position: absolute;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #4a2c1a;
-      color: #ffe8d4;
-      padding: 10px 28px;
-      border-radius: 40px;
-      font-size: 1rem;
-      z-index: 200;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.4s;
-      white-space: nowrap;
-      box-shadow: 0 6px 0 #1f120a;
+      position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+      background: #4a2c1a; color: #ffe8d4; padding: 10px 28px; border-radius: 40px;
+      font-size: 1rem; z-index: 200; pointer-events: none; opacity: 0;
+      transition: opacity 0.4s; white-space: nowrap; box-shadow: 0 6px 0 #1f120a;
     }
-    .toast.show {
-      opacity: 1;
-    }
+    .toast.show { opacity: 1; }
   </style>
 </head>
 <body>
   <div id="app">
     <canvas id="sceneCanvas"></canvas>
 
-    <!-- UI 浮层 -->
     <div class="ui-layer">
-      <!-- 设置按钮 -->
       <button id="settingsBtn" title="设置">⚙️</button>
 
       <!-- 河流相册面板 -->
@@ -628,7 +359,7 @@
             <button class="btn" id="saveSettingsBtn">💾 保存设置</button>
             <button class="btn danger" id="clearDataBtn">🗑️ 清空所有数据</button>
           </div>
-          <div class="hint-text">数据保存在本浏览器中（IndexedDB + localStorage），清除浏览器数据会一并丢失</div>
+          <div class="hint-text">数据保存在本浏览器中（IndexedDB + localStorage）</div>
         </div>
       </div>
 
@@ -645,9 +376,9 @@
   <script>
     // ==================== 全局数据 ====================
     const state = {
-      photos: [],              // { id, url, name }
+      photos: [],              
       photoCapacity: 1000,
-      videos: [],              // { id, url, name }
+      videos: [],              
       pets: [
         { id: 'cat1', name: '咪咪', kind: 'cat', emoji: '🐱', affinityMale: 30, affinityFemale: 55 },
         { id: 'dog1', name: '旺财', kind: 'dog', emoji: '🐶', affinityMale: 60, affinityFemale: 20 }
@@ -655,15 +386,10 @@
       room: {
         currentRoom: 'living',
         currentStyle: 'modern',
-        furniture: {
-          living: [],
-          bedroom: [],
-          bathroom: []
-        }
+        furniture: { living: [], bedroom: [], bathroom: [] }
       }
     };
 
-    // 家具库（按风格）
     const FURNITURE_LIB = {
       chinese: [
         { key: 'ch_sofa', name: '罗汉床', emoji: '🛋️' },
@@ -695,7 +421,6 @@
       ]
     };
 
-    // 各房间可用的基础家具（通用）
     const ROOM_FURNITURE = {
       living: ['🛋️', '🪑', '📺', '💡', '🪴', '🖼️', '🟫'],
       bedroom: ['🛏️', '🪑', '💡', '🪴', '🖼️', '🧸'],
@@ -834,22 +559,13 @@
       try {
         const photos = await dbGetAll('photos');
         photos.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-        state.photos = photos.map(p => ({
-          id: p.id,
-          name: p.name,
-          url: URL.createObjectURL(p.blob)
-        }));
+        state.photos = photos.map(p => ({ id: p.id, name: p.name, url: URL.createObjectURL(p.blob) }));
 
         const videos = await dbGetAll('videos');
         videos.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-        state.videos = videos.map(v => ({
-          id: v.id,
-          name: v.name,
-          url: URL.createObjectURL(v.blob)
-        }));
+        state.videos = videos.map(v => ({ id: v.id, name: v.name, url: URL.createObjectURL(v.blob) }));
       } catch (e) {
         console.warn('读取本地媒体失败', e);
-        toast('读取本地数据失败，请检查浏览器存储权限');
       }
     }
 
@@ -873,20 +589,17 @@
 
     async function initScene() {
       const PIXI = window.PIXI;
-      if (!PIXI) {
-        console.error('PixiJS 未加载');
-        return;
-      }
+      if (!PIXI) return;
 
-      // 关键修复：固定 1100x620 逻辑分辨率，由外层 CSS 自动缩放，保证点击精准且不拉伸
       app = new PIXI.Application({
         view: canvas,
-        width: 1100,
-        height: 620,
+        width: canvas.clientWidth || 1100,
+        height: canvas.clientHeight || 620,
         backgroundColor: 0xa7d8e8,
         antialias: true,
         resolution: window.devicePixelRatio || 1,
-        autoDensity: true
+        autoDensity: true,
+        resizeTo: canvas.parentElement // 核心：让画布跟随容器自适应缩放
       });
 
       sceneRoot = new PIXI.Container();
@@ -899,12 +612,16 @@
       buildRiver();
       buildCoupleAndPets();
 
-      app.ticker.add((delta) => {
-        animateScene(delta);
+      app.ticker.add((delta) => { animateScene(delta); });
+
+      window.addEventListener('resize', () => {
+        if (app) {
+          app.renderer.resize(canvas.clientWidth, canvas.clientHeight);
+          rebuildLayout();
+        }
       });
     }
 
-    // ==================== 场景绘制 ====================
     function buildSky() {
       const PIXI = window.PIXI;
       const sky = new PIXI.Graphics();
@@ -914,9 +631,7 @@
 
       const cloud1 = new PIXI.Graphics();
       cloud1.beginFill(0xffffff, 0.85);
-      cloud1.drawEllipse(0, 0, 60, 28);
-      cloud1.drawEllipse(50, -10, 45, 22);
-      cloud1.drawEllipse(-45, -5, 40, 20);
+      cloud1.drawEllipse(0, 0, 60, 28); cloud1.drawEllipse(50, -10, 45, 22); cloud1.drawEllipse(-45, -5, 40, 20);
       cloud1.endFill();
       cloud1.position.set(app.screen.width * 0.2, app.screen.height * 0.1);
       sceneRoot.addChild(sky, cloud1);
@@ -924,9 +639,7 @@
 
       const cloud2 = new PIXI.Graphics();
       cloud2.beginFill(0xffffff, 0.75);
-      cloud2.drawEllipse(0, 0, 50, 22);
-      cloud2.drawEllipse(38, -8, 38, 18);
-      cloud2.drawEllipse(-38, -4, 34, 16);
+      cloud2.drawEllipse(0, 0, 50, 22); cloud2.drawEllipse(38, -8, 38, 18); cloud2.drawEllipse(-38, -4, 34, 16);
       cloud2.endFill();
       cloud2.position.set(app.screen.width * 0.7, app.screen.height * 0.15);
       sceneRoot.addChild(cloud2);
@@ -934,8 +647,7 @@
 
       const cloud3 = new PIXI.Graphics();
       cloud3.beginFill(0xffffff, 0.7);
-      cloud3.drawEllipse(0, 0, 44, 20);
-      cloud3.drawEllipse(32, -6, 32, 15);
+      cloud3.drawEllipse(0, 0, 44, 20); cloud3.drawEllipse(32, -6, 32, 15);
       cloud3.endFill();
       cloud3.position.set(app.screen.width * 0.5, app.screen.height * 0.06);
       sceneRoot.addChild(cloud3);
@@ -944,47 +656,22 @@
 
     function buildMountains() {
       const PIXI = window.PIXI;
-      const W = app.screen.width;
-      const H = app.screen.height;
+      const W = app.screen.width, H = app.screen.height;
       const mtn = new PIXI.Graphics();
       mtn.beginFill(0x8fb8a8);
-      mtn.moveTo(0, H * 0.55);
-      mtn.lineTo(W * 0.12, H * 0.32);
-      mtn.lineTo(W * 0.28, H * 0.5);
-      mtn.lineTo(W * 0.42, H * 0.26);
-      mtn.lineTo(W * 0.58, H * 0.48);
-      mtn.lineTo(W * 0.72, H * 0.3);
-      mtn.lineTo(W * 0.88, H * 0.46);
-      mtn.lineTo(W, H * 0.35);
-      mtn.lineTo(W, H * 0.58);
-      mtn.lineTo(0, H * 0.58);
-      mtn.closePath();
-      mtn.endFill();
-
+      mtn.moveTo(0, H * 0.55); mtn.lineTo(W * 0.12, H * 0.32); mtn.lineTo(W * 0.28, H * 0.5); mtn.lineTo(W * 0.42, H * 0.26); mtn.lineTo(W * 0.58, H * 0.48); mtn.lineTo(W * 0.72, H * 0.3); mtn.lineTo(W * 0.88, H * 0.46); mtn.lineTo(W, H * 0.35); mtn.lineTo(W, H * 0.58); mtn.lineTo(0, H * 0.58);
+      mtn.closePath(); mtn.endFill();
       mtn.beginFill(0x6a9e88);
-      mtn.moveTo(0, H * 0.6);
-      mtn.lineTo(W * 0.15, H * 0.42);
-      mtn.lineTo(W * 0.32, H * 0.58);
-      mtn.lineTo(W * 0.5, H * 0.4);
-      mtn.lineTo(W * 0.68, H * 0.56);
-      mtn.lineTo(W * 0.85, H * 0.44);
-      mtn.lineTo(W, H * 0.52);
-      mtn.lineTo(W, H * 0.62);
-      mtn.lineTo(0, H * 0.62);
-      mtn.closePath();
-      mtn.endFill();
+      mtn.moveTo(0, H * 0.6); mtn.lineTo(W * 0.15, H * 0.42); mtn.lineTo(W * 0.32, H * 0.58); mtn.lineTo(W * 0.5, H * 0.4); mtn.lineTo(W * 0.68, H * 0.56); mtn.lineTo(W * 0.85, H * 0.44); mtn.lineTo(W, H * 0.52); mtn.lineTo(W, H * 0.62); mtn.lineTo(0, H * 0.62);
+      mtn.closePath(); mtn.endFill();
       sceneRoot.addChild(mtn);
       sceneElements.mountains = mtn;
 
       const grass = new PIXI.Graphics();
-      grass.beginFill(0x8fbf6a);
-      grass.drawRect(0, H * 0.58, W, H * 0.42);
-      grass.endFill();
+      grass.beginFill(0x8fbf6a); grass.drawRect(0, H * 0.58, W, H * 0.42); grass.endFill();
       grass.beginFill(0x7aad57, 0.4);
       for (let i = 0; i < 30; i++) {
-        const gx = Math.random() * W;
-        const gy = H * 0.6 + Math.random() * H * 0.38;
-        grass.drawEllipse(gx, gy, 20 + Math.random() * 30, 8 + Math.random() * 12);
+        grass.drawEllipse(Math.random() * W, H * 0.6 + Math.random() * H * 0.38, 20 + Math.random() * 30, 8 + Math.random() * 12);
       }
       grass.endFill();
       sceneRoot.addChild(grass);
@@ -992,70 +679,32 @@
 
       const path = new PIXI.Graphics();
       path.beginFill(0xd9b382, 0.9);
-      path.moveTo(W * 0.32, H * 0.7);
-      path.quadraticCurveTo(W * 0.42, H * 0.78, W * 0.5, H * 0.95);
-      path.lineTo(W * 0.58, H * 0.95);
-      path.quadraticCurveTo(W * 0.5, H * 0.78, W * 0.38, H * 0.7);
-      path.closePath();
-      path.endFill();
+      path.moveTo(W * 0.32, H * 0.7); path.quadraticCurveTo(W * 0.42, H * 0.78, W * 0.5, H * 0.95); path.lineTo(W * 0.58, H * 0.95); path.quadraticCurveTo(W * 0.5, H * 0.78, W * 0.38, H * 0.7);
+      path.closePath(); path.endFill();
       sceneRoot.addChild(path);
       sceneElements.path = path;
     }
 
     function buildHouse() {
       const PIXI = window.PIXI;
-      const W = app.screen.width;
-      const H = app.screen.height;
+      const W = app.screen.width, H = app.screen.height;
       const house = new PIXI.Container();
 
       const body = new PIXI.Graphics();
-      body.beginFill(0xf2e0c0);
-      body.drawRoundedRect(-70, -30, 140, 100, 12);
-      body.endFill();
-      body.beginFill(0xc47a5a);
-      body.moveTo(-90, -30);
-      body.lineTo(0, -95);
-      body.lineTo(90, -30);
-      body.closePath();
-      body.endFill();
-      body.beginFill(0x9a5a3a);
-      body.drawRect(40, -90, 20, 45);
-      body.endFill();
-      body.beginFill(0x8b5a2b);
-      body.drawRoundedRect(-22, 20, 44, 60, 8);
-      body.endFill();
-      body.beginFill(0xf7c948);
-      body.drawCircle(12, 50, 4);
-      body.endFill();
-      body.beginFill(0xa7d8e8);
-      body.drawRoundedRect(-60, 0, 30, 28, 6);
-      body.drawRoundedRect(32, 0, 30, 28, 6);
-      body.endFill();
-      body.lineStyle(3, 0x8b5a2b);
-      body.moveTo(-45, 0);
-      body.lineTo(-45, 28);
-      body.moveTo(-60, 14);
-      body.lineTo(-30, 14);
-      body.moveTo(47, 0);
-      body.lineTo(47, 28);
-      body.moveTo(32, 14);
-      body.lineTo(62, 14);
-      body.lineStyle(0);
+      body.beginFill(0xf2e0c0); body.drawRoundedRect(-70, -30, 140, 100, 12); body.endFill();
+      body.beginFill(0xc47a5a); body.moveTo(-90, -30); body.lineTo(0, -95); body.lineTo(90, -30); body.closePath(); body.endFill();
+      body.beginFill(0x9a5a3a); body.drawRect(40, -90, 20, 45); body.endFill();
+      body.beginFill(0x8b5a2b); body.drawRoundedRect(-22, 20, 44, 60, 8); body.endFill();
+      body.beginFill(0xf7c948); body.drawCircle(12, 50, 4); body.endFill();
+      body.beginFill(0xa7d8e8); body.drawRoundedRect(-60, 0, 30, 28, 6); body.drawRoundedRect(32, 0, 30, 28, 6); body.endFill();
+      body.lineStyle(3, 0x8b5a2b); body.moveTo(-45, 0); body.lineTo(-45, 28); body.moveTo(-60, 14); body.lineTo(-30, 14); body.moveTo(47, 0); body.lineTo(47, 28); body.moveTo(32, 14); body.lineTo(62, 14); body.lineStyle(0);
 
       house.addChild(body);
       house.position.set(W * 0.68, H * 0.62);
-      house.eventMode = 'static';
-      house.cursor = 'pointer';
-      house.on('pointertap', () => {
-        openPanel('panel-house');
-        renderHousePanel();
-      });
+      house.eventMode = 'static'; house.cursor = 'pointer';
+      house.on('pointertap', () => { openPanel('panel-house'); renderHousePanel(); });
 
-      const label = createLabel('🏠 我们的家');
-      label.position.set(0, -110);
-      house.addChild(label);
-      house.label = label;
-
+      const label = createLabel('🏠 我们的家'); label.position.set(0, -110); house.addChild(label); house.label = label;
       sceneRoot.addChild(house);
       sceneElements.house = house;
       addHoverEffect(house);
@@ -1063,61 +712,27 @@
 
     function buildTree() {
       const PIXI = window.PIXI;
-      const W = app.screen.width;
-      const H = app.screen.height;
+      const W = app.screen.width, H = app.screen.height;
       const tree = new PIXI.Container();
 
       const trunk = new PIXI.Graphics();
-      trunk.beginFill(0x8b5a2b);
-      trunk.drawRoundedRect(-12, -10, 24, 70, 6);
-      trunk.endFill();
-      trunk.beginFill(0x8b5a2b);
-      trunk.moveTo(0, 10);
-      trunk.quadraticCurveTo(-25, -20, -40, -40);
-      trunk.quadraticCurveTo(-20, -20, 0, 0);
-      trunk.closePath();
-      trunk.endFill();
-      trunk.beginFill(0x8b5a2b);
-      trunk.moveTo(0, -5);
-      trunk.quadraticCurveTo(30, -30, 45, -50);
-      trunk.quadraticCurveTo(25, -25, 0, -15);
-      trunk.closePath();
-      trunk.endFill();
+      trunk.beginFill(0x8b5a2b); trunk.drawRoundedRect(-12, -10, 24, 70, 6); trunk.endFill();
+      trunk.beginFill(0x8b5a2b); trunk.moveTo(0, 10); trunk.quadraticCurveTo(-25, -20, -40, -40); trunk.quadraticCurveTo(-20, -20, 0, 0); trunk.closePath(); trunk.endFill();
+      trunk.beginFill(0x8b5a2b); trunk.moveTo(0, -5); trunk.quadraticCurveTo(30, -30, 45, -50); trunk.quadraticCurveTo(25, -25, 0, -15); trunk.closePath(); trunk.endFill();
 
       const canopy = new PIXI.Graphics();
       const greens = [0x5a9e4a, 0x4a8e3a, 0x6aae5a, 0x3a7e2a];
-      const circles = [
-        { x: 0, y: -70, r: 55 },
-        { x: -45, y: -50, r: 40 },
-        { x: 45, y: -50, r: 40 },
-        { x: -20, y: -100, r: 38 },
-        { x: 25, y: -95, r: 35 },
-        { x: 0, y: -40, r: 45 }
-      ];
-      circles.forEach((c, i) => {
-        canopy.beginFill(greens[i % greens.length]);
-        canopy.drawCircle(c.x, c.y, c.r);
-        canopy.endFill();
+      [{x:0,y:-70,r:55}, {x:-45,y:-50,r:40}, {x:45,y:-50,r:40}, {x:-20,y:-100,r:38}, {x:25,y:-95,r:35}, {x:0,y:-40,r:45}].forEach((c, i) => {
+        canopy.beginFill(greens[i % greens.length]); canopy.drawCircle(c.x, c.y, c.r); canopy.endFill();
       });
-      canopy.beginFill(0x8fcf6a, 0.5);
-      canopy.drawCircle(-15, -85, 20);
-      canopy.drawCircle(20, -95, 14);
-      canopy.endFill();
+      canopy.beginFill(0x8fcf6a, 0.5); canopy.drawCircle(-15, -85, 20); canopy.drawCircle(20, -95, 14); canopy.endFill();
 
       tree.addChild(trunk, canopy);
       tree.position.set(W * 0.2, H * 0.7);
-      tree.eventMode = 'static';
-      tree.cursor = 'pointer';
-      tree.on('pointertap', () => {
-        openPanel('panel-tree');
-        renderTreePanel();
-      });
+      tree.eventMode = 'static'; tree.cursor = 'pointer';
+      tree.on('pointertap', () => { openPanel('panel-tree'); renderTreePanel(); });
 
-      const label = createLabel('🌳 我们的树');
-      label.position.set(0, -160);
-      tree.addChild(label);
-      tree.label = label;
-
+      const label = createLabel('🌳 我们的树'); label.position.set(0, -160); tree.addChild(label); tree.label = label;
       sceneRoot.addChild(tree);
       sceneElements.tree = tree;
       treeContainer = tree;
@@ -1126,8 +741,7 @@
 
     function buildRiver() {
       const PIXI = window.PIXI;
-      const W = app.screen.width;
-      const H = app.screen.height;
+      const W = app.screen.width, H = app.screen.height;
       const riverContainer = new PIXI.Container();
 
       const river = new PIXI.Graphics();
@@ -1135,25 +749,14 @@
         river.clear();
         river.beginFill(0x4a9ec8, 0.85);
         river.moveTo(W * -0.02, H * 0.75);
-        for (let i = 0; i <= 20; i++) {
-          const t = i / 20;
-          const p = riverPoint(t);
-          river.lineTo(W * p.x, H * p.y - 30);
-        }
-        for (let i = 20; i >= 0; i--) {
-          const t = i / 20;
-          const p = riverPoint(t);
-          river.lineTo(W * p.x, H * p.y + 30);
-        }
-        river.closePath();
-        river.endFill();
+        for (let i = 0; i <= 20; i++) { const t = i / 20; const p = riverPoint(t); river.lineTo(W * p.x, H * p.y - 30); }
+        for (let i = 20; i >= 0; i--) { const t = i / 20; const p = riverPoint(t); river.lineTo(W * p.x, H * p.y + 30); }
+        river.closePath(); river.endFill();
         river.lineStyle(2, 0x8fd4f0, 0.6);
         for (let i = 0; i <= 20; i++) {
-          const t = i / 20;
-          const p = riverPoint(t);
+          const t = i / 20; const p = riverPoint(t);
           const wave = Math.sin(i * 1.7 + flowOffset * 3) * 6;
-          river.moveTo(W * p.x, H * p.y + wave);
-          river.lineTo(W * (t + 0.03), H * riverPoint(Math.min(t + 0.03, 1)).y + wave + 2);
+          river.moveTo(W * p.x, H * p.y + wave); river.lineTo(W * (t + 0.03), H * riverPoint(Math.min(t + 0.03, 1)).y + wave + 2);
         }
         river.lineStyle(0);
       };
@@ -1162,179 +765,73 @@
       sceneElements.drawRiver = drawRiver;
 
       const hitArea = new PIXI.Graphics();
-      hitArea.beginFill(0xffffff, 0.001);
-      hitArea.drawRect(0, H * 0.6, W, H * 0.35);
-      hitArea.endFill();
-      hitArea.eventMode = 'static';
-      hitArea.cursor = 'pointer';
-      hitArea.on('pointertap', () => {
-        openPanel('panel-river');
-        renderRiverPanel();
-      });
+      hitArea.beginFill(0xffffff, 0.001); hitArea.drawRect(0, H * 0.6, W, H * 0.35); hitArea.endFill();
+      hitArea.eventMode = 'static'; hitArea.cursor = 'pointer';
+      hitArea.on('pointertap', () => { openPanel('panel-river'); renderRiverPanel(); });
       riverContainer.addChild(hitArea);
 
-      const flowContainer = new PIXI.Container();
-      riverContainer.addChild(flowContainer);
-      sceneElements.flowContainer = flowContainer;
-
-      const heartContainer = new PIXI.Container();
-      riverContainer.addChild(heartContainer);
-      sceneElements.heartContainer = heartContainer;
+      const flowContainer = new PIXI.Container(); riverContainer.addChild(flowContainer); sceneElements.flowContainer = flowContainer;
+      const heartContainer = new PIXI.Container(); riverContainer.addChild(heartContainer); sceneElements.heartContainer = heartContainer;
 
       sceneRoot.addChild(riverContainer);
-
-      const label = createLabel('🌊 回忆之河');
-      label.position.set(W * 0.5, H * 0.68);
-      sceneRoot.addChild(label);
-      sceneElements.riverLabel = label;
+      const label = createLabel('🌊 回忆之河'); label.position.set(W * 0.5, H * 0.68); sceneRoot.addChild(label); sceneElements.riverLabel = label;
     }
 
     function buildCoupleAndPets() {
       const PIXI = window.PIXI;
-      const W = app.screen.width;
-      const H = app.screen.height;
+      const W = app.screen.width, H = app.screen.height;
 
-      // 男生
       const boy = new PIXI.Container();
       const boyBody = new PIXI.Graphics();
-      boyBody.beginFill(0x4a6a9e);
-      boyBody.drawRoundedRect(-12, 20, 10, 30, 4);
-      boyBody.drawRoundedRect(2, 20, 10, 30, 4);
-      boyBody.endFill();
-      boyBody.beginFill(0x5a8ac8);
-      boyBody.drawRoundedRect(-16, -10, 32, 35, 8);
-      boyBody.endFill();
-      boyBody.beginFill(0xffe0c0);
-      boyBody.drawCircle(0, -25, 16);
-      boyBody.endFill();
-      boyBody.beginFill(0x3a2a1a);
-      boyBody.drawCircle(0, -32, 16);
-      boyBody.drawRect(-16, -32, 32, 10);
-      boyBody.endFill();
-      boyBody.beginFill(0x2a1a0a);
-      boyBody.drawCircle(-5, -26, 2.5);
-      boyBody.drawCircle(5, -26, 2.5);
-      boyBody.endFill();
-      boyBody.lineStyle(2, 0x8b5a2b);
-      boyBody.arc(0, -20, 5, 0, Math.PI);
-      boyBody.lineStyle(0);
-      boy.addChild(boyBody);
-      boy.position.set(W * 0.42, H * 0.78);
-      sceneRoot.addChild(boy);
-      sceneElements.boy = boy;
+      boyBody.beginFill(0x4a6a9e); boyBody.drawRoundedRect(-12, 20, 10, 30, 4); boyBody.drawRoundedRect(2, 20, 10, 30, 4); boyBody.endFill();
+      boyBody.beginFill(0x5a8ac8); boyBody.drawRoundedRect(-16, -10, 32, 35, 8); boyBody.endFill();
+      boyBody.beginFill(0xffe0c0); boyBody.drawCircle(0, -25, 16); boyBody.endFill();
+      boyBody.beginFill(0x3a2a1a); boyBody.drawCircle(0, -32, 16); boyBody.drawRect(-16, -32, 32, 10); boyBody.endFill();
+      boyBody.beginFill(0x2a1a0a); boyBody.drawCircle(-5, -26, 2.5); boyBody.drawCircle(5, -26, 2.5); boyBody.endFill();
+      boyBody.lineStyle(2, 0x8b5a2b); boyBody.arc(0, -20, 5, 0, Math.PI); boyBody.lineStyle(0);
+      boy.addChild(boyBody); boy.position.set(W * 0.42, H * 0.78);
+      sceneRoot.addChild(boy); sceneElements.boy = boy;
 
-      // 女生
       const girl = new PIXI.Container();
       const girlBody = new PIXI.Graphics();
-      girlBody.beginFill(0xd97a8a);
-      girlBody.drawRoundedRect(-12, 20, 10, 30, 4);
-      girlBody.drawRoundedRect(2, 20, 10, 30, 4);
-      girlBody.endFill();
-      girlBody.beginFill(0xf4a3b0);
-      girlBody.drawRoundedRect(-16, -10, 32, 35, 8);
-      girlBody.endFill();
-      girlBody.beginFill(0xffe0c0);
-      girlBody.drawCircle(0, -25, 16);
-      girlBody.endFill();
-      girlBody.beginFill(0x6a3a1a);
-      girlBody.drawCircle(0, -32, 17);
-      girlBody.drawRoundedRect(-18, -32, 36, 20, 8);
-      girlBody.drawCircle(-14, -20, 8);
-      girlBody.drawCircle(14, -20, 8);
-      girlBody.endFill();
-      girlBody.beginFill(0x2a1a0a);
-      girlBody.drawCircle(-5, -26, 2.5);
-      girlBody.drawCircle(5, -26, 2.5);
-      girlBody.endFill();
-      girlBody.lineStyle(2, 0x8b5a2b);
-      girlBody.arc(0, -20, 5, 0, Math.PI);
-      girlBody.lineStyle(0);
-      girlBody.beginFill(0xf4a3a3, 0.5);
-      girlBody.drawCircle(-11, -22, 3);
-      girlBody.drawCircle(11, -22, 3);
-      girlBody.endFill();
-      girl.addChild(girlBody);
-      girl.position.set(W * 0.52, H * 0.78);
-      sceneRoot.addChild(girl);
-      sceneElements.girl = girl;
+      girlBody.beginFill(0xd97a8a); girlBody.drawRoundedRect(-12, 20, 10, 30, 4); girlBody.drawRoundedRect(2, 20, 10, 30, 4); girlBody.endFill();
+      girlBody.beginFill(0xf4a3b0); girlBody.drawRoundedRect(-16, -10, 32, 35, 8); girlBody.endFill();
+      girlBody.beginFill(0xffe0c0); girlBody.drawCircle(0, -25, 16); girlBody.endFill();
+      girlBody.beginFill(0x6a3a1a); girlBody.drawCircle(0, -32, 17); girlBody.drawRoundedRect(-18, -32, 36, 20, 8); girlBody.drawCircle(-14, -20, 8); girlBody.drawCircle(14, -20, 8); girlBody.endFill();
+      girlBody.beginFill(0x2a1a0a); girlBody.drawCircle(-5, -26, 2.5); girlBody.drawCircle(5, -26, 2.5); girlBody.endFill();
+      girlBody.lineStyle(2, 0x8b5a2b); girlBody.arc(0, -20, 5, 0, Math.PI); girlBody.lineStyle(0);
+      girlBody.beginFill(0xf4a3a3, 0.5); girlBody.drawCircle(-11, -22, 3); girlBody.drawCircle(11, -22, 3); girlBody.endFill();
+      girl.addChild(girlBody); girl.position.set(W * 0.52, H * 0.78);
+      sceneRoot.addChild(girl); sceneElements.girl = girl;
 
-      // 宠物猫
       const cat = new PIXI.Container();
       const catBody = new PIXI.Graphics();
-      catBody.beginFill(0xf5a623);
-      catBody.drawEllipse(0, 0, 22, 16);
-      catBody.drawCircle(-14, -8, 12);
-      catBody.endFill();
-      catBody.beginFill(0xf5a623);
-      catBody.moveTo(-24, -16);
-      catBody.lineTo(-20, -28);
-      catBody.lineTo(-14, -18);
-      catBody.closePath();
-      catBody.moveTo(-8, -18);
-      catBody.lineTo(-4, -28);
-      catBody.lineTo(2, -16);
-      catBody.closePath();
-      catBody.endFill();
-      catBody.beginFill(0x2a1a0a);
-      catBody.drawCircle(-17, -10, 2);
-      catBody.drawCircle(-10, -10, 2);
-      catBody.endFill();
-      catBody.beginFill(0xf06a6a);
-      catBody.drawCircle(-13.5, -5, 1.5);
-      catBody.endFill();
-      catBody.lineStyle(4, 0xf5a623);
-      catBody.arc(20, -5, 14, 0.2, Math.PI * 0.9);
-      catBody.lineStyle(0);
-      cat.addChild(catBody);
-      cat.position.set(W * 0.6, H * 0.85);
-      cat.eventMode = 'static';
-      cat.cursor = 'pointer';
-      cat.on('pointertap', () => {
-        openPanel('panel-pet');
-        renderPetPanel();
-      });
-      sceneRoot.addChild(cat);
-      sceneElements.cat = cat;
-      petSprites.cat1 = cat;
+      catBody.beginFill(0xf5a623); catBody.drawEllipse(0, 0, 22, 16); catBody.drawCircle(-14, -8, 12); catBody.endFill();
+      catBody.beginFill(0xf5a623); catBody.moveTo(-24, -16); catBody.lineTo(-20, -28); catBody.lineTo(-14, -18); catBody.closePath(); catBody.moveTo(-8, -18); catBody.lineTo(-4, -28); catBody.lineTo(2, -16); catBody.closePath(); catBody.endFill();
+      catBody.beginFill(0x2a1a0a); catBody.drawCircle(-17, -10, 2); catBody.drawCircle(-10, -10, 2); catBody.endFill();
+      catBody.beginFill(0xf06a6a); catBody.drawCircle(-13.5, -5, 1.5); catBody.endFill();
+      catBody.lineStyle(4, 0xf5a623); catBody.arc(20, -5, 14, 0.2, Math.PI * 0.9); catBody.lineStyle(0);
+      cat.addChild(catBody); cat.position.set(W * 0.6, H * 0.85);
+      cat.eventMode = 'static'; cat.cursor = 'pointer';
+      cat.on('pointertap', () => { openPanel('panel-pet'); renderPetPanel(); });
+      sceneRoot.addChild(cat); sceneElements.cat = cat; petSprites.cat1 = cat;
 
-      // 宠物狗
       const dog = new PIXI.Container();
       const dogBody = new PIXI.Graphics();
-      dogBody.beginFill(0xa0724a);
-      dogBody.drawEllipse(0, 0, 24, 18);
-      dogBody.drawCircle(-16, -10, 13);
-      dogBody.endFill();
-      dogBody.beginFill(0x7a5a32);
-      dogBody.drawEllipse(-24, -18, 8, 12);
-      dogBody.drawEllipse(-8, -20, 7, 11);
-      dogBody.endFill();
-      dogBody.beginFill(0x2a1a0a);
-      dogBody.drawCircle(-20, -12, 2.2);
-      dogBody.drawCircle(-12, -12, 2.2);
-      dogBody.endFill();
-      dogBody.beginFill(0x2a1a0a);
-      dogBody.drawCircle(-16, -6, 2.5);
-      dogBody.endFill();
-      dogBody.lineStyle(4, 0xa0724a);
-      dogBody.arc(22, -8, 14, 0.1, Math.PI * 0.8);
-      dogBody.lineStyle(0);
-      dog.addChild(dogBody);
-      dog.position.set(W * 0.35, H * 0.85);
-      dog.eventMode = 'static';
-      dog.cursor = 'pointer';
-      dog.on('pointertap', () => {
-        openPanel('panel-pet');
-        renderPetPanel();
-      });
-      sceneRoot.addChild(dog);
-      sceneElements.dog = dog;
-      petSprites.dog1 = dog;
+      dogBody.beginFill(0xa0724a); dogBody.drawEllipse(0, 0, 24, 18); dogBody.drawCircle(-16, -10, 13); dogBody.endFill();
+      dogBody.beginFill(0x7a5a32); dogBody.drawEllipse(-24, -18, 8, 12); dogBody.drawEllipse(-8, -20, 7, 11); dogBody.endFill();
+      dogBody.beginFill(0x2a1a0a); dogBody.drawCircle(-20, -12, 2.2); dogBody.drawCircle(-12, -12, 2.2); dogBody.endFill();
+      dogBody.beginFill(0x2a1a0a); dogBody.drawCircle(-16, -6, 2.5); dogBody.endFill();
+      dogBody.lineStyle(4, 0xa0724a); dogBody.arc(22, -8, 14, 0.1, Math.PI * 0.8); dogBody.lineStyle(0);
+      dog.addChild(dogBody); dog.position.set(W * 0.35, H * 0.85);
+      dog.eventMode = 'static'; dog.cursor = 'pointer';
+      dog.on('pointertap', () => { openPanel('panel-pet'); renderPetPanel(); });
+      sceneRoot.addChild(dog); sceneElements.dog = dog; petSprites.dog1 = dog;
 
       for (let i = 0; i < 4; i++) {
         const heart = createHeartSprite();
         heart.position.set(W * (0.44 + i * 0.03), H * (0.7 - i * 0.02));
-        heart.alpha = 0.3;
-        heart.scale.set(0.6);
+        heart.alpha = 0.3; heart.scale.set(0.6);
         sceneRoot.addChild(heart);
       }
     }
@@ -1344,11 +841,8 @@
       const g = new PIXI.Graphics();
       g.beginFill(0xf06a8a);
       const s = 8 * size;
-      g.moveTo(0, s * 0.4);
-      g.bezierCurveTo(-s, -s * 0.4, -s * 1.2, s * 0.8, 0, s * 1.6);
-      g.bezierCurveTo(s * 1.2, s * 0.8, s, -s * 0.4, 0, s * 0.4);
-      g.endFill();
-      return g;
+      g.moveTo(0, s * 0.4); g.bezierCurveTo(-s, -s * 0.4, -s * 1.2, s * 0.8, 0, s * 1.6); g.bezierCurveTo(s * 1.2, s * 0.8, s, -s * 0.4, 0, s * 0.4);
+      g.endFill(); return g;
     }
 
     function createHeartTexture() {
@@ -1360,51 +854,42 @@
     function createLabel(text, fontSize = 18) {
       const PIXI = window.PIXI;
       const style = new PIXI.TextStyle({
-        fontFamily: 'Comic Sans MS, Microsoft YaHei, sans-serif',
-        fontSize: fontSize,
-        fill: 0x4a2c1a,
-        stroke: 0xfff7ec,
-        strokeThickness: 5,
-        fontWeight: 'bold'
+        fontFamily: 'Comic Sans MS, Microsoft YaHei, sans-serif', fontSize: fontSize,
+        fill: 0x4a2c1a, stroke: 0xfff7ec, strokeThickness: 5, fontWeight: 'bold'
       });
-      const t = new PIXI.Text(text, style);
-      t.anchor.set(0.5);
-      return t;
+      const t = new PIXI.Text(text, style); t.anchor.set(0.5); return t;
     }
 
     function addHoverEffect(container) {
-      container.on('pointerover', () => {
-        container.scale.set(1.04);
-        if (container.label) container.label.alpha = 1;
-      });
-      container.on('pointerout', () => {
-        container.scale.set(1);
-        if (container.label) container.label.alpha = 0.85;
-      });
+      container.on('pointerover', () => { container.scale.set(1.04); if (container.label) container.label.alpha = 1; });
+      container.on('pointerout', () => { container.scale.set(1); if (container.label) container.label.alpha = 0.85; });
     }
 
-    // ==================== 河流照片流 ====================
+    function rebuildLayout() {
+      const W = app.screen.width, H = app.screen.height;
+      if (sceneElements.house) sceneElements.house.position.set(W * 0.68, H * 0.62);
+      if (sceneElements.tree) sceneElements.tree.position.set(W * 0.2, H * 0.7);
+      if (sceneElements.boy) sceneElements.boy.position.set(W * 0.42, H * 0.78);
+      if (sceneElements.girl) sceneElements.girl.position.set(W * 0.52, H * 0.78);
+      if (sceneElements.cat) sceneElements.cat.position.set(W * 0.6, H * 0.85);
+      if (sceneElements.dog) sceneElements.dog.position.set(W * 0.35, H * 0.85);
+      if (sceneElements.riverLabel) sceneElements.riverLabel.position.set(W * 0.5, H * 0.68);
+    }
+
     function initPhotoFlow() {
       const PIXI = window.PIXI;
       if (!sceneElements.flowContainer || !heartTexture) return;
-
-      const old = sceneElements.flowContainer.removeChildren();
-      old.forEach(c => c.destroy());
+      const old = sceneElements.flowContainer.removeChildren(); old.forEach(c => c.destroy());
       photoSprites = [];
 
-      const count = 10;
-      for (let i = 0; i < count; i++) {
+      for (let i = 0; i < 10; i++) {
         const sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
         sprite.anchor.set(0.5);
-        sprite._t = i / count;
-        sprite._speed = 0.0010 + Math.random() * 0.0009;
-        sprite._yOffset = (Math.random() - 0.5) * 26;
-        sprite._slot = i;
-        sprite._currentId = null;
-        sprite._targetW = 70;
+        sprite._t = i / 10; sprite._speed = 0.0010 + Math.random() * 0.0009;
+        sprite._yOffset = (Math.random() - 0.5) * 26; sprite._slot = i;
+        sprite._currentId = null; sprite._targetW = 70;
         assignSpriteTexture(sprite);
-        sceneElements.flowContainer.addChild(sprite);
-        photoSprites.push(sprite);
+        sceneElements.flowContainer.addChild(sprite); photoSprites.push(sprite);
       }
     }
 
@@ -1413,77 +898,44 @@
       if (state.photos.length > 0) {
         const photo = state.photos[sprite._slot % state.photos.length];
         if (sprite._currentId !== photo.id) {
-          try {
-            sprite.texture = PIXI.Texture.from(photo.url);
-          } catch (e) {
-            sprite.texture = PIXI.Texture.WHITE;
-          }
-          sprite._currentId = photo.id;
-          sprite._targetW = 76;
+          try { sprite.texture = PIXI.Texture.from(photo.url); } catch (e) { sprite.texture = PIXI.Texture.WHITE; }
+          sprite._currentId = photo.id; sprite._targetW = 76;
         }
       } else {
         if (sprite._currentId !== '__heart__') {
-          sprite.texture = heartTexture;
-          sprite._currentId = '__heart__';
-          sprite._targetW = 36;
+          sprite.texture = heartTexture; sprite._currentId = '__heart__'; sprite._targetW = 36;
         }
       }
     }
 
-    // ==================== 场景动画 ====================
     function animateScene(delta) {
-      const W = app.screen.width;
-      const H = app.screen.height;
+      const W = app.screen.width, H = app.screen.height;
       flowOffset += 0.008 * delta;
 
-      if (sceneElements.cloud1) {
-        sceneElements.cloud1.x += 0.15 * delta;
-        if (sceneElements.cloud1.x > W + 100) sceneElements.cloud1.x = -100;
-      }
-      if (sceneElements.cloud2) {
-        sceneElements.cloud2.x += 0.1 * delta;
-        if (sceneElements.cloud2.x > W + 100) sceneElements.cloud2.x = -100;
-      }
-      if (sceneElements.cloud3) {
-        sceneElements.cloud3.x += 0.12 * delta;
-        if (sceneElements.cloud3.x > W + 100) sceneElements.cloud3.x = -100;
-      }
-
+      if (sceneElements.cloud1) { sceneElements.cloud1.x += 0.15 * delta; if (sceneElements.cloud1.x > W + 100) sceneElements.cloud1.x = -100; }
+      if (sceneElements.cloud2) { sceneElements.cloud2.x += 0.1 * delta; if (sceneElements.cloud2.x > W + 100) sceneElements.cloud2.x = -100; }
+      if (sceneElements.cloud3) { sceneElements.cloud3.x += 0.12 * delta; if (sceneElements.cloud3.x > W + 100) sceneElements.cloud3.x = -100; }
       if (sceneElements.drawRiver) sceneElements.drawRiver();
 
       if (sceneElements.flowContainer) {
         sceneElements.flowContainer.children.forEach((sprite) => {
           sprite._t += sprite._speed * delta;
-          if (sprite._t > 1.05) {
-            sprite._t = -0.05;
-            assignSpriteTexture(sprite);
-          }
+          if (sprite._t > 1.05) { sprite._t = -0.05; assignSpriteTexture(sprite); }
           const p = riverPoint(Math.min(Math.max(sprite._t, 0), 1));
-          sprite.x = W * p.x;
-          sprite.y = H * p.y + sprite._yOffset;
-
+          sprite.x = W * p.x; sprite.y = H * p.y + sprite._yOffset;
           const depth = 0.55 + Math.sin(Math.max(0, Math.min(1, sprite._t)) * Math.PI) * 0.55;
           const texW = sprite.texture.width || 70;
           const base = (sprite._targetW || 70) / texW;
-          sprite.scale.set(base * depth);
-          sprite.alpha = 0.55 + depth * 0.4;
+          sprite.scale.set(base * depth); sprite.alpha = 0.55 + depth * 0.4;
         });
       }
 
-      if (sceneElements.heartContainer && state.photos.length === 0) {
-        if (Math.random() < 0.03) spawnHeartParticle();
-      }
+      if (sceneElements.heartContainer && state.photos.length === 0) { if (Math.random() < 0.03) spawnHeartParticle(); }
       if (sceneElements.heartContainer) {
         const hc = sceneElements.heartContainer;
         for (let i = hc.children.length - 1; i >= 0; i--) {
-          const h = hc.children[i];
-          h.y -= 0.6 * delta;
-          h.alpha -= 0.008 * delta;
-          h.rotation += 0.02 * delta;
-          if (h.alpha <= 0) {
-            hc.removeChild(h);
-            h.destroy();
-          }
+          const h = hc.children[i]; h.y -= 0.6 * delta; h.alpha -= 0.008 * delta; h.rotation += 0.02 * delta;
+          if (h.alpha <= 0) { hc.removeChild(h); h.destroy(); }
         }
       }
 
@@ -1494,13 +946,11 @@
 
     function spawnHeartParticle() {
       if (!sceneElements.heartContainer) return;
-      const W = app.screen.width;
-      const H = app.screen.height;
+      const W = app.screen.width, H = app.screen.height;
       const heart = createHeartSprite(0.8 + Math.random() * 0.5);
       const p = riverPoint(Math.random());
       heart.position.set(W * p.x + (Math.random() - 0.5) * 100, H * p.y + (Math.random() - 0.5) * 30);
-      heart.alpha = 0.8;
-      heart.rotation = Math.random() * Math.PI;
+      heart.alpha = 0.8; heart.rotation = Math.random() * Math.PI;
       sceneElements.heartContainer.addChild(heart);
     }
 
@@ -1518,14 +968,11 @@
           const div = document.createElement('div');
           div.className = 'photo-card';
           div.style.backgroundImage = `url(${photo.url})`;
-          div.style.backgroundSize = 'cover';
-          div.style.backgroundPosition = 'center';
+          div.style.backgroundSize = 'cover'; div.style.backgroundPosition = 'center';
           div.title = photo.name;
           div.addEventListener('click', async (e) => {
             e.stopPropagation();
-            if (confirm('删除这张照片？')) {
-              await deletePhoto(idx);
-            }
+            if (confirm('删除这张照片？')) await deletePhoto(idx);
           });
           flow.appendChild(div);
         });
@@ -1536,46 +983,30 @@
       const list = files.filter(f => f.type.startsWith('image/'));
       if (list.length === 0) return;
       const remaining = state.photoCapacity - state.photos.length;
-      if (list.length > remaining) {
-        toast(`容量不足！最多还能上传 ${remaining} 张`);
-        return;
-      }
+      if (list.length > remaining) { toast(`容量不足！最多还能上传 ${remaining} 张`); return; }
       for (const file of list) {
         const id = 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2);
         const record = { id, name: file.name, blob: file, createdAt: Date.now() };
-        try {
-          await dbPut('photos', record);
-        } catch (err) {
-          console.warn('保存照片失败', err);
-          toast('保存照片失败，存储空间可能不足');
-          continue;
-        }
+        try { await dbPut('photos', record); } catch (err) { console.warn('保存照片失败', err); continue; }
         state.photos.push({ id, name: file.name, url: URL.createObjectURL(file) });
       }
-      renderRiverPanel();
-      initPhotoFlow();
-      toast(`上传了 ${list.length} 张照片 💕`);
+      renderRiverPanel(); initPhotoFlow(); toast(`上传了 ${list.length} 张照片 💕`);
     }
 
     async function deletePhoto(idx) {
       const photo = state.photos[idx];
       if (!photo) return;
-      try {
-        await dbDelete('photos', photo.id);
-      } catch (e) {}
+      try { await dbDelete('photos', photo.id); } catch (e) {}
       try {
         if (window.PIXI && PIXI.utils.TextureCache[photo.url]) {
           const tex = PIXI.utils.TextureCache[photo.url];
-          tex.destroy(true);
-          delete PIXI.utils.TextureCache[photo.url];
+          tex.destroy(true); delete PIXI.utils.TextureCache[photo.url];
         }
       } catch (e) {}
       URL.revokeObjectURL(photo.url);
       state.photos.splice(idx, 1);
       if (state.photoCapacity < state.photos.length) state.photoCapacity = state.photos.length;
-      renderRiverPanel();
-      initPhotoFlow();
-      toast('照片已删除');
+      renderRiverPanel(); initPhotoFlow(); toast('照片已删除');
     }
 
     // ==================== 果树面板 ====================
@@ -1589,16 +1020,10 @@
         grid.innerHTML = '<div style="color:#b28b5c; font-size:1.1rem; grid-column:1/-1; text-align:center; padding:20px;">🍎 还没有视频，上传第一个，树上就会结出第一个果子～</div>';
         return;
       }
-
       state.videos.forEach((video) => {
         const div = document.createElement('div');
-        div.className = 'fruit-item';
-        div.textContent = '🍎';
-        div.title = video.name;
-        div.addEventListener('click', (e) => {
-          e.stopPropagation();
-          playVideo(video.url);
-        });
+        div.className = 'fruit-item'; div.textContent = '🍎'; div.title = video.name;
+        div.addEventListener('click', (e) => { e.stopPropagation(); playVideo(video.url); });
         grid.appendChild(div);
       });
     }
@@ -1607,33 +1032,21 @@
       if (!file || !file.type.startsWith('video/')) return;
       const id = 'v_' + Date.now();
       const record = { id, name: file.name, blob: file, createdAt: Date.now() };
-      try {
-        await dbPut('videos', record);
-      } catch (err) {
-        console.warn('保存视频失败', err);
-        toast('保存视频失败，存储空间可能不足');
-        return;
-      }
+      try { await dbPut('videos', record); } catch (err) { console.warn('保存视频失败', err); toast('保存视频失败，存储空间可能不足'); return; }
       state.videos.push({ id, name: file.name, url: URL.createObjectURL(file) });
-      renderTreePanel();
-      addFruitVisual();
-      toast('果树结出了新的果子 🍎');
+      renderTreePanel(); addFruitVisual(); toast('果树结出了新的果子 🍎');
     }
 
     function playVideo(url) {
       const modal = document.getElementById('videoModal');
       const player = document.getElementById('videoPlayer');
-      player.src = url;
-      modal.classList.add('active');
-      player.play().catch(() => {});
+      player.src = url; modal.classList.add('active'); player.play().catch(() => {});
     }
 
     document.getElementById('closeVideoBtn').addEventListener('click', () => {
       const modal = document.getElementById('videoModal');
       const player = document.getElementById('videoPlayer');
-      player.pause();
-      player.src = '';
-      modal.classList.remove('active');
+      player.pause(); player.src = ''; modal.classList.remove('active');
     });
 
     document.getElementById('videoModal').addEventListener('click', (e) => {
@@ -1644,25 +1057,14 @@
       if (!treeContainer) return;
       const PIXI = window.PIXI;
       const fruit = new PIXI.Graphics();
-      fruit.beginFill(0xf06a4a);
-      fruit.drawCircle(0, 0, 8);
-      fruit.endFill();
-      fruit.beginFill(0x8b3a1a);
-      fruit.drawRect(-1, -10, 2, 5);
-      fruit.endFill();
-      const angle = Math.random() * Math.PI * 2;
-      const radius = 20 + Math.random() * 40;
+      fruit.beginFill(0xf06a4a); fruit.drawCircle(0, 0, 8); fruit.endFill();
+      fruit.beginFill(0x8b3a1a); fruit.drawRect(-1, -10, 2, 5); fruit.endFill();
+      const angle = Math.random() * Math.PI * 2; const radius = 20 + Math.random() * 40;
       fruit.position.set(Math.cos(angle) * radius, -70 + Math.sin(angle) * radius * 0.7);
-      treeContainer.addChild(fruit);
-      fruitSprites.push(fruit);
+      treeContainer.addChild(fruit); fruitSprites.push(fruit);
 
-      fruit.scale.set(0);
-      let s = 0;
-      const grow = () => {
-        s += 0.08;
-        fruit.scale.set(Math.min(1, s));
-        if (s < 1) requestAnimationFrame(grow);
-      };
+      fruit.scale.set(0); let s = 0;
+      const grow = () => { s += 0.08; fruit.scale.set(Math.min(1, s)); if (s < 1) requestAnimationFrame(grow); };
       grow();
     }
 
@@ -1672,7 +1074,6 @@
       pet: { base: 3, cooldown: 1000 },
       play: { base: 4, cooldown: 1500 }
     };
-
     const petCooldowns = {};
 
     function renderPetPanel() {
@@ -1703,9 +1104,7 @@
       });
 
       list.querySelectorAll('button[data-pet]').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          handlePetInteraction(btn.dataset.pet, btn.dataset.action, btn.dataset.target);
-        });
+        btn.addEventListener('click', () => { handlePetInteraction(btn.dataset.pet, btn.dataset.action, btn.dataset.target); });
       });
     }
 
@@ -1719,8 +1118,7 @@
 
       if (petCooldowns[cooldownKey] && now - petCooldowns[cooldownKey] < config.cooldown) {
         const remain = Math.ceil((config.cooldown - (now - petCooldowns[cooldownKey])) / 1000);
-        toast(`⏳ 冷却中，${remain}秒后再试`);
-        return;
+        toast(`⏳ 冷却中，${remain}秒后再试`); return;
       }
       petCooldowns[cooldownKey] = now;
 
@@ -1731,54 +1129,34 @@
       if (pet.kind === 'dog' && action === 'pet') bonus = 0.7;
 
       const delta = Math.round(config.base * bonus * (0.8 + Math.random() * 0.4));
-
-      if (target === 'male') {
-        pet.affinityMale = Math.min(100, pet.affinityMale + delta);
-      } else {
-        pet.affinityFemale = Math.min(100, pet.affinityFemale + delta);
-      }
+      if (target === 'male') { pet.affinityMale = Math.min(100, pet.affinityMale + delta); }
+      else { pet.affinityFemale = Math.min(100, pet.affinityFemale + delta); }
 
       const sprite = petSprites[petId];
-      if (sprite) {
-        sprite.scale.set(1.2);
-        setTimeout(() => sprite.scale.set(1), 200);
-      }
+      if (sprite) { sprite.scale.set(1.2); setTimeout(() => sprite.scale.set(1), 200); }
       showFloatingHeartAt(sprite);
 
-      savePets();
-      toast(`${pet.name} 好感度 +${delta} 💕`);
-      renderPetPanel();
+      savePets(); toast(`${pet.name} 好感度 +${delta} 💕`); renderPetPanel();
     }
 
     function showFloatingHeartAt(sprite) {
       if (!sprite || !app) return;
       const heart = createHeartSprite(1.2);
-      heart.position.copyFrom(sprite.position);
-      heart.y -= 40;
+      heart.position.copyFrom(sprite.position); heart.y -= 40;
       sceneRoot.addChild(heart);
       let t = 0;
       const animate = () => {
-        t += 0.03;
-        heart.y -= 1.5;
-        heart.alpha -= 0.02;
-        if (heart.alpha > 0 && t < 100) {
-          requestAnimationFrame(animate);
-        } else {
-          sceneRoot.removeChild(heart);
-          heart.destroy();
-        }
+        t += 0.03; heart.y -= 1.5; heart.alpha -= 0.02;
+        if (heart.alpha > 0 && t < 100) { requestAnimationFrame(animate); }
+        else { sceneRoot.removeChild(heart); heart.destroy(); }
       };
       animate();
     }
 
     // ==================== 房屋面板 ====================
     function renderHousePanel() {
-      document.querySelectorAll('.room-tab').forEach((tab) => {
-        tab.classList.toggle('active', tab.dataset.room === state.room.currentRoom);
-      });
-      document.querySelectorAll('.style-btn').forEach((btn) => {
-        btn.classList.toggle('active', btn.dataset.style === state.room.currentStyle);
-      });
+      document.querySelectorAll('.room-tab').forEach((tab) => { tab.classList.toggle('active', tab.dataset.room === state.room.currentRoom); });
+      document.querySelectorAll('.style-btn').forEach((btn) => { btn.classList.toggle('active', btn.dataset.style === state.room.currentStyle); });
       const bg = document.getElementById('roomBg');
       bg.className = 'room-bg ' + state.room.currentStyle;
 
@@ -1790,8 +1168,7 @@
         const el = document.createElement('div');
         el.className = 'placed-furniture';
         el.textContent = item.emoji;
-        el.style.left = item.x + '%';
-        el.style.top = item.y + '%';
+        el.style.left = item.x + '%'; el.style.top = item.y + '%';
         el.style.transform = `translate(-50%, -100%) rotate(${item.rotation || 0}deg) scale(${item.scale || 1})`;
         el.style.zIndex = item.zIndex || idx;
         el.dataset.idx = idx;
@@ -1801,19 +1178,15 @@
         el.addEventListener('dblclick', (e) => {
           e.stopPropagation();
           state.room.furniture[state.room.currentRoom].splice(idx, 1);
-          saveRoom();
-          renderHousePanel();
-          toast('家具已移除');
+          saveRoom(); renderHousePanel(); toast('家具已移除');
         });
       });
-
       renderFurniturePalette();
     }
 
     function renderFurniturePalette() {
       const palette = document.getElementById('furniturePalette');
       palette.innerHTML = '';
-
       const styleItems = FURNITURE_LIB[state.room.currentStyle] || [];
       styleItems.forEach((item) => {
         const btn = document.createElement('button');
@@ -1822,7 +1195,6 @@
         btn.addEventListener('click', () => addFurniture(item.emoji, item.name));
         palette.appendChild(btn);
       });
-
       const roomItems = ROOM_FURNITURE[state.room.currentRoom] || [];
       roomItems.forEach((emoji) => {
         const btn = document.createElement('button');
@@ -1835,55 +1207,29 @@
 
     function addFurniture(emoji, name) {
       const list = state.room.furniture[state.room.currentRoom];
-      list.push({
-        emoji: emoji,
-        name: name,
-        x: 20 + Math.random() * 60,
-        y: 30 + Math.random() * 50,
-        rotation: 0,
-        scale: 1,
-        zIndex: list.length
-      });
-      saveRoom();
-      renderHousePanel();
-      toast(`添加了 ${name}`);
+      list.push({ emoji: emoji, name: name, x: 20 + Math.random() * 60, y: 30 + Math.random() * 50, rotation: 0, scale: 1, zIndex: list.length });
+      saveRoom(); renderHousePanel(); toast(`添加了 ${name}`);
     }
 
     function makeDraggable(el, item, idx) {
-      let isDragging = false;
-      let startX, startY;
-      let origX, origY;
-
+      let isDragging = false, startX, startY, origX, origY;
       el.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        origX = item.x;
-        origY = item.y;
-        el.setPointerCapture(e.pointerId);
-        el.style.cursor = 'grabbing';
+        e.preventDefault(); e.stopPropagation();
+        isDragging = true; startX = e.clientX; startY = e.clientY; origX = item.x; origY = item.y;
+        el.setPointerCapture(e.pointerId); el.style.cursor = 'grabbing';
       });
-
       el.addEventListener('pointermove', (e) => {
         if (!isDragging) return;
         const wrap = document.getElementById('roomCanvasWrap');
         const rect = wrap.getBoundingClientRect();
-        const dx = ((e.clientX - startX) / rect.width) * 100;
-        const dy = ((e.clientY - startY) / rect.height) * 100;
-        item.x = Math.min(95, Math.max(5, origX + dx));
-        item.y = Math.min(95, Math.max(5, origY + dy));
-        el.style.left = item.x + '%';
-        el.style.top = item.y + '%';
+        item.x = Math.min(95, Math.max(5, origX + ((e.clientX - startX) / rect.width) * 100));
+        item.y = Math.min(95, Math.max(5, origY + ((e.clientY - startY) / rect.height) * 100));
+        el.style.left = item.x + '%'; el.style.top = item.y + '%';
       });
-
       el.addEventListener('pointerup', (e) => {
         if (!isDragging) return;
-        isDragging = false;
-        el.style.cursor = 'grab';
-        el.releasePointerCapture(e.pointerId);
-        saveRoom();
+        isDragging = false; el.style.cursor = 'grab';
+        el.releasePointerCapture(e.pointerId); saveRoom();
       });
     }
 
@@ -1895,15 +1241,10 @@
     }
 
     document.querySelectorAll('[data-close]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        document.getElementById(btn.dataset.close).classList.remove('active');
-      });
+      btn.addEventListener('click', () => { document.getElementById(btn.dataset.close).classList.remove('active'); });
     });
-
     document.querySelectorAll('.panel').forEach((panel) => {
-      panel.addEventListener('click', (e) => {
-        if (e.target === panel) panel.classList.remove('active');
-      });
+      panel.addEventListener('click', (e) => { if (e.target === panel) panel.classList.remove('active'); });
     });
 
     // ==================== 设置面板 ====================
@@ -1914,130 +1255,85 @@
       document.getElementById('setCdPlay').value = (PET_ACTIONS.play.cooldown / 1000).toFixed(1);
     }
 
-    document.getElementById('settingsBtn').addEventListener('click', () => {
-      openPanel('panel-settings');
-    });
+    document.getElementById('settingsBtn').addEventListener('click', () => { openPanel('panel-settings'); });
 
     document.getElementById('saveSettingsBtn').addEventListener('click', () => {
       const cap = parseInt(document.getElementById('setPhotoCap').value, 10);
-      if (isNaN(cap) || cap < 1) {
-        toast('照片容量至少为 1');
-        return;
-      }
-      if (cap < state.photos.length) {
-        toast(`容量不能小于已有照片数 ${state.photos.length}`);
-        return;
-      }
+      if (isNaN(cap) || cap < 1) { toast('照片容量至少为 1'); return; }
+      if (cap < state.photos.length) { toast(`容量不能小于已有照片数 ${state.photos.length}`); return; }
 
       const cdFeed = parseFloat(document.getElementById('setCdFeed').value);
       const cdPet = parseFloat(document.getElementById('setCdPet').value);
       const cdPlay = parseFloat(document.getElementById('setCdPlay').value);
-      if ([cdFeed, cdPet, cdPlay].some(v => isNaN(v) || v < 0)) {
-        toast('冷却时间必须是非负数字');
-        return;
-      }
+      if ([cdFeed, cdPet, cdPlay].some(v => isNaN(v) || v < 0)) { toast('冷却时间必须是非负数字'); return; }
 
       state.photoCapacity = cap;
       PET_ACTIONS.feed.cooldown = cdFeed * 1000;
       PET_ACTIONS.pet.cooldown = cdPet * 1000;
       PET_ACTIONS.play.cooldown = cdPlay * 1000;
 
-      saveSettings();
-      renderRiverPanel();
-      toast('设置已保存 ✅');
+      saveSettings(); renderRiverPanel(); toast('设置已保存 ✅');
     });
 
     document.getElementById('clearDataBtn').addEventListener('click', async () => {
       if (!confirm('确定要清空所有照片、视频、宠物好感度、房间布置吗？此操作不可恢复。')) return;
-      try {
-        await dbClear('photos');
-        await dbClear('videos');
-      } catch (e) {}
+      try { await dbClear('photos'); await dbClear('videos'); } catch (e) {}
       localStorage.removeItem(LS_PETS);
       localStorage.removeItem(LS_ROOM);
       localStorage.removeItem(LS_SETTINGS);
-      toast('数据已清空，正在重新加载...');
-      setTimeout(() => location.reload(), 600);
+      toast('数据已清空，正在重新加载...'); setTimeout(() => location.reload(), 600);
     });
 
     // ==================== Toast ====================
     let toastTimer = null;
     function toast(msg) {
       const el = document.getElementById('toast');
-      el.textContent = msg;
-      el.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
+      el.textContent = msg; el.classList.add('show');
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
     }
 
     // ==================== 文件上传事件 ====================
     document.getElementById('photoInput').addEventListener('change', async (e) => {
-      const files = Array.from(e.target.files);
-      e.target.value = '';
+      const files = Array.from(e.target.files); e.target.value = '';
       await handlePhotoUpload(files);
     });
-
     document.getElementById('videoInput').addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      e.target.value = '';
+      const file = e.target.files[0]; e.target.value = '';
       await handleVideoUpload(file);
     });
 
     // ==================== 房间/风格切换 ====================
     document.querySelectorAll('.room-tab').forEach((tab) => {
-      tab.addEventListener('click', () => {
-        state.room.currentRoom = tab.dataset.room;
-        saveRoom();
-        renderHousePanel();
-      });
+      tab.addEventListener('click', () => { state.room.currentRoom = tab.dataset.room; saveRoom(); renderHousePanel(); });
     });
-
     document.querySelectorAll('.style-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        state.room.currentStyle = btn.dataset.style;
-        saveRoom();
-        renderHousePanel();
-      });
+      btn.addEventListener('click', () => { state.room.currentStyle = btn.dataset.style; saveRoom(); renderHousePanel(); });
     });
 
     // ==================== 启动 ====================
     function loadPixi(callback) {
-      if (window.PIXI) {
-        callback();
-        return;
-      }
+      if (window.PIXI) { callback(); return; }
       const script = document.createElement('script');
       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.4.2/pixi.min.js';
       script.onload = callback;
-      script.onerror = () => {
-        console.error('PixiJS 加载失败');
-        alert('加载渲染库失败，请检查网络后刷新');
-      };
+      script.onerror = () => { console.error('PixiJS 加载失败'); alert('加载渲染库失败，请检查网络后刷新'); };
       document.head.appendChild(script);
     }
 
     (async function boot() {
-      try {
-        await openDB();
-        await loadMedia();
-      } catch (e) {
-        console.warn('IndexedDB 不可用，将仅在本次会话中保存', e);
-      }
-      loadSettings();
-      loadPets();
-      loadRoom();
+      try { await openDB(); await loadMedia(); } catch (e) { console.warn('IndexedDB 不可用', e); }
+      loadSettings(); loadPets(); loadRoom();
 
       loadPixi(async () => {
         await initScene();
         createHeartTexture();
         initPhotoFlow();
-
         state.videos.forEach(() => addFruitVisual());
-
         setTimeout(() => toast('💕 欢迎回到我们的恋爱小屋'), 600);
       });
     })();
 
+    // 防止触摸滚动干扰
     canvas.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
   </script>
 </body>
