@@ -11,31 +11,52 @@
       box-sizing: border-box;
       user-select: none;
     }
+    
+    /* ================= 修复手机端变形问题 ================= */
     body {
-      background: #2b1e16;
+      background: #2b1e16; /* 深色背景，上下留白更美观 */
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      margin: 0;
+      overflow: hidden;
       font-family: 'Comic Sans MS', 'Chalkboard SE', 'Microsoft YaHei', cursive, sans-serif;
     }
+
     #app {
       position: relative;
+      /* 强制 16:9 比例，无论在手机还是电脑上都不会被拉伸 */
+      aspect-ratio: 16 / 9;
       width: 100vw;
       max-width: 1100px;
-      aspect-ratio: 16 / 9;
+      max-height: 100vh;
+      flex-shrink: 0;
       background: #a7d8e8;
-      border-radius: 32px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 0 0 6px #fbe9d0, inset 0 0 0 12px #d9b382;
       overflow: hidden;
-      cursor: default;
+      /* 手机端不需要大圆角 */
+      border-radius: 0;
+      box-shadow: none;
     }
+
     canvas {
       display: block;
       width: 100%;
       height: 100%;
       touch-action: none;
     }
+
+    /* 电脑端恢复卡片圆角样式 */
+    @media (min-width: 1100px) and (min-height: 620px) {
+      #app {
+        width: 1100px;
+        height: 620px;
+        border-radius: 32px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 0 0 6px #fbe9d0, inset 0 0 0 12px #d9b382;
+      }
+    }
+    /* ======================================================== */
+
     .ui-layer {
       position: absolute;
       inset: 0;
@@ -91,6 +112,21 @@
       flex-direction: column;
       gap: 16px;
     }
+
+    /* 手机端弹窗适配 */
+    @media (max-width: 768px) {
+      .panel {
+        width: 94%;
+        max-height: 88%;
+        padding: 16px 16px 20px;
+        border-radius: 32px 32px 24px 24px;
+      }
+      .panel h2 {
+        font-size: 1.4rem;
+        margin-bottom: 8px;
+      }
+    }
+
     /* 河流相册 */
     .photo-flow {
       display: flex;
@@ -280,6 +316,11 @@
       box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
       cursor: crosshair;
       pointer-events: auto;
+    }
+    @media (max-width: 768px) {
+      .room-canvas-wrap {
+        aspect-ratio: 4 / 3; /* 手机端房间稍微方一点 */
+      }
     }
     .room-bg {
       position: absolute;
@@ -789,7 +830,6 @@
       } catch (e) {}
     }
 
-    // 从 IndexedDB 加载照片与视频
     async function loadMedia() {
       try {
         const photos = await dbGetAll('photos');
@@ -825,14 +865,12 @@
     let flowOffset = 0;
     let sceneElements = {};
 
-    // 河流路径采样点（从左到右）
     function riverPoint(t) {
       const x = t * 1.1 - 0.05;
       const y = 0.72 + Math.sin(t * Math.PI * 2.2) * 0.03 + Math.sin(t * Math.PI * 5.1) * 0.012;
       return { x, y };
     }
 
-    // 初始化 Pixi
     async function initScene() {
       const PIXI = window.PIXI;
       if (!PIXI) {
@@ -840,15 +878,15 @@
         return;
       }
 
+      // 关键修复：固定 1100x620 逻辑分辨率，由外层 CSS 自动缩放，保证点击精准且不拉伸
       app = new PIXI.Application({
         view: canvas,
-        width: canvas.clientWidth || 1100,
-        height: canvas.clientHeight || 620,
+        width: 1100,
+        height: 620,
         backgroundColor: 0xa7d8e8,
         antialias: true,
         resolution: window.devicePixelRatio || 1,
-        autoDensity: true,
-        resizeTo: canvas.parentElement
+        autoDensity: true
       });
 
       sceneRoot = new PIXI.Container();
@@ -863,13 +901,6 @@
 
       app.ticker.add((delta) => {
         animateScene(delta);
-      });
-
-      window.addEventListener('resize', () => {
-        if (app) {
-          app.renderer.resize(canvas.clientWidth, canvas.clientHeight);
-          rebuildLayout();
-        }
       });
     }
 
@@ -1352,24 +1383,11 @@
       });
     }
 
-    function rebuildLayout() {
-      const W = app.screen.width;
-      const H = app.screen.height;
-      if (sceneElements.house) sceneElements.house.position.set(W * 0.68, H * 0.62);
-      if (sceneElements.tree) sceneElements.tree.position.set(W * 0.2, H * 0.7);
-      if (sceneElements.boy) sceneElements.boy.position.set(W * 0.42, H * 0.78);
-      if (sceneElements.girl) sceneElements.girl.position.set(W * 0.52, H * 0.78);
-      if (sceneElements.cat) sceneElements.cat.position.set(W * 0.6, H * 0.85);
-      if (sceneElements.dog) sceneElements.dog.position.set(W * 0.35, H * 0.85);
-      if (sceneElements.riverLabel) sceneElements.riverLabel.position.set(W * 0.5, H * 0.68);
-    }
-
     // ==================== 河流照片流 ====================
     function initPhotoFlow() {
       const PIXI = window.PIXI;
       if (!sceneElements.flowContainer || !heartTexture) return;
 
-      // 清空
       const old = sceneElements.flowContainer.removeChildren();
       old.forEach(c => c.destroy());
       photoSprites = [];
@@ -1433,7 +1451,6 @@
 
       if (sceneElements.drawRiver) sceneElements.drawRiver();
 
-      // 河流照片流动
       if (sceneElements.flowContainer) {
         sceneElements.flowContainer.children.forEach((sprite) => {
           sprite._t += sprite._speed * delta;
@@ -1453,7 +1470,6 @@
         });
       }
 
-      // 无照片时的心形粒子
       if (sceneElements.heartContainer && state.photos.length === 0) {
         if (Math.random() < 0.03) spawnHeartParticle();
       }
@@ -1471,7 +1487,6 @@
         }
       }
 
-      // 宠物与树轻微晃动
       if (petSprites.cat1) petSprites.cat1.rotation = Math.sin(Date.now() * 0.003) * 0.03;
       if (petSprites.dog1) petSprites.dog1.rotation = Math.sin(Date.now() * 0.004 + 1) * 0.04;
       if (treeContainer) treeContainer.rotation = Math.sin(Date.now() * 0.001) * 0.008;
@@ -1517,7 +1532,6 @@
       }
     }
 
-    // 上传照片
     async function handlePhotoUpload(files) {
       const list = files.filter(f => f.type.startsWith('image/'));
       if (list.length === 0) return;
@@ -1543,7 +1557,6 @@
       toast(`上传了 ${list.length} 张照片 💕`);
     }
 
-    // 删除照片
     async function deletePhoto(idx) {
       const photo = state.photos[idx];
       if (!photo) return;
@@ -2004,7 +2017,6 @@
     }
 
     (async function boot() {
-      // 先读本地数据
       try {
         await openDB();
         await loadMedia();
@@ -2015,20 +2027,17 @@
       loadPets();
       loadRoom();
 
-      // 再加载渲染库并初始化场景
       loadPixi(async () => {
         await initScene();
         createHeartTexture();
         initPhotoFlow();
 
-        // 已有视频 → 补上果子
         state.videos.forEach(() => addFruitVisual());
 
         setTimeout(() => toast('💕 欢迎回到我们的恋爱小屋'), 600);
       });
     })();
 
-    // 防止触摸滚动干扰
     canvas.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
   </script>
 </body>
