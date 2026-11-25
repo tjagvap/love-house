@@ -1,0 +1,664 @@
+{
+  "hello_kitty": [
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_01.png",
+      "name": "hello_kitty_01",
+      "area": 18005,
+      "aspect": 0.832
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_02.png",
+      "name": "hello_kitty_02",
+      "area": 29755,
+      "aspect": 0.867
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_03.png",
+      "name": "hello_kitty_03",
+      "area": 3474,
+      "aspect": 1.222
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_04.png",
+      "name": "hello_kitty_04",
+      "area": 20223,
+      "aspect": 0.786
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_05.png",
+      "name": "hello_kitty_05",
+      "area": 2722,
+      "aspect": 1.345
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_06.png",
+      "name": "hello_kitty_06",
+      "area": 1049,
+      "aspect": 1.025
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_07.png",
+      "name": "hello_kitty_07",
+      "area": 970,
+      "aspect": 1.026
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_08.png",
+      "name": "hello_kitty_08",
+      "area": 6374,
+      "aspect": 1.022
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_09.png",
+      "name": "hello_kitty_09",
+      "area": 1199,
+      "aspect": 1.077
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_10.png",
+      "name": "hello_kitty_10",
+      "area": 5624,
+      "aspect": 1.176
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_11.png",
+      "name": "hello_kitty_11",
+      "area": 5313,
+      "aspect": 1.234
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_12.png",
+      "name": "hello_kitty_12",
+      "area": 30706,
+      "aspect": 0.781
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_13.png",
+      "name": "hello_kitty_13",
+      "area": 1349,
+      "aspect": 0.923
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_14.png",
+      "name": "hello_kitty_14",
+      "area": 19767,
+      "aspect": 0.798
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_15.png",
+      "name": "hello_kitty_15",
+      "area": 2195,
+      "aspect": 1.176
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_16.png",
+      "name": "hello_kitty_16",
+      "area": 25384,
+      "aspect": 1.476
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_17.png",
+      "name": "hello_kitty_17",
+      "area": 558,
+      "aspect": 1.034
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_18.png",
+      "name": "hello_kitty_18",
+      "area": 510,
+      "aspect": 1.036
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_19.png",
+      "name": "hello_kitty_19",
+      "area": 1101,
+      "aspect": 0.952
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_20.png",
+      "name": "hello_kitty_20",
+      "area": 995,
+      "aspect": 1.0
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_21.png",
+      "name": "hello_kitty_21",
+      "area": 2002,
+      "aspect": 0.716
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_22.png",
+      "name": "hello_kitty_22",
+      "area": 970,
+      "aspect": 1.026
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_23.png",
+      "name": "hello_kitty_23",
+      "area": 5092,
+      "aspect": 0.822
+    },
+    {
+      "file": "assets/wall_stickers/hello_kitty/hello_kitty_24.png",
+      "name": "hello_kitty_24",
+      "area": 2173,
+      "aspect": 1.2
+    }
+  ],
+  "kuromi": [
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_01.png",
+      "name": "kuromi_01",
+      "area": 32376,
+      "aspect": 0.8
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_02.png",
+      "name": "kuromi_02",
+      "area": 8417,
+      "aspect": 1.419
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_03.png",
+      "name": "kuromi_03",
+      "area": 28669,
+      "aspect": 0.801
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_04.png",
+      "name": "kuromi_04",
+      "area": 1187,
+      "aspect": 1.135
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_05.png",
+      "name": "kuromi_05",
+      "area": 759,
+      "aspect": 1.029
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_06.png",
+      "name": "kuromi_06",
+      "area": 11699,
+      "aspect": 1.16
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_07.png",
+      "name": "kuromi_07",
+      "area": 1311,
+      "aspect": 1.022
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_08.png",
+      "name": "kuromi_08",
+      "area": 2086,
+      "aspect": 1.413
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_09.png",
+      "name": "kuromi_09",
+      "area": 36037,
+      "aspect": 1.228
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_10.png",
+      "name": "kuromi_10",
+      "area": 683,
+      "aspect": 1.062
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_11.png",
+      "name": "kuromi_11",
+      "area": 592,
+      "aspect": 1.0
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_12.png",
+      "name": "kuromi_12",
+      "area": 6053,
+      "aspect": 0.729
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_13.png",
+      "name": "kuromi_13",
+      "area": 3350,
+      "aspect": 1.138
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_14.png",
+      "name": "kuromi_14",
+      "area": 3353,
+      "aspect": 1.191
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_15.png",
+      "name": "kuromi_15",
+      "area": 1351,
+      "aspect": 1.068
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_16.png",
+      "name": "kuromi_16",
+      "area": 614,
+      "aspect": 1.0
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_17.png",
+      "name": "kuromi_17",
+      "area": 2367,
+      "aspect": 1.189
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_18.png",
+      "name": "kuromi_18",
+      "area": 571,
+      "aspect": 1.069
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_19.png",
+      "name": "kuromi_19",
+      "area": 1400,
+      "aspect": 1.067
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_20.png",
+      "name": "kuromi_20",
+      "area": 3859,
+      "aspect": 1.042
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_21.png",
+      "name": "kuromi_21",
+      "area": 6633,
+      "aspect": 1.228
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_22.png",
+      "name": "kuromi_22",
+      "area": 12500,
+      "aspect": 1.527
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_23.png",
+      "name": "kuromi_23",
+      "area": 435,
+      "aspect": 1.0
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_24.png",
+      "name": "kuromi_24",
+      "area": 2504,
+      "aspect": 1.115
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_25.png",
+      "name": "kuromi_25",
+      "area": 3354,
+      "aspect": 0.694
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_26.png",
+      "name": "kuromi_26",
+      "area": 1388,
+      "aspect": 1.62
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_27.png",
+      "name": "kuromi_27",
+      "area": 1270,
+      "aspect": 0.956
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_28.png",
+      "name": "kuromi_28",
+      "area": 2606,
+      "aspect": 1.088
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_29.png",
+      "name": "kuromi_29",
+      "area": 5187,
+      "aspect": 1.378
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_30.png",
+      "name": "kuromi_30",
+      "area": 3482,
+      "aspect": 1.156
+    },
+    {
+      "file": "assets/wall_stickers/kuromi/kuromi_31.png",
+      "name": "kuromi_31",
+      "area": 5283,
+      "aspect": 1.165
+    }
+  ],
+  "cinnamoroll": [
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_01.png",
+      "name": "cinnamoroll_01",
+      "area": 1207,
+      "aspect": 0.918
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_02.png",
+      "name": "cinnamoroll_02",
+      "area": 6567,
+      "aspect": 1.161
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_03.png",
+      "name": "cinnamoroll_03",
+      "area": 12711,
+      "aspect": 1.654
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_04.png",
+      "name": "cinnamoroll_04",
+      "area": 12025,
+      "aspect": 1.529
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_05.png",
+      "name": "cinnamoroll_05",
+      "area": 6925,
+      "aspect": 2.103
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_06.png",
+      "name": "cinnamoroll_06",
+      "area": 1308,
+      "aspect": 1.022
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_07.png",
+      "name": "cinnamoroll_07",
+      "area": 1830,
+      "aspect": 0.943
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_08.png",
+      "name": "cinnamoroll_08",
+      "area": 2348,
+      "aspect": 1.0
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_09.png",
+      "name": "cinnamoroll_09",
+      "area": 2812,
+      "aspect": 1.592
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_10.png",
+      "name": "cinnamoroll_10",
+      "area": 9298,
+      "aspect": 0.659
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_11.png",
+      "name": "cinnamoroll_11",
+      "area": 521,
+      "aspect": 0.744
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_12.png",
+      "name": "cinnamoroll_12",
+      "area": 1493,
+      "aspect": 1.589
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_13.png",
+      "name": "cinnamoroll_13",
+      "area": 533,
+      "aspect": 0.7
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_14.png",
+      "name": "cinnamoroll_14",
+      "area": 1064,
+      "aspect": 1.0
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_15.png",
+      "name": "cinnamoroll_15",
+      "area": 3766,
+      "aspect": 1.492
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_16.png",
+      "name": "cinnamoroll_16",
+      "area": 1401,
+      "aspect": 1.047
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_17.png",
+      "name": "cinnamoroll_17",
+      "area": 678,
+      "aspect": 0.553
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_18.png",
+      "name": "cinnamoroll_18",
+      "area": 1511,
+      "aspect": 0.836
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_19.png",
+      "name": "cinnamoroll_19",
+      "area": 2396,
+      "aspect": 2.659
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_20.png",
+      "name": "cinnamoroll_20",
+      "area": 427,
+      "aspect": 0.741
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_21.png",
+      "name": "cinnamoroll_21",
+      "area": 1338,
+      "aspect": 1.0
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_22.png",
+      "name": "cinnamoroll_22",
+      "area": 531,
+      "aspect": 0.628
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_23.png",
+      "name": "cinnamoroll_23",
+      "area": 793,
+      "aspect": 0.81
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_24.png",
+      "name": "cinnamoroll_24",
+      "area": 8937,
+      "aspect": 1.503
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_25.png",
+      "name": "cinnamoroll_25",
+      "area": 1885,
+      "aspect": 2.125
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_26.png",
+      "name": "cinnamoroll_26",
+      "area": 5661,
+      "aspect": 1.281
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_27.png",
+      "name": "cinnamoroll_27",
+      "area": 529,
+      "aspect": 1.409
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_28.png",
+      "name": "cinnamoroll_28",
+      "area": 461,
+      "aspect": 1.333
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_29.png",
+      "name": "cinnamoroll_29",
+      "area": 5168,
+      "aspect": 1.16
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_30.png",
+      "name": "cinnamoroll_30",
+      "area": 2977,
+      "aspect": 0.62
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_31.png",
+      "name": "cinnamoroll_31",
+      "area": 1860,
+      "aspect": 1.038
+    },
+    {
+      "file": "assets/wall_stickers/cinnamoroll/cinnamoroll_32.png",
+      "name": "cinnamoroll_32",
+      "area": 544,
+      "aspect": 1.259
+    }
+  ],
+  "hangyodon": [
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_01.png",
+      "name": "hangyodon_01",
+      "area": 27135,
+      "aspect": 0.739
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_02.png",
+      "name": "hangyodon_02",
+      "area": 969,
+      "aspect": 1.088
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_03.png",
+      "name": "hangyodon_03",
+      "area": 26820,
+      "aspect": 0.783
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_04.png",
+      "name": "hangyodon_04",
+      "area": 881,
+      "aspect": 1.03
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_05.png",
+      "name": "hangyodon_05",
+      "area": 26848,
+      "aspect": 0.736
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_06.png",
+      "name": "hangyodon_06",
+      "area": 1588,
+      "aspect": 1.119
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_07.png",
+      "name": "hangyodon_07",
+      "area": 4551,
+      "aspect": 1.078
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_08.png",
+      "name": "hangyodon_08",
+      "area": 18680,
+      "aspect": 0.94
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_09.png",
+      "name": "hangyodon_09",
+      "area": 1545,
+      "aspect": 0.793
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_10.png",
+      "name": "hangyodon_10",
+      "area": 1175,
+      "aspect": 0.303
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_11.png",
+      "name": "hangyodon_11",
+      "area": 740,
+      "aspect": 0.914
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_12.png",
+      "name": "hangyodon_12",
+      "area": 1279,
+      "aspect": 1.025
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_13.png",
+      "name": "hangyodon_13",
+      "area": 48949,
+      "aspect": 1.115
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_14.png",
+      "name": "hangyodon_14",
+      "area": 5573,
+      "aspect": 1.049
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_15.png",
+      "name": "hangyodon_15",
+      "area": 412,
+      "aspect": 1.0
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_16.png",
+      "name": "hangyodon_16",
+      "area": 697,
+      "aspect": 1.0
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_17.png",
+      "name": "hangyodon_17",
+      "area": 34164,
+      "aspect": 1.065
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_18.png",
+      "name": "hangyodon_18",
+      "area": 2542,
+      "aspect": 1.033
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_19.png",
+      "name": "hangyodon_19",
+      "area": 412,
+      "aspect": 0.219
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_20.png",
+      "name": "hangyodon_20",
+      "area": 5584,
+      "aspect": 1.08
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_21.png",
+      "name": "hangyodon_21",
+      "area": 596,
+      "aspect": 1.0
+    },
+    {
+      "file": "assets/wall_stickers/hangyodon/hangyodon_22.png",
+      "name": "hangyodon_22",
+      "area": 3522,
+      "aspect": 0.756
+    }
+  ]
+}

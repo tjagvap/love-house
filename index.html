@@ -1,649 +1,1650 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>恋爱小屋 · 唯美风景</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#f7eddf" />
+  <title>恋爱小屋 · 河畔生活</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      user-select: none;
+    :root {
+      --cream: #fff8ee;
+      --paper: #f6ecdf;
+      --brown: #563b29;
+      --brown-light: #a8794e;
+      --gold: #e5bd83;
+      --green: #b9d4c8;
+      --shadow: 0 12px 34px rgba(37, 31, 22, .28);
     }
+    * { box-sizing: border-box; user-select: none; }
+    html, body { width: 100%; height: 100%; margin: 0; }
     body {
-      background: #1a1a1a;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      overflow: hidden;
-      font-family: 'Comic Sans MS', 'Chalkboard SE', 'Microsoft YaHei', cursive, sans-serif;
+      display: grid; place-items: center; overflow: hidden; background: #1b1b1b;
+      color: var(--brown); font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
     }
-    
-    /* 完美适配 1:1 比例图片 */
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
     #app {
-      position: relative;
-      width: min(100vw, 100vh);
-      aspect-ratio: 1 / 1;
-      background-image: url('bg.jpg'); 
-      background-size: cover;
-      background-position: center;
-      overflow: hidden;
-      cursor: default;
+      position: relative; width: min(100vw, 100vh); aspect-ratio: 1 / 1; overflow: hidden;
+      background: #c8d5d4 url("bg.jpg") center / cover no-repeat;
+      isolation: isolate;
+    }
+    @media (min-width: 800px) { #app { border-radius: 18px; box-shadow: 0 12px 40px #0008; } }
+
+    /* 只让真正覆盖在物体上的 SVG 形状接收点击，空白区域完全不响应 */
+    #sceneHotspots { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; }
+    #sceneHotspots .hotspot-shape {
+      fill: rgba(255,255,255,0); stroke: transparent; stroke-width: 1;
+      pointer-events: all; cursor: pointer; transition: fill .16s ease;
+    }
+    #sceneHotspots .hotspot-shape:hover { fill: rgba(255, 246, 216, .13); }
+    #sceneHotspots .hotspot-shape:active { fill: rgba(255, 246, 216, .24); }
+
+    #bottleLayer { position: absolute; inset: 0; z-index: 4; pointer-events: none; overflow: hidden; }
+    .drift-bottle {
+      position: absolute; width: 34px; height: 48px; padding: 0; border: 0; background: transparent;
+      pointer-events: auto; transform-origin: 50% 50%; filter: drop-shadow(0 3px 3px rgba(0,0,0,.28));
+      transition: filter .15s ease; touch-action: manipulation;
+    }
+    .drift-bottle:hover { filter: drop-shadow(0 4px 5px rgba(0,0,0,.38)) brightness(1.1); }
+    .drift-bottle svg { width: 100%; height: 100%; overflow: visible; }
+    .drift-bottle.has-message::after {
+      content: ""; position: absolute; right: 1px; top: 5px; width: 7px; height: 7px;
+      border-radius: 50%; background: #ef8b68; border: 1px solid #fff8e8;
     }
 
-    @media (min-width: 800px) {
-      #app {
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      }
+    .topbar { position: absolute; z-index: 12; top: 14px; left: 14px; right: 14px; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
+    .topbar > * { pointer-events: auto; }
+    .top-actions { display: flex; gap: 8px; }
+    .top-btn {
+      min-height: 40px; padding: 8px 13px; border: 1px solid rgba(117,82,49,.25); border-radius: 24px;
+      background: rgba(255,250,241,.91); color: var(--brown); font-weight: 700; box-shadow: 0 3px 10px #0002;
+      backdrop-filter: blur(6px);
     }
+    .top-btn:active { transform: translateY(1px) scale(.98); }
+    #profileChip { max-width: 58%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    /* PixiJS 特效画布层 */
-    #sceneCanvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      touch-action: none;
-      z-index: 2;
-      pointer-events: none; /* 让点击事件穿透到下方的DOM热点 */
-    }
-
-    /* ======= 透明点击热区（已根据新图重新校准） ======= */
-    .hotspot {
-      position: absolute;
-      z-index: 3;
-      cursor: pointer;
-      border-radius: 20px;
-      transition: background 0.2s;
-    }
-    .hotspot:active {
-      background: rgba(255, 255, 255, 0.15); /* 点击反馈 */
-    }
-    
-    #hs-river { left: 0; top: 20%; width: 50%; height: 80%; } /* 河流 */
-    #hs-house { right: 0; top: 5%; width: 40%; height: 45%; } /* 房子 */
-    #hs-tree { left: 25%; top: 30%; width: 30%; height: 35%; } /* 大树 */
-    #hs-cat { left: 39%; top: 73%; width: 8%; height: 10%; } /* 黑白猫 */
-    #hs-dog { left: 55%; top: 80%; width: 10%; height: 12%; } /* 柴犬 */
-    #hs-couple { left: 47%; top: 65%; width: 38%; height: 20%; } /* 人物 */
-
-    /* UI 界面层 */
-    .ui-layer {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    #settingsBtn {
-      position: absolute; top: 16px; right: 20px; width: 46px; height: 46px;
-      border-radius: 50%; background: rgba(255, 255, 255, 0.85); border: none; 
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      font-size: 1.4rem; cursor: pointer; pointer-events: auto; z-index: 15;
-      transition: 0.1s; display: flex; align-items: center; justify-content: center;
-    }
-    #settingsBtn:active { transform: scale(0.9); }
-
-    /* 弹窗面板 */
+    .ui-layer { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
+    .panel, .modal-overlay { pointer-events: auto; }
     .panel {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 90%; max-width: 600px;
-      background: #fff7ec;
-      border-radius: 24px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      padding: 20px 24px 24px;
-      pointer-events: auto;
-      display: none;
-      flex-direction: column;
-      max-height: 85%;
-      border: 4px solid #d9b382;
-      z-index: 20;
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      display: none; flex-direction: column; gap: 12px; width: min(92%, 680px); max-height: 91%;
+      padding: 20px 22px 22px; overflow: hidden; background: var(--cream); border: 3px solid var(--gold);
+      border-radius: 24px; box-shadow: var(--shadow); z-index: 20;
     }
     .panel.active { display: flex; }
-    .panel h2 {
-      font-size: 1.5rem; color: #4a2c1a; text-align: center; margin-bottom: 12px;
+    .panel.house-panel { width: min(97%, 1080px); max-height: 96%; padding: 16px 18px 18px; }
+    .panel h2 { margin: 0 34px 2px; text-align: center; color: #553722; font-size: 1.42rem; }
+    .close-btn {
+      position: absolute; z-index: 2; top: 8px; right: 13px; width: 34px; height: 34px;
+      border: 0; background: transparent; color: #8a5c32; font-size: 1.85rem; line-height: 1;
     }
-    .panel .close-btn {
-      position: absolute; top: 12px; right: 16px; font-size: 1.8rem;
-      background: none; border: none; color: #8b5a2b; cursor: pointer;
-    }
-    .panel .content {
-      overflow-y: auto; display: flex; flex-direction: column; gap: 16px;
-      padding-bottom: 10px;
-    }
-
-    @media (max-width: 480px) {
-      .panel { width: 95%; padding: 16px; }
-      .panel h2 { font-size: 1.3rem; }
-    }
-
-    /* 各种组件样式 */
-    .photo-flow { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; }
-    .photo-card {
-      flex: 0 0 100px; height: 100px; border-radius: 12px;
-      background: #ffe8d4; border: 2px dashed #d9a066;
-      background-size: cover; background-position: center; cursor: pointer;
-    }
-    .upload-row { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    .content { display: flex; flex-direction: column; gap: 13px; overflow: auto; min-height: 0; padding: 2px 1px 6px; }
+    .hint { color: #8a755f; font-size: .83rem; line-height: 1.55; }
     .btn {
-      background: #f7c948; border: none; border-radius: 30px; padding: 8px 20px;
-      font-size: 1rem; font-weight: bold; color: #4a2c1a; box-shadow: 0 4px 0 #b28b5c;
-      cursor: pointer; font-family: inherit; transition: 0.1s;
+      border: 0; border-radius: 24px; padding: 9px 17px; background: #f6c84f; color: #54391f;
+      font-weight: 750; box-shadow: 0 3px 0 #b18b56; transition: transform .12s, box-shadow .12s;
     }
-    .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #b28b5c; }
-    .btn.secondary { background: #c1d9d0; box-shadow: 0 4px 0 #7f9e91; }
-    .btn.small { padding: 6px 14px; font-size: 0.85rem; }
-    .btn.danger { background: #f4a3a3; box-shadow: 0 4px 0 #b35959; }
-
-    .fruit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; }
-    .fruit-item {
-      aspect-ratio: 1; background: #ffb882; border-radius: 50%; font-size: 1.8rem;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 0 #b35959; cursor: pointer; border: 2px solid #e07a5f;
+    .btn:active { transform: translateY(3px); box-shadow: 0 0 0 #b18b56; }
+    .btn.secondary { background: #c2dbd1; box-shadow: 0 3px 0 #7f9f91; }
+    .btn.soft { background: #eee2d1; box-shadow: 0 3px 0 #c6ae91; }
+    .btn.danger { background: #f2aaaa; box-shadow: 0 3px 0 #b96f6f; }
+    .btn.small { padding: 7px 13px; font-size: .88rem; }
+    .row { display: flex; align-items: center; justify-content: center; gap: 9px; flex-wrap: wrap; }
+    .text-input, .text-area, select {
+      width: 100%; padding: 10px 12px; border: 1px solid #d8bb96; border-radius: 12px;
+      outline: none; color: #513925; background: #fffdfa;
     }
-    .fruit-item:active { transform: scale(0.9); }
+    .text-area { min-height: 95px; resize: vertical; user-select: text; }
+    .text-input:focus, .text-area:focus, select:focus { border-color: #bd8751; box-shadow: 0 0 0 3px #e9cda74d; }
 
-    .pet-card {
-      background: #f5ede1; border-radius: 20px; padding: 12px 16px;
-      display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border: 2px solid #d9b382;
-    }
-    .pet-avatar { font-size: 2.5rem; width: 60px; height: 60px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-    .pet-info { flex: 1; min-width: 120px; }
-    .affinity-bar { height: 12px; background: #e0d0bc; border-radius: 10px; margin: 4px 0; overflow: hidden; }
-    .affinity-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #f7b267, #f4845f); transition: width 0.3s; }
-    .pet-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    /* 河流相册 */
+    .upload-row { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; }
+    input[type=file] { display: none; }
+    .upload-label { display: inline-flex; align-items: center; justify-content: center; padding: 9px 18px; border-radius: 24px; background: #f6c84f; color: #54391f; font-weight: 700; cursor: pointer; box-shadow: 0 3px 0 #b18b56; }
+    .photo-flow { display: flex; gap: 10px; overflow-x: auto; padding: 8px 1px 12px; }
+    .photo-card { flex: 0 0 105px; height: 105px; border-radius: 13px; border: 2px dashed #d7aa74; background: #f4e2ce center / cover no-repeat; cursor: pointer; position: relative; }
+    .photo-card button { position: absolute; top: 3px; right: 3px; border: 0; border-radius: 50%; width: 24px; height: 24px; color: white; background: #6b4036bb; }
+    .photo-count { color: #98724d; font-weight: 700; font-size: .9rem; }
 
-    .room-tabs, .style-selector { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px; }
-    .room-tab, .style-btn {
-      background: #e3d5c4; border: none; border-radius: 20px; padding: 6px 14px;
-      font-weight: bold; color: #5a3e28; cursor: pointer; font-size: 0.9rem;
-    }
-    .room-tab.active, .style-btn.active { background: #f7c948; box-shadow: 0 3px 0 #b28b5c; }
-
-    .room-canvas-wrap {
-      position: relative; background: #d9c8b2; border-radius: 16px; overflow: hidden;
-      aspect-ratio: 16 / 10; border: 3px solid #b28b5c;
-    }
-    .room-bg { position: absolute; inset: 0; transition: background 0.3s; }
-    .room-bg.raw { background: repeating-linear-gradient(45deg, #b8a898, #b8a898 10px, #c8b8a8 10px, #c8b8a8 20px); }
-    .room-bg.chinese { background: linear-gradient(135deg, #dfc8a8, #c9a87c); }
-    .room-bg.american { background: linear-gradient(135deg, #b8c4b0, #8a9a80); }
-    .room-bg.european { background: linear-gradient(135deg, #e8d8c8, #c8b8a8); }
-    .room-bg.modern { background: linear-gradient(135deg, #d0d8e0, #a8b8c8); }
-
-    .placed-furniture {
-      position: absolute; width: 40px; height: 40px; display: flex; align-items: center;
-      justify-content: center; font-size: 1.5rem; cursor: grab; transform-origin: center bottom;
-    }
-    .furniture-palette { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; flex-wrap: wrap; }
-    .furniture-btn {
-      background: #fff; border: 2px solid #d9b382; border-radius: 12px; padding: 4px 8px;
-      display: flex; flex-direction: column; align-items: center; font-size: 1.5rem; cursor: pointer;
-    }
-    .furniture-btn span { font-size: 0.65rem; color: #4a2c1a; }
-
-    .upload-label {
-      background: #f7c948; border-radius: 30px; padding: 8px 20px; font-weight: bold;
-      color: #4a2c1a; box-shadow: 0 4px 0 #b28b5c; cursor: pointer; display: inline-block;
-    }
-    .upload-label:active { transform: translateY(4px); box-shadow: 0 1px 0 #b28b5c; }
-    input[type="file"] { display: none; }
-
-    .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e8d8c4; }
-    .setting-row input { width: 80px; padding: 6px; border-radius: 10px; border: 1px solid #d9b382; text-align: center; }
-
-    .video-modal { position: absolute; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 100; }
+    /* 树的视频果实 */
+    .video-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 10px; }
+    .video-card { min-height: 98px; border: 1px solid #dfc29b; border-radius: 14px; background: #f4eadb; display: grid; place-items: center; gap: 4px; padding: 8px; color: #63462d; }
+    .video-card .fruit { font-size: 2rem; }
+    .video-card span:last-child { font-size: .77rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .video-modal { position: absolute; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.9); }
     .video-modal.active { display: flex; }
-    .video-modal video { max-width: 95%; max-height: 80%; border-radius: 16px; }
-    .video-modal .close-video { position: absolute; top: 20px; right: 20px; font-size: 2.5rem; color: #fff; background: none; border: none; }
+    .video-modal video { max-width: 94%; max-height: 82%; border-radius: 14px; }
+    .video-modal .close-video { position: absolute; right: 20px; top: 16px; color: white; border: 0; background: none; font-size: 2.4rem; }
 
-    .toast {
-      position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-      background: rgba(74, 44, 26, 0.9); color: #ffe8d4; padding: 10px 24px; 
-      border-radius: 30px; font-size: 0.95rem; z-index: 200; opacity: 0; transition: opacity 0.3s; pointer-events: none;
-    }
+    /* 宠物：一次只显示被点击的那只 */
+    .pet-detail { background: #f4ebdf; border: 2px solid #dfbd91; border-radius: 20px; padding: 18px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .pet-avatar { width: 78px; height: 78px; border-radius: 50%; flex: 0 0 78px; display: grid; place-items: center; background: white; font-size: 3.2rem; }
+    .pet-main { flex: 1; min-width: 170px; }
+    .pet-name { font-size: 1.22rem; font-weight: 800; margin-bottom: 5px; }
+    .affinity-label { font-size: .9rem; color: #75583d; }
+    .affinity-bar { height: 13px; margin-top: 7px; border-radius: 12px; overflow: hidden; background: #ddcdb9; }
+    .affinity-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #f5b56a, #f27f65); transition: width .3s; }
+    .pet-actions { flex-basis: 100%; display: flex; gap: 9px; flex-wrap: wrap; justify-content: center; padding-top: 4px; }
+    .pet-mood { color: #98724d; font-size: .86rem; text-align: center; width: 100%; }
+
+    /* 3D 室内编辑器 */
+    .house-content { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow: auto; }
+    .room-toolbar { display: flex; justify-content: center; flex-wrap: wrap; gap: 7px; }
+    .room-tab, .style-btn { border: 1px solid #d7bd9b; padding: 7px 13px; border-radius: 20px; background: #eee2d2; color: #62452b; font-size: .88rem; font-weight: 700; }
+    .room-tab.active, .style-btn.active { background: #f6cb63; border-color: #d4a34e; box-shadow: 0 2px 0 #b18b56; }
+    .room-viewport { position: relative; width: 100%; height: clamp(300px, 48vh, 520px); min-height: 260px; overflow: hidden; border-radius: 16px; border: 2px solid #c5a47d; background: radial-gradient(ellipse at 50% 45%, #f3eee6, #d4c8b8); touch-action: none; }
+    #room3dCanvas { display: block; width: 100%; height: 100%; touch-action: none; }
+    .room-overlay-hint { position: absolute; bottom: 9px; left: 12px; pointer-events: none; padding: 5px 9px; border-radius: 12px; color: #654d38; background: #fff8e8c9; font-size: .78rem; }
+    .room-controls { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(240px, 1.5fr); gap: 10px; }
+    .control-card { border-radius: 14px; border: 1px solid #e0c5a4; background: #f7efe4; padding: 10px 12px; min-width: 0; }
+    .control-title { font-size: .9rem; font-weight: 800; margin-bottom: 8px; color: #65452c; }
+    .paint-colors { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .paint-swatch { width: 27px; height: 27px; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px #bda487; padding: 0; }
+    .paint-swatch.active { box-shadow: 0 0 0 2px #80572f; }
+    .paint-custom { width: 42px; height: 34px; padding: 2px; border: 1px solid #cdb18f; background: white; border-radius: 8px; cursor: pointer; }
+    .paint-target { width: 100%; margin: 0 0 9px; padding: 8px 10px; border: 1px solid #d4b895; border-radius: 10px; background: #fffaf3; color: #5b4029; font-weight: 650; }
+    .paint-hint { margin-top: 7px; color: #8a755f; font-size: .78rem; line-height: 1.45; }
+    .color-value { min-width: 74px; font: 700 .78rem/1.2 monospace; color: #71543a; }
+    .wall-art-editor { margin-top: 13px; padding-top: 12px; border-top: 1px dashed #dcc5a6; }
+    .wall-art-toolbar { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .wall-art-toolbar select { flex: 1 1 120px; min-width: 0; padding: 8px 10px; border: 1px solid #d4b895; border-radius: 10px; background: #fffaf3; color: #5b4029; }
+    .wall-art-upload { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border: 0; border-radius: 20px; padding: 8px 13px; color: #54391f; font-weight: 800; background: #f6c84f; box-shadow: 0 3px 0 #b18b56; }
+    .wall-art-upload input { display: none; }
+    .wall-art-list { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 9px; }
+    .wall-art-item { display: inline-flex; gap: 6px; align-items: center; max-width: 100%; padding: 5px 9px; border: 1px solid #d9c4a9; border-radius: 12px; background: #fffaf3; color: #65482f; font-size: .8rem; }
+    .wall-art-item.active { border-color: #b57a37; background: #f9e7c3; box-shadow: 0 0 0 1px #b57a37; }
+    .wall-art-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; }
+    .wall-art-adjust { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; margin-top: 10px; padding: 10px; border-radius: 12px; background: #f7efe4; }
+    .wall-art-adjust[hidden] { display: none; }
+    .wall-art-adjust label { display: grid; gap: 4px; color: #71543a; font-size: .78rem; }
+    .wall-art-adjust input[type="range"] { width: 100%; accent-color: #b78145; }
+    .wall-art-actions { display: flex; gap: 7px; flex-wrap: wrap; grid-column: 1 / -1; }
+    .wall-art-empty { color: #8a755f; font-size: .78rem; padding: 5px 0; }
+    .wall-sticker-library { margin-top: 10px; padding: 10px; border: 1px solid #e2c9a9; border-radius: 13px; background: #fffaf3; }
+    .wall-sticker-library-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    .wall-sticker-library-head strong { font-size: .86rem; color: #66492f; }
+    .wall-sticker-library select { width: auto; min-width: 150px; max-width: 58%; padding: 6px 8px; font-size: .8rem; }
+    .wall-sticker-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; max-height: 245px; overflow: auto; padding: 2px 2px 5px; }
+    .wall-sticker-card { min-width: 0; border: 1px solid #e2d4c3; border-radius: 10px; padding: 5px; background: #fff; color: #725238; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .wall-sticker-card:hover { border-color: #bd8c51; background: #fff8e9; }
+    .wall-sticker-card img { display: block; width: 100%; height: 58px; object-fit: contain; background-color: #f5f0e8; background-image: linear-gradient(45deg,#e9e2d8 25%,transparent 25%),linear-gradient(-45deg,#e9e2d8 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e9e2d8 75%),linear-gradient(-45deg,transparent 75%,#e9e2d8 75%); background-size: 12px 12px; background-position: 0 0,0 6px,6px -6px,-6px 0; border-radius: 6px; }
+    .wall-sticker-card span { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; font-size: .68rem; }
+    .wall-sticker-empty { grid-column: 1 / -1; color: #8a755f; font-size: .78rem; padding: 8px; }
+
+    .furniture-palette { display: flex; gap: 8px; flex-wrap: wrap; }
+    .furniture-btn { min-width: 92px; flex: 1 1 95px; border: 1px solid #d7bd9b; border-radius: 12px; background: #fffaf3; color: #63472d; padding: 8px 6px; text-align: center; }
+    .furniture-btn b { display: block; font-size: .83rem; margin-top: 3px; }
+    .furniture-btn .furn-symbol { font-size: 1.35rem; }
+    .house-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    #threeError { display: none; padding: 16px; color: #8a3e32; background: #fff0e9; border-radius: 12px; }
+
+    /* 角色绑定、漂流瓶 */
+    .modal-overlay { position: absolute; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; padding: 18px; background: rgba(26, 26, 24, .62); }
+    .modal-overlay.active { display: flex; }
+    .dialog-card { position: relative; width: min(94%, 470px); max-height: 88%; overflow: auto; background: var(--cream); border: 3px solid var(--gold); border-radius: 22px; padding: 22px; box-shadow: var(--shadow); }
+    .dialog-card h3 { text-align: center; margin: 0 0 12px; color: #593b25; font-size: 1.28rem; }
+    .dialog-card .field { margin: 12px 0; }
+    .field-label { display: block; font-weight: 700; font-size: .9rem; margin-bottom: 6px; }
+    .gender-choice { display: flex; gap: 10px; }
+    .gender-choice button { flex: 1; border: 1px solid #d8bd9a; border-radius: 12px; padding: 12px; background: #f3e9dc; font-weight: 800; color: #63472d; }
+    .gender-choice button.selected { background: #f7d16e; border-color: #c8943f; box-shadow: inset 0 0 0 1px #c8943f; }
+    .dialog-actions { display: flex; justify-content: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    .toast { position: absolute; z-index: 80; bottom: 24px; left: 50%; transform: translateX(-50%); background: rgba(67,43,27,.92); color: #fff0dc; padding: 9px 17px; border-radius: 24px; font-size: .88rem; opacity: 0; transition: opacity .2s; pointer-events: none; white-space: nowrap; }
     .toast.show { opacity: 1; }
+    .settings-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px dashed #dfc8aa; }
+    @media (max-width: 620px) {
+      .panel { width: 95%; padding: 17px 14px; max-height: 94%; }
+      .panel.house-panel { width: 98%; padding: 13px 10px; }
+      .panel h2 { font-size: 1.18rem; }
+      .room-viewport { height: 42vh; min-height: 240px; }
+      .room-controls { grid-template-columns: 1fr; }
+      .wall-sticker-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); max-height: 210px; }
+      .topbar { top: 8px; left: 8px; right: 8px; }
+      .top-btn { min-height: 36px; padding: 7px 10px; font-size: .82rem; }
+      .drift-bottle { width: 29px; height: 42px; }
+      .pet-detail { justify-content: center; text-align: center; }
+      .pet-main { min-width: 100%; }
+    }
   </style>
 </head>
 <body>
-  <div id="app">
-    <!-- 透明点击热区 -->
-    <div class="hotspot" id="hs-river"></div>
-    <div class="hotspot" id="hs-house"></div>
-    <div class="hotspot" id="hs-tree"></div>
-    <div class="hotspot" id="hs-cat"></div>
-    <div class="hotspot" id="hs-dog"></div>
-    <div class="hotspot" id="hs-couple"></div>
+  <main id="app" aria-label="恋爱小屋互动场景">
+    <!-- 仅这些贴合物体轮廓的 SVG 区域能够触发交互 -->
+    <svg id="sceneHotspots" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-label="场景交互区域">
+      <!-- 树冠与树干轮廓 -->
+      <path class="hotspot-shape" role="button" tabindex="0" aria-label="与树互动"
+        d="M158 405 C160 355 190 321 228 312 C239 270 284 250 322 272 C344 235 400 231 431 266 C470 246 518 269 529 304 C574 302 613 335 605 377 C644 408 623 459 592 476 C601 526 560 557 520 552 C498 591 448 594 418 570 C384 606 326 589 312 555 C266 574 220 548 224 508 C178 495 145 454 158 405 Z M365 526 L421 526 L447 739 L394 747 Z"
+        data-target="tree" />
+      <!-- 房屋屋顶、墙体及露台的整体轮廓 -->
+      <path class="hotspot-shape" role="button" tabindex="0" aria-label="进入房屋编辑"
+        d="M638 206 L798 80 L846 108 L931 74 L987 96 L1000 95 L1000 561 L933 561 L924 505 L862 490 L826 458 L752 458 L716 414 L648 405 L648 267 Z"
+        data-target="house" />
+      <!-- 猫，点击范围只覆盖猫本身 -->
+      <path class="hotspot-shape" role="button" tabindex="0" aria-label="与猫猫互动"
+        d="M401 755 L411 753 L420 739 L432 752 L443 753 L454 773 L453 799 L442 815 L416 816 L400 802 L394 783 Z"
+        data-target="cat" />
+      <!-- 狗，点击范围只覆盖狗本身 -->
+      <path class="hotspot-shape" role="button" tabindex="0" aria-label="与狗狗互动"
+        d="M564 824 L571 806 L587 801 L597 811 L612 809 L626 822 L642 823 L654 842 L649 866 L632 880 L612 880 L598 895 L579 891 L568 877 L554 865 L553 843 Z"
+        data-target="dog" />
+    </svg>
 
-    <!-- 特效画布 -->
-    <canvas id="sceneCanvas"></canvas>
+    <div id="bottleLayer" aria-label="沿河漂流的漂流瓶"></div>
 
-    <!-- UI 层 -->
+    <div class="topbar">
+      <button class="top-btn" id="profileChip" title="查看或修改已绑定角色">👤 绑定角色</button>
+      <div class="top-actions">
+        <button class="top-btn" id="albumBtn">📷 相册</button>
+        <button class="top-btn" id="settingsBtn">⚙️ 设置</button>
+      </div>
+    </div>
+
     <div class="ui-layer">
-      <button id="settingsBtn" title="设置">⚙️</button>
-
-      <div class="panel" id="panel-river">
-        <button class="close-btn" data-close="panel-river">✕</button>
-        <h2>🌊 河流相册</h2>
+      <section class="panel" id="panel-river" aria-label="河流相册">
+        <button class="close-btn" data-close="panel-river" aria-label="关闭">×</button>
+        <h2>📷 河畔记忆</h2>
         <div class="content">
           <div class="upload-row">
-            <label class="upload-label" for="photoInput">📷 上传照片</label>
-            <input type="file" id="photoInput" accept="image/*" multiple>
-            <span id="photoCountLabel" style="color:#8b6b4b; font-weight:bold;">0 / 1000</span>
+            <label class="upload-label" for="photoInput">＋ 上传照片</label>
+            <input type="file" id="photoInput" accept="image/*" multiple />
+            <span class="photo-count" id="photoCountLabel">0 / 1000</span>
           </div>
+          <p class="hint" style="text-align:center;margin:0">河面上的漂流瓶可以点击并写入自己的留言；照片会保存在这台设备的浏览器中。</p>
           <div class="photo-flow" id="photoFlow"></div>
         </div>
-      </div>
+      </section>
 
-      <div class="panel" id="panel-tree">
-        <button class="close-btn" data-close="panel-tree">✕</button>
-        <h2>🌳 果树 · 视频</h2>
+      <section class="panel" id="panel-tree" aria-label="树的视频记忆">
+        <button class="close-btn" data-close="panel-tree" aria-label="关闭">×</button>
+        <h2>🌳 记忆之树</h2>
         <div class="content">
           <div class="upload-row">
-            <label class="upload-label" for="videoInput">🎬 挂一个视频</label>
-            <input type="file" id="videoInput" accept="video/*">
-            <span id="fruitCountLabel" style="color:#8b6b4b; font-weight:bold;">0 个果子</span>
+            <label class="upload-label" for="videoInput">＋ 挂上一个视频果实</label>
+            <input type="file" id="videoInput" accept="video/*" />
+            <span class="photo-count" id="fruitCountLabel">0 个果实</span>
           </div>
-          <div class="fruit-grid" id="fruitGrid"></div>
+          <p class="hint" style="text-align:center;margin:0">点击树上的指定区域进入这里。上传的视频会成为可以打开的果实。</p>
+          <div class="video-list" id="videoList"></div>
         </div>
-      </div>
+      </section>
 
-      <div class="panel" id="panel-pet">
-        <button class="close-btn" data-close="panel-pet">✕</button>
-        <h2>🐾 宠物伙伴</h2>
-        <div class="content" id="petList"></div>
-      </div>
+      <section class="panel" id="panel-pet" aria-label="宠物互动">
+        <button class="close-btn" data-close="panel-pet" aria-label="关闭">×</button>
+        <h2 id="petPanelTitle">🐾 宠物伙伴</h2>
+        <div class="content" id="petDetail"></div>
+      </section>
 
-      <div class="panel" id="panel-house">
-        <button class="close-btn" data-close="panel-house">✕</button>
-        <h2>🏠 我们的家</h2>
-        <div class="content">
-          <div class="room-tabs" id="roomTabs">
-            <button class="room-tab active" data-room="living">🛋️ 客厅</button>
-            <button class="room-tab" data-room="bedroom">🛏️ 卧室</button>
-            <button class="room-tab" data-room="bathroom">🚿 卫生间</button>
+      <section class="panel house-panel" id="panel-house" aria-label="3D 房屋编辑器">
+        <button class="close-btn" data-close="panel-house" aria-label="关闭">×</button>
+        <h2>🏠 我们的家 · 3D 装修</h2>
+        <div class="house-content">
+          <div class="room-toolbar" id="roomTabs">
+            <button class="room-tab active" data-room="living">客厅</button>
+            <button class="room-tab" data-room="bedroom">卧室</button>
+            <button class="room-tab" data-room="bathroom">卫生间</button>
           </div>
-          <div class="style-selector" id="styleSelector">
-            <button class="style-btn" data-style="raw">毛坯</button>
-            <button class="style-btn" data-style="chinese">🏮 中式</button>
-            <button class="style-btn" data-style="american">🌿 美式</button>
-            <button class="style-btn" data-style="european">🏛️ 欧式</button>
-            <button class="style-btn active" data-style="modern">✨ 现代</button>
+          <div class="room-toolbar" id="styleSelector">
+            <button class="style-btn active" data-style="raw">毛坯空间</button>
+            <button class="style-btn" data-style="chinese">中式</button>
+            <button class="style-btn" data-style="american">美式</button>
+            <button class="style-btn" data-style="european">欧式</button>
+            <button class="style-btn" data-style="modern">现代</button>
           </div>
-          <div class="room-canvas-wrap" id="roomCanvasWrap">
-            <div class="room-bg modern" id="roomBg"></div>
+          <div class="room-viewport" id="roomViewport">
+            <canvas id="room3dCanvas"></canvas>
+            <div class="room-overlay-hint">拖动墙贴可移动 · Shift+拖动旋转墙贴 · Alt+拖动缩放 · 空白处拖动旋转视角 · 滚轮缩放</div>
           </div>
-          <div class="furniture-palette" id="furniturePalette"></div>
+          <div id="threeError">3D 场景组件未能加载。请检查网络后刷新页面；房屋编辑器需要加载 Three.js。</div>
+          <div class="room-controls">
+            <div class="control-card">
+              <div class="control-title">🎨 自由调色 · 选择要修改的部位</div>
+              <select class="paint-target" id="paintTarget" aria-label="选择需要调色的部位">
+                <option value="backWall">后墙颜色</option>
+                <option value="sideWall">左侧墙颜色</option>
+                <option value="floor">地板颜色</option>
+                <option value="trim">门框 / 踢脚线 / 装饰线</option>
+                <option value="main">选中家具 · 主体颜色</option>
+                <option value="fabric">选中家具 · 布料 / 软装颜色</option>
+                <option value="detail">选中家具 · 装饰 / 金属细节颜色</option>
+              </select>
+              <div class="paint-colors" id="paintColors">
+                <button class="paint-swatch active" type="button" title="暖白" data-color="#e8e0d3" style="background:#e8e0d3"></button>
+                <button class="paint-swatch" type="button" title="奶油黄" data-color="#ead7ad" style="background:#ead7ad"></button>
+                <button class="paint-swatch" type="button" title="鼠尾草绿" data-color="#aebca7" style="background:#aebca7"></button>
+                <button class="paint-swatch" type="button" title="雾霾蓝" data-color="#aabfca" style="background:#aabfca"></button>
+                <button class="paint-swatch" type="button" title="浅灰" data-color="#b9b8b2" style="background:#b9b8b2"></button>
+                <button class="paint-swatch" type="button" title="豆沙粉" data-color="#d8b5ae" style="background:#d8b5ae"></button>
+                <input class="paint-custom" id="customRoomColor" type="color" value="#e8e0d3" title="打开取色器，自由选择任意颜色" />
+                <span class="color-value" id="colorHexValue">#E8E0D3</span>
+              </div>
+              <p class="paint-hint" id="paintTargetHint">毛坯墙面默认保持素色；可以自由粉刷，也可以添加自己的墙贴或整面壁纸。</p>
+              <div class="wall-art-editor">
+                <div class="control-title">🖼️ 墙面图案 · 上传你喜欢的图片</div>
+                <div class="wall-art-toolbar">
+                  <select id="wallArtWall" aria-label="选择贴图墙面">
+                    <option value="backWall">后墙</option>
+                    <option value="sideWall">左侧墙</option>
+                  </select>
+                  <select id="wallArtMode" aria-label="选择图案铺设方式">
+                    <option value="sticker">局部贴画</option>
+                    <option value="wallpaper">整面壁纸 / 壁画</option>
+                  </select>
+                  <label class="wall-art-upload" for="wallArtUpload">＋ 上传图案</label>
+                  <input id="wallArtUpload" type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple />
+                </div>
+                <p class="paint-hint">支持 PNG 透明贴纸、JPG / WEBP 壁画。可以上传自己的图片，或从下方主题素材库选取。贴到墙上后可直接拖动；按住 Shift 拖动可旋转，按住 Alt 拖动可缩放，也可以使用滑块精确调整。</p>
+                <div class="wall-sticker-library">
+                  <div class="wall-sticker-library-head">
+                    <strong>✨ 主题墙贴素材库</strong>
+                    <select id="stickerTheme" aria-label="选择墙贴主题">
+                      <option value="hello_kitty">Hello Kitty</option>
+                      <option value="kuromi">库洛米</option>
+                      <option value="cinnamoroll">玉桂狗</option>
+                      <option value="hangyodon">人鱼汉顿</option>
+                    </select>
+                  </div>
+                  <div class="wall-sticker-grid" id="wallStickerGrid"><span class="wall-sticker-empty">正在加载主题墙贴…</span></div>
+                </div>
+                <div class="wall-art-list" id="wallArtList"><span class="wall-art-empty">还没有添加墙面图案。</span></div>
+                <div class="wall-art-adjust" id="wallArtAdjust" hidden>
+                  <label>左右位置 <input id="wallArtX" type="range" min="-350" max="350" value="0" step="5" /></label>
+                  <label>上下位置 <input id="wallArtY" type="range" min="25" max="375" value="200" step="5" /></label>
+                  <label>图案宽度 <input id="wallArtWidth" type="range" min="35" max="740" value="180" step="5" /></label>
+                  <label>旋转角度 <input id="wallArtRotation" type="range" min="-180" max="180" value="0" step="1" /></label>
+                  <div class="wall-art-actions">
+                    <button class="btn soft small" id="wallArtReset" type="button">恢复默认位置</button>
+                    <button class="btn secondary small" id="wallArtDuplicate" type="button">复制图案</button>
+                    <button class="btn danger small" id="wallArtDelete" type="button">删除选中图案</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="control-card">
+              <div class="control-title">🪑 当前风格家具 · 点击添加到房间</div>
+              <div class="furniture-palette" id="furniturePalette"></div>
+            </div>
+          </div>
+          <div class="house-footer">
+            <span class="hint">当前是可旋转的三维房间毛坯模型；家具可按所选风格逐件布置。</span>
+            <div class="row">
+              <button class="btn soft small" id="resetRoomView">重置视角</button>
+              <button class="btn danger small" id="clearFurniture">清空本房间家具</button>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div class="panel" id="panel-settings">
-        <button class="close-btn" data-close="panel-settings">✕</button>
+      <section class="panel" id="panel-settings" aria-label="设置">
+        <button class="close-btn" data-close="panel-settings" aria-label="关闭">×</button>
         <h2>⚙️ 设置</h2>
         <div class="content">
-          <div class="setting-row">
-            <label>照片容量上限</label>
-            <input type="number" id="setPhotoCap" min="1" value="1000">
+          <div class="settings-row"><span>照片容量上限</span><input class="text-input" style="width:100px" type="number" id="setPhotoCap" min="1" value="1000" /></div>
+          <div class="settings-row"><span>喂食冷却（秒）</span><input class="text-input" style="width:100px" type="number" id="setCdFeed" min="0" step="0.5" value="2" /></div>
+          <div class="settings-row"><span>抚摸冷却（秒）</span><input class="text-input" style="width:100px" type="number" id="setCdPet" min="0" step="0.5" value="1" /></div>
+          <div class="settings-row"><span>玩耍冷却（秒）</span><input class="text-input" style="width:100px" type="number" id="setCdPlay" min="0" step="0.5" value="1.5" /></div>
+          <div class="settings-row"><span>当前已绑定角色</span><strong id="settingsProfile">尚未绑定</strong></div>
+          <div class="row">
+            <button class="btn secondary" id="editProfileBtn">修改角色绑定</button>
+            <button class="btn" id="saveSettingsBtn">保存设置</button>
+            <button class="btn danger" id="clearDataBtn">清空本机数据</button>
           </div>
-          <div class="setting-row">
-            <label>🍖 喂食冷却（秒）</label>
-            <input type="number" id="setCdFeed" min="0" step="0.5" value="2">
+          <p class="hint">角色绑定和好感度目前保存在当前浏览器中。此版本没有接入账号服务器，因此不会自动跨设备同步。</p>
+        </div>
+      </section>
+
+      <div class="video-modal" id="videoModal">
+        <button class="close-video" id="closeVideoBtn" aria-label="关闭视频">×</button>
+        <video id="videoPlayer" controls playsinline></video>
+      </div>
+      <div class="modal-overlay" id="profileGate">
+        <div class="dialog-card">
+          <h3>👤 绑定你的角色</h3>
+          <p class="hint" style="text-align:center">进入小屋前先创建角色。宠物会根据这个角色的性别记录对你的好感度。</p>
+          <div class="field">
+            <label class="field-label" for="profileName">角色昵称</label>
+            <input class="text-input" id="profileName" maxlength="20" placeholder="给自己的角色取个名字" />
           </div>
-          <div class="setting-row">
-            <label>🤚 抚摸冷却（秒）</label>
-            <input type="number" id="setCdPet" min="0" step="0.5" value="1">
+          <div class="field">
+            <span class="field-label">角色性别</span>
+            <div class="gender-choice">
+              <button type="button" data-gender="male" id="chooseMale">👨 男生</button>
+              <button type="button" data-gender="female" id="chooseFemale">👩 女生</button>
+            </div>
           </div>
-          <div class="setting-row">
-            <label>🎾 玩耍冷却（秒）</label>
-            <input type="number" id="setCdPlay" min="0" step="0.5" value="1.5">
-          </div>
-          <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
-            <button class="btn" id="saveSettingsBtn">保存</button>
-            <button class="btn danger" id="clearDataBtn">清空数据</button>
+          <div class="dialog-actions"><button class="btn" id="saveProfileBtn">确认绑定并进入小屋</button></div>
+          <p class="hint" style="text-align:center;margin-bottom:0">这里由使用者主动选择角色，不会通过摄像头或其他方式推测性别。</p>
+        </div>
+      </div>
+      <div class="modal-overlay" id="bottleDialog">
+        <div class="dialog-card">
+          <button class="close-btn" id="closeBottleBtn" aria-label="关闭">×</button>
+          <h3>🍾 河面漂流瓶</h3>
+          <p class="hint" id="bottleSubTitle" style="text-align:center">写下一段想留在河上的话。</p>
+          <textarea class="text-area" id="bottleMessage" maxlength="500" placeholder="把一段回忆、一句话或一个愿望放进漂流瓶……"></textarea>
+          <div class="dialog-actions">
+            <button class="btn" id="saveBottleBtn">封存漂流瓶</button>
+            <button class="btn secondary" id="emptyBottleBtn">清空内容</button>
           </div>
         </div>
       </div>
-
-      <div class="video-modal" id="videoModal">
-        <button class="close-video" id="closeVideoBtn">✕</button>
-        <video id="videoPlayer" controls playsinline></video>
-      </div>
-
       <div class="toast" id="toast"></div>
     </div>
-  </div>
+  </main>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.128.0/three.min.js"></script>
   <script>
-    // ==================== 数据状态 ====================
+    'use strict';
+
+    // -------------------- 数据与本地保存 --------------------
+    const STORE = {
+      pets: 'love_house_pets_v2', room: 'love_house_room_v2', profile: 'love_house_profile_v2',
+      settings: 'love_house_settings_v2', bottles: 'love_house_bottles_v2'
+    };
     const state = {
-      photos: [], photoCapacity: 1000,
-      videos: [],
+      photos: [], videos: [], photoCapacity: 1000,
       pets: [
         { id: 'cat1', name: '猫猫', kind: 'cat', emoji: '🐱', affinityMale: 30, affinityFemale: 55 },
         { id: 'dog1', name: '狗狗', kind: 'dog', emoji: '🐶', affinityMale: 60, affinityFemale: 20 }
       ],
-      room: { currentRoom: 'living', currentStyle: 'modern', furniture: { living: [], bedroom: [], bathroom: [] } }
-    };
-
-    const FURNITURE_LIB = {
-      chinese: [{ name: '罗汉床', emoji: '🛋️' }, { name: '条案', emoji: '🪑' }, { name: '宫灯', emoji: '🏮' }],
-      american: [{ name: '沙发', emoji: '🛋️' }, { name: '木桌', emoji: '🪵' }, { name: '落地灯', emoji: '💡' }],
-      european: [{ name: '雕花沙发', emoji: '🛋️' }, { name: '大理石桌', emoji: '🪞' }, { name: '水晶灯', emoji: '💎' }],
-      modern: [{ name: '简约沙发', emoji: '🛋️' }, { name: '茶几', emoji: '🔲' }, { name: '弧线灯', emoji: '💡' }, { name: '电视', emoji: '📺' }]
-    };
-    const ROOM_FURNITURE = { living: ['🛋️', '🪑', '📺'], bedroom: ['🛏️', '🪑', '🧸'], bathroom: ['🚿', '🛁', '🪞'] };
-
-    // ==================== 本地存储 ====================
-    const DB_NAME = 'love-house-db', DB_VERSION = 1; let db = null;
-    function openDB() { return new Promise((res, rej) => { const r = indexedDB.open(DB_NAME, DB_VERSION); r.onupgradeneeded = e => { const d = e.target.result; if(!d.objectStoreNames.contains('photos')) d.createObjectStore('photos', { keyPath: 'id' }); if(!d.objectStoreNames.contains('videos')) d.createObjectStore('videos', { keyPath: 'id' }); }; r.onsuccess = e => { db = e.target.result; res(); }; r.onerror = rej; }); }
-    function dbPut(store, val) { return new Promise((res, rej) => { const tx = db.transaction(store, 'readwrite'); tx.objectStore(store).put(val); tx.oncomplete = res; tx.onerror = rej; }); }
-    function dbGetAll(store) { return new Promise((res, rej) => { const r = db.transaction(store, 'readonly').objectStore(store).getAll(); r.onsuccess = () => res(r.result); r.onerror = rej; }); }
-    function dbDelete(store, id) { return new Promise((res, rej) => { const tx = db.transaction(store, 'readwrite'); tx.objectStore(store).delete(id); tx.oncomplete = res; tx.onerror = rej; }); }
-    function dbClear(store) { return new Promise((res, rej) => { const tx = db.transaction(store, 'readwrite'); tx.objectStore(store).clear(); tx.oncomplete = res; tx.onerror = rej; }); }
-
-    const LS_PETS = 'lh_pets_v1', LS_ROOM = 'lh_room_v1', LS_SETTINGS = 'lh_settings_v1';
-    function savePets() { localStorage.setItem(LS_PETS, JSON.stringify(state.pets.map(p => ({ id: p.id, aM: p.affinityMale, aF: p.affinityFemale })))); }
-    function loadPets() { try { const arr = JSON.parse(localStorage.getItem(LS_PETS)); if(arr) arr.forEach(s => { const p = state.pets.find(x => x.id === s.id); if(p) { p.affinityMale = s.aM; p.affinityFemale = s.aF; } }); } catch(e){} }
-    function saveRoom() { localStorage.setItem(LS_ROOM, JSON.stringify(state.room)); }
-    function loadRoom() { try { const r = JSON.parse(localStorage.getItem(LS_ROOM)); if(r) state.room = { ...state.room, ...r }; } catch(e){} }
-
-    const PET_ACTIONS = { feed: { base: 5, cooldown: 2000 }, pet: { base: 3, cooldown: 1000 }, play: { base: 4, cooldown: 1500 } };
-    function saveSettings() { localStorage.setItem(LS_SETTINGS, JSON.stringify({ cap: state.photoCapacity, cd: { feed: PET_ACTIONS.feed.cooldown/1000, pet: PET_ACTIONS.pet.cooldown/1000, play: PET_ACTIONS.play.cooldown/1000 } })); }
-    function loadSettings() { try { const s = JSON.parse(localStorage.getItem(LS_SETTINGS)); if(s) { state.photoCapacity = s.cap || 1000; if(s.cd) { PET_ACTIONS.feed.cooldown = s.cd.feed*1000; PET_ACTIONS.pet.cooldown = s.cd.pet*1000; PET_ACTIONS.play.cooldown = s.cd.play*1000; } } } catch(e){} }
-
-    async function loadMedia() {
-      const p = await dbGetAll('photos'); state.photos = p.sort((a,b)=>a.createdAt-b.createdAt).map(x => ({ id: x.id, name: x.name, url: URL.createObjectURL(x.blob) }));
-      const v = await dbGetAll('videos'); state.videos = v.sort((a,b)=>a.createdAt-b.createdAt).map(x => ({ id: x.id, name: x.name, url: URL.createObjectURL(x.blob) }));
-    }
-
-    // ==================== PixiJS 特效层 ====================
-    let app = null, heartTexture = null, heartContainer = null, photoContainer = null, fruitSprites = [];
-    
-    async function initPixi() {
-      const PIXI = window.PIXI;
-      app = new PIXI.Application({
-        view: document.getElementById('sceneCanvas'),
-        resizeTo: document.getElementById('app'),
-        backgroundAlpha: 0, // 透明背景，露出底下的图片
-        antialias: true,
-        resolution: window.devicePixelRatio || 1,
-        autoDensity: true
-      });
-
-      heartContainer = new PIXI.Container();
-      photoContainer = new PIXI.Container();
-      app.stage.addChild(heartContainer, photoContainer);
-
-      // 生成爱心纹理
-      const g = new PIXI.Graphics();
-      g.beginFill(0xff4d6d);
-      g.moveTo(0, 6); g.bezierCurveTo(-8, -4, -14, 8, 0, 18); g.bezierCurveTo(14, 8, 8, -4, 0, 6);
-      g.endFill();
-      heartTexture = app.renderer.generateTexture(g);
-      g.destroy();
-
-      initPhotoFlow();
-      state.videos.forEach(() => addFruitVisual());
-
-      app.ticker.add(animate);
-    }
-
-    // 照片流动逻辑（沿左侧河流飘动，从左上到右下）
-    let photoSprites = [];
-    function initPhotoFlow() {
-      const PIXI = window.PIXI;
-      if(!photoContainer) return;
-      photoContainer.removeChildren();
-      photoSprites = [];
-
-      for(let i = 0; i < 10; i++) {
-        const s = new PIXI.Sprite(PIXI.Texture.WHITE);
-        s.anchor.set(0.5);
-        s._t = Math.random(); 
-        s._speed = 0.001 + Math.random() * 0.0015;
-        s._slot = i;
-        s._currentId = null;
-        assignTexture(s);
-        photoContainer.addChild(s);
-        photoSprites.push(s);
+      profile: null,
+      bottles: [], currentBottleId: null, currentPetId: 'cat1',
+      room: {
+        currentRoom: 'living', currentStyle: 'raw', wallColor: '#e8e0d3', colorTarget: 'backWall', selectedFurnitureIndex: -1,
+        surfaces: { living: {}, bedroom: {}, bathroom: {} },
+        furniture: { living: [], bedroom: [], bathroom: [] },
+        wallArts: { living: [], bedroom: [], bathroom: [] }, wallArtWall: 'backWall', selectedWallArtId: null
       }
+    };
+    const PET_ACTIONS = {
+      feed: { base: 5, cooldown: 2000 }, pet: { base: 3, cooldown: 1000 }, play: { base: 4, cooldown: 1500 }
+    };
+    const cooldowns = new Map();
+    let toastTimer = null;
+    function toast(message) {
+      const el = document.getElementById('toast'); el.textContent = message; el.classList.add('show');
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 1700);
     }
-
-    function assignTexture(s) {
-      const PIXI = window.PIXI;
-      if(state.photos.length > 0) {
-        const p = state.photos[s._slot % state.photos.length];
-        if(s._currentId !== p.id) {
-          try { s.texture = PIXI.Texture.from(p.url); } catch(e) { s.texture = PIXI.Texture.WHITE; }
-          s._currentId = p.id; s._targetW = 80; // 稍微调大一点点
+    function safeParse(key, fallback) {
+      try { const value = JSON.parse(localStorage.getItem(key)); return value ?? fallback; }
+      catch (_) { return fallback; }
+    }
+    function savePets() {
+      localStorage.setItem(STORE.pets, JSON.stringify(state.pets.map(p => ({ id: p.id, affinityMale: p.affinityMale, affinityFemale: p.affinityFemale }))));
+    }
+    function loadPets() {
+      let records = safeParse(STORE.pets, null);
+      // 兼容旧版 lh_pets_v1 的 aM/aF 字段，避免升级后丢失宠物好感度。
+      if (!Array.isArray(records)) {
+        const legacy = safeParse('lh_pets_v1', []);
+        records = Array.isArray(legacy) ? legacy.map(item => ({ id: item.id, affinityMale: item.aM, affinityFemale: item.aF })) : [];
+      }
+      records.forEach(record => {
+        const pet = state.pets.find(p => p.id === record.id);
+        if (pet) {
+          if (Number.isFinite(record.affinityMale)) pet.affinityMale = record.affinityMale;
+          if (Number.isFinite(record.affinityFemale)) pet.affinityFemale = record.affinityFemale;
         }
-      } else {
-        if(s._currentId !== 'heart') { s.texture = heartTexture; s._currentId = 'heart'; s._targetW = 30; }
+      });
+    }
+    function saveRoom() { localStorage.setItem(STORE.room, JSON.stringify(state.room)); }
+    function loadRoom() {
+      let saved = safeParse(STORE.room, null);
+      if (!saved || typeof saved !== 'object') {
+        const legacy = safeParse('lh_room_v1', null);
+        if (legacy && typeof legacy === 'object') {
+          saved = { currentRoom: legacy.currentRoom, currentStyle: legacy.currentStyle, furniture: { living: [], bedroom: [], bathroom: [] } };
+        }
+      }
+      if (!saved || typeof saved !== 'object') return;
+      state.room = { ...state.room, ...saved, furniture: { ...state.room.furniture, ...(saved.furniture || {}) }, surfaces: { ...state.room.surfaces, ...(saved.surfaces || {}) }, wallArts: { ...state.room.wallArts, ...(saved.wallArts || {}) } };
+      ['living', 'bedroom', 'bathroom'].forEach(room => {
+        if (!Array.isArray(state.room.furniture[room])) state.room.furniture[room] = [];
+        if (!Array.isArray(state.room.wallArts[room])) state.room.wallArts[room] = [];
+        state.room.surfaces[room] = { ...(state.room.surfaces[room] || {}) };
+      });
+      if (!['backWall', 'sideWall'].includes(state.room.wallArtWall)) state.room.wallArtWall = 'backWall';
+      state.room.selectedWallArtId = null;
+      // 兼容早期版本只保存一个墙面颜色的记录。
+      if (saved.wallColor && !state.room.surfaces[state.room.currentRoom].backWall) state.room.surfaces[state.room.currentRoom].backWall = saved.wallColor;
+      if (!['backWall', 'sideWall', 'floor', 'trim', 'main', 'fabric', 'detail'].includes(state.room.colorTarget)) state.room.colorTarget = 'backWall';
+      state.room.selectedFurnitureIndex = -1;
+    }
+    function saveProfile() { localStorage.setItem(STORE.profile, JSON.stringify(state.profile)); }
+    function loadProfile() { state.profile = safeParse(STORE.profile, null); }
+    function saveBottles() { localStorage.setItem(STORE.bottles, JSON.stringify(state.bottles)); }
+    function loadBottles() {
+      const saved = safeParse(STORE.bottles, null);
+      if (Array.isArray(saved) && saved.length) state.bottles = saved;
+      else {
+        state.bottles = Array.from({ length: 7 }, (_, i) => ({ id: `bottle-${i + 1}`, message: '', phase: i / 7, speed: 0.012 + (i % 3) * 0.0015 }));
+        saveBottles();
       }
     }
 
-    function animate(delta) {
-      if(!app) return;
-      const W = app.screen.width, H = app.screen.height;
-
-      // 照片沿河流移动（匹配新图江面走向：从远方中上部飘向近处左下部）
-      photoContainer.children.forEach(s => {
-        s._t += s._speed * delta;
-        if(s._t > 1.05) { s._t = -0.05; assignTexture(s); }
-        
-        // 起点: 中上方江面(45%, 20%) -> 终点: 左下角(0%, 95%)
-        const x = W * (0.45 - s._t * 0.45);
-        const y = H * (0.20 + s._t * 0.75) + Math.sin(s._t * Math.PI * 4) * 15;
-        s.x = x; s.y = y;
-
-        const depth = 0.4 + Math.sin(Math.max(0, Math.min(1, s._t)) * Math.PI) * 0.6;
-        const base = s._targetW / (s.texture.width || 100);
-        s.scale.set(base * depth);
-        s.alpha = 0.5 + depth * 0.5;
+    // -------------------- IndexedDB：保存用户上传的照片和视频 --------------------
+    const DB_NAME = 'love-house-db', DB_VERSION = 2;
+    let db = null;
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = event => {
+          const database = event.target.result;
+          if (!database.objectStoreNames.contains('photos')) database.createObjectStore('photos', { keyPath: 'id' });
+          if (!database.objectStoreNames.contains('videos')) database.createObjectStore('videos', { keyPath: 'id' });
+          if (!database.objectStoreNames.contains('wallArt')) database.createObjectStore('wallArt', { keyPath: 'id' });
+        };
+        request.onsuccess = event => { db = event.target.result; resolve(); };
+        request.onerror = () => reject(request.error);
       });
-
-      // 爱心粒子飘动
-      heartContainer.children.forEach(h => {
-        h.y -= 0.8 * delta; h.alpha -= 0.01 * delta; h.rotation += 0.02 * delta;
-        if(h.alpha <= 0) { heartContainer.removeChild(h); h.destroy(); }
+    }
+    function dbRequest(store, mode, action, value) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(store, mode), objectStore = tx.objectStore(store);
+        const request = action === 'getAll' ? objectStore.getAll() : action === 'put' ? objectStore.put(value) : action === 'clear' ? objectStore.clear() : objectStore.delete(value);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
       });
-
-      // 果子飘动
-      fruitSprites.forEach(f => { if(f._baseY) f.y = f._baseY + Math.sin(Date.now()*0.002) * 3; });
+    }
+    async function loadMedia() {
+      const photoRecords = await dbRequest('photos', 'readonly', 'getAll');
+      const videoRecords = await dbRequest('videos', 'readonly', 'getAll');
+      state.photos = photoRecords.sort((a, b) => a.createdAt - b.createdAt).map(item => ({
+        id: item.id, name: item.name, url: URL.createObjectURL(item.blob)
+      }));
+      state.videos = videoRecords.sort((a, b) => a.createdAt - b.createdAt).map(item => ({
+        id: item.id, name: item.name, url: URL.createObjectURL(item.blob)
+      }));
+    }
+    const wallArtAssets = new Map();
+    const wallArtTextures = new Map();
+    const wallArtMeshes = new Map();
+    const STICKER_CATALOG = {"hello_kitty":[{"path":"assets/wall_stickers/hello_kitty_sheet.png","name":"Hello Kitty 粉色甜美 · 整组贴纸","sheet":true},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_01.png","name":"Hello Kitty 粉色甜美 · 贴纸 01","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_02.png","name":"Hello Kitty 粉色甜美 · 贴纸 02","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_03.png","name":"Hello Kitty 粉色甜美 · 贴纸 03","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_04.png","name":"Hello Kitty 粉色甜美 · 贴纸 04","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_05.png","name":"Hello Kitty 粉色甜美 · 贴纸 05","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_06.png","name":"Hello Kitty 粉色甜美 · 贴纸 06","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_07.png","name":"Hello Kitty 粉色甜美 · 贴纸 07","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_08.png","name":"Hello Kitty 粉色甜美 · 贴纸 08","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_09.png","name":"Hello Kitty 粉色甜美 · 贴纸 09","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_10.png","name":"Hello Kitty 粉色甜美 · 贴纸 10","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_11.png","name":"Hello Kitty 粉色甜美 · 贴纸 11","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_12.png","name":"Hello Kitty 粉色甜美 · 贴纸 12","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_13.png","name":"Hello Kitty 粉色甜美 · 贴纸 13","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_14.png","name":"Hello Kitty 粉色甜美 · 贴纸 14","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_15.png","name":"Hello Kitty 粉色甜美 · 贴纸 15","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_16.png","name":"Hello Kitty 粉色甜美 · 贴纸 16","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_17.png","name":"Hello Kitty 粉色甜美 · 贴纸 17","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_18.png","name":"Hello Kitty 粉色甜美 · 贴纸 18","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_19.png","name":"Hello Kitty 粉色甜美 · 贴纸 19","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_20.png","name":"Hello Kitty 粉色甜美 · 贴纸 20","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_21.png","name":"Hello Kitty 粉色甜美 · 贴纸 21","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_22.png","name":"Hello Kitty 粉色甜美 · 贴纸 22","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_23.png","name":"Hello Kitty 粉色甜美 · 贴纸 23","sheet":false},{"path":"assets/wall_stickers/hello_kitty/hello_kitty_24.png","name":"Hello Kitty 粉色甜美 · 贴纸 24","sheet":false}],"kuromi":[{"path":"assets/wall_stickers/kuromi_sheet.png","name":"库洛米 紫黑甜酷 · 整组贴纸","sheet":true},{"path":"assets/wall_stickers/kuromi/kuromi_01.png","name":"库洛米 紫黑甜酷 · 贴纸 01","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_02.png","name":"库洛米 紫黑甜酷 · 贴纸 02","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_03.png","name":"库洛米 紫黑甜酷 · 贴纸 03","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_04.png","name":"库洛米 紫黑甜酷 · 贴纸 04","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_05.png","name":"库洛米 紫黑甜酷 · 贴纸 05","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_06.png","name":"库洛米 紫黑甜酷 · 贴纸 06","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_07.png","name":"库洛米 紫黑甜酷 · 贴纸 07","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_08.png","name":"库洛米 紫黑甜酷 · 贴纸 08","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_09.png","name":"库洛米 紫黑甜酷 · 贴纸 09","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_10.png","name":"库洛米 紫黑甜酷 · 贴纸 10","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_11.png","name":"库洛米 紫黑甜酷 · 贴纸 11","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_12.png","name":"库洛米 紫黑甜酷 · 贴纸 12","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_13.png","name":"库洛米 紫黑甜酷 · 贴纸 13","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_14.png","name":"库洛米 紫黑甜酷 · 贴纸 14","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_15.png","name":"库洛米 紫黑甜酷 · 贴纸 15","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_16.png","name":"库洛米 紫黑甜酷 · 贴纸 16","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_17.png","name":"库洛米 紫黑甜酷 · 贴纸 17","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_18.png","name":"库洛米 紫黑甜酷 · 贴纸 18","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_19.png","name":"库洛米 紫黑甜酷 · 贴纸 19","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_20.png","name":"库洛米 紫黑甜酷 · 贴纸 20","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_21.png","name":"库洛米 紫黑甜酷 · 贴纸 21","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_22.png","name":"库洛米 紫黑甜酷 · 贴纸 22","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_23.png","name":"库洛米 紫黑甜酷 · 贴纸 23","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_24.png","name":"库洛米 紫黑甜酷 · 贴纸 24","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_25.png","name":"库洛米 紫黑甜酷 · 贴纸 25","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_26.png","name":"库洛米 紫黑甜酷 · 贴纸 26","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_27.png","name":"库洛米 紫黑甜酷 · 贴纸 27","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_28.png","name":"库洛米 紫黑甜酷 · 贴纸 28","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_29.png","name":"库洛米 紫黑甜酷 · 贴纸 29","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_30.png","name":"库洛米 紫黑甜酷 · 贴纸 30","sheet":false},{"path":"assets/wall_stickers/kuromi/kuromi_31.png","name":"库洛米 紫黑甜酷 · 贴纸 31","sheet":false}],"cinnamoroll":[{"path":"assets/wall_stickers/cinnamoroll_sheet.png","name":"玉桂狗 天空云朵 · 整组贴纸","sheet":true},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_01.png","name":"玉桂狗 天空云朵 · 贴纸 01","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_02.png","name":"玉桂狗 天空云朵 · 贴纸 02","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_03.png","name":"玉桂狗 天空云朵 · 贴纸 03","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_04.png","name":"玉桂狗 天空云朵 · 贴纸 04","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_05.png","name":"玉桂狗 天空云朵 · 贴纸 05","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_06.png","name":"玉桂狗 天空云朵 · 贴纸 06","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_07.png","name":"玉桂狗 天空云朵 · 贴纸 07","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_08.png","name":"玉桂狗 天空云朵 · 贴纸 08","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_09.png","name":"玉桂狗 天空云朵 · 贴纸 09","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_10.png","name":"玉桂狗 天空云朵 · 贴纸 10","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_11.png","name":"玉桂狗 天空云朵 · 贴纸 11","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_12.png","name":"玉桂狗 天空云朵 · 贴纸 12","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_13.png","name":"玉桂狗 天空云朵 · 贴纸 13","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_14.png","name":"玉桂狗 天空云朵 · 贴纸 14","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_15.png","name":"玉桂狗 天空云朵 · 贴纸 15","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_16.png","name":"玉桂狗 天空云朵 · 贴纸 16","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_17.png","name":"玉桂狗 天空云朵 · 贴纸 17","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_18.png","name":"玉桂狗 天空云朵 · 贴纸 18","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_19.png","name":"玉桂狗 天空云朵 · 贴纸 19","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_20.png","name":"玉桂狗 天空云朵 · 贴纸 20","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_21.png","name":"玉桂狗 天空云朵 · 贴纸 21","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_22.png","name":"玉桂狗 天空云朵 · 贴纸 22","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_23.png","name":"玉桂狗 天空云朵 · 贴纸 23","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_24.png","name":"玉桂狗 天空云朵 · 贴纸 24","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_25.png","name":"玉桂狗 天空云朵 · 贴纸 25","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_26.png","name":"玉桂狗 天空云朵 · 贴纸 26","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_27.png","name":"玉桂狗 天空云朵 · 贴纸 27","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_28.png","name":"玉桂狗 天空云朵 · 贴纸 28","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_29.png","name":"玉桂狗 天空云朵 · 贴纸 29","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_30.png","name":"玉桂狗 天空云朵 · 贴纸 30","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_31.png","name":"玉桂狗 天空云朵 · 贴纸 31","sheet":false},{"path":"assets/wall_stickers/cinnamoroll/cinnamoroll_32.png","name":"玉桂狗 天空云朵 · 贴纸 32","sheet":false}],"hangyodon":[{"path":"assets/wall_stickers/hangyodon_sheet.png","name":"人鱼汉顿 海洋蓝 · 整组贴纸","sheet":true},{"path":"assets/wall_stickers/hangyodon/hangyodon_01.png","name":"人鱼汉顿 海洋蓝 · 贴纸 01","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_02.png","name":"人鱼汉顿 海洋蓝 · 贴纸 02","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_03.png","name":"人鱼汉顿 海洋蓝 · 贴纸 03","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_04.png","name":"人鱼汉顿 海洋蓝 · 贴纸 04","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_05.png","name":"人鱼汉顿 海洋蓝 · 贴纸 05","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_06.png","name":"人鱼汉顿 海洋蓝 · 贴纸 06","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_07.png","name":"人鱼汉顿 海洋蓝 · 贴纸 07","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_08.png","name":"人鱼汉顿 海洋蓝 · 贴纸 08","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_09.png","name":"人鱼汉顿 海洋蓝 · 贴纸 09","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_10.png","name":"人鱼汉顿 海洋蓝 · 贴纸 10","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_11.png","name":"人鱼汉顿 海洋蓝 · 贴纸 11","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_12.png","name":"人鱼汉顿 海洋蓝 · 贴纸 12","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_13.png","name":"人鱼汉顿 海洋蓝 · 贴纸 13","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_14.png","name":"人鱼汉顿 海洋蓝 · 贴纸 14","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_15.png","name":"人鱼汉顿 海洋蓝 · 贴纸 15","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_16.png","name":"人鱼汉顿 海洋蓝 · 贴纸 16","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_17.png","name":"人鱼汉顿 海洋蓝 · 贴纸 17","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_18.png","name":"人鱼汉顿 海洋蓝 · 贴纸 18","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_19.png","name":"人鱼汉顿 海洋蓝 · 贴纸 19","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_20.png","name":"人鱼汉顿 海洋蓝 · 贴纸 20","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_21.png","name":"人鱼汉顿 海洋蓝 · 贴纸 21","sheet":false},{"path":"assets/wall_stickers/hangyodon/hangyodon_22.png","name":"人鱼汉顿 海洋蓝 · 贴纸 22","sheet":false}]};
+    const STICKER_THEME_NAMES = { hello_kitty: 'Hello Kitty', kuromi: '库洛米', cinnamoroll: '玉桂狗', hangyodon: '人鱼汉顿' };
+    async function loadWallArtAssets() {
+      const records = await dbRequest('wallArt', 'readonly', 'getAll');
+      records.forEach(record => {
+        if (record.blob && !wallArtAssets.has(record.id)) wallArtAssets.set(record.id, URL.createObjectURL(record.blob));
+      });
     }
 
-    function spawnHearts(e) {
-      if(!heartContainer) return;
-      const rect = document.getElementById('app').getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      for(let i=0; i<3; i++) {
-        const h = new PIXI.Sprite(heartTexture);
-        h.anchor.set(0.5);
-        h.x = x + (Math.random()-0.5)*20;
-        h.y = y + (Math.random()-0.5)*20;
-        h.scale.set(0.3 + Math.random()*0.3);
-        heartContainer.addChild(h);
+    // -------------------- 面板切换 --------------------
+    function closePanels() { document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active')); }
+    function openPanel(id) {
+      closePanels(); document.getElementById(id).classList.add('active');
+      if (id === 'panel-settings') fillSettings();
+      if (id === 'panel-house') {
+        renderHouseControls();
+        requestAnimationFrame(() => { initRoom3D(); resizeRoom3D(); renderRoom3D(); });
       }
     }
-
-    // 树上结果子（匹配大树的树冠位置：约 25% ~ 55% 宽，30% ~ 55% 高）
-    function addFruitVisual() {
-      if(!app) return;
-      const PIXI = window.PIXI;
-      const fruit = new PIXI.Graphics();
-      fruit.beginFill(0xff3333); fruit.drawCircle(0, 0, 7); fruit.endFill();
-      fruit.beginFill(0xffd700); fruit.drawCircle(-2, -2, 1.5); fruit.endFill(); // 加个小高光
-      
-      fruit.x = app.screen.width * (0.28 + Math.random() * 0.22);
-      fruit.y = app.screen.height * (0.32 + Math.random() * 0.18);
-      fruit._baseY = fruit.y;
-
-      app.stage.addChild(fruit);
-      fruitSprites.push(fruit);
-    }
-
-    // ==================== 业务逻辑 ====================
-    function toast(msg) { const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 1500); }
-    
-    function openPanel(id) { document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id==='panel-settings') fillSettings(); }
-    document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => document.getElementById(btn.dataset.close).classList.remove('active')));
+    document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => {
+      document.getElementById(button.dataset.close).classList.remove('active');
+    }));
+    document.getElementById('albumBtn').addEventListener('click', () => { renderRiverPanel(); openPanel('panel-river'); });
     document.getElementById('settingsBtn').addEventListener('click', () => openPanel('panel-settings'));
 
-    // --- 河流相册 ---
+    // -------------------- 漂流瓶：沿河岸曲线持续移动，只有瓶子本身可以点击 --------------------
+    const bottleLayer = document.getElementById('bottleLayer');
+    const bottleNodes = new Map();
+    const riverSegments = [
+      [[47, 23], [42, 24], [36, 28], [30, 31]],
+      [[30, 31], [20, 33], [8, 36], [1.5, 43]],
+      [[1.5, 43], [0, 54], [2, 69], [9, 78]],
+      [[9, 78], [15, 88], [27, 95], [39, 101]]
+    ];
+    function bezierPoint(segment, t) {
+      const [p0, p1, p2, p3] = segment, mt = 1 - t;
+      const x = mt ** 3 * p0[0] + 3 * mt ** 2 * t * p1[0] + 3 * mt * t ** 2 * p2[0] + t ** 3 * p3[0];
+      const y = mt ** 3 * p0[1] + 3 * mt ** 2 * t * p1[1] + 3 * mt * t ** 2 * p2[1] + t ** 3 * p3[1];
+      return { x, y };
+    }
+    function riverPoint(t) {
+      const scaled = Math.max(0, Math.min(.999999, t)) * riverSegments.length;
+      const index = Math.floor(scaled), localT = scaled - index;
+      const point = bezierPoint(riverSegments[index], localT);
+      const ahead = bezierPoint(riverSegments[index], Math.min(1, localT + .01));
+      return { ...point, angle: Math.atan2(ahead.y - point.y, ahead.x - point.x) * 180 / Math.PI };
+    }
+    const bottleSvg = `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M15 4h10v7l3 4v31c0 4-3 6-8 6h0c-5 0-8-2-8-6V15l3-4z" fill="#b8d8ce" fill-opacity=".92" stroke="#315e58" stroke-width="1.5"/><path d="M15 5h10v5H15z" fill="#9a653e" stroke="#6e482d" stroke-width="1"/><path d="M14 22h13v17c0 4-2 6-7 6s-6-2-6-6z" fill="#fff8e8" fill-opacity=".88"/><path d="M18 27q3-4 6 0t-3 7q-6-4-3-7z" fill="#e9a66f"/><path d="M16 17q-2 10 0 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".7"/></svg>`;
+    function createBottleNodes() {
+      bottleLayer.innerHTML = ''; bottleNodes.clear();
+      state.bottles.forEach((bottle, index) => {
+        const button = document.createElement('button'); button.className = 'drift-bottle';
+        button.type = 'button'; button.setAttribute('aria-label', bottle.message ? '打开有留言的漂流瓶' : '打开空白漂流瓶');
+        button.innerHTML = bottleSvg; button.classList.toggle('has-message', Boolean(bottle.message));
+        button.addEventListener('click', () => openBottle(bottle.id));
+        bottleLayer.appendChild(button); bottleNodes.set(bottle.id, button);
+      });
+    }
+    let bottleAnimationStart = performance.now();
+    function animateBottles(now) {
+      const seconds = (now - bottleAnimationStart) / 1000;
+      state.bottles.forEach(bottle => {
+        const node = bottleNodes.get(bottle.id); if (!node) return;
+        const t = (bottle.phase + seconds * bottle.speed) % 1;
+        const point = riverPoint(t);
+        node.style.left = `${point.x}%`; node.style.top = `${point.y}%`;
+        node.style.transform = `translate(-50%, -50%) rotate(${Math.max(-36, Math.min(36, point.angle * .35))}deg)`;
+      });
+      requestAnimationFrame(animateBottles);
+    }
+    function openBottle(id) {
+      const bottle = state.bottles.find(item => item.id === id); if (!bottle) return;
+      state.currentBottleId = id;
+      document.getElementById('bottleMessage').value = bottle.message || '';
+      document.getElementById('bottleSubTitle').textContent = bottle.message ? '这只漂流瓶里已经有一段话。你可以继续修改。' : '这是一只空白漂流瓶，写下一段想留在河上的话。';
+      document.getElementById('bottleDialog').classList.add('active');
+    }
+    function closeBottleDialog() { document.getElementById('bottleDialog').classList.remove('active'); state.currentBottleId = null; }
+    document.getElementById('closeBottleBtn').addEventListener('click', closeBottleDialog);
+    document.getElementById('saveBottleBtn').addEventListener('click', () => {
+      const bottle = state.bottles.find(item => item.id === state.currentBottleId); if (!bottle) return;
+      bottle.message = document.getElementById('bottleMessage').value.trim(); saveBottles();
+      const node = bottleNodes.get(bottle.id); if (node) node.classList.toggle('has-message', Boolean(bottle.message));
+      closeBottleDialog(); toast(bottle.message ? '漂流瓶已封存，继续沿河漂流' : '漂流瓶已清空');
+    });
+    document.getElementById('emptyBottleBtn').addEventListener('click', () => { document.getElementById('bottleMessage').value = ''; });
+
+    // -------------------- 河流相册 --------------------
     function renderRiverPanel() {
       const flow = document.getElementById('photoFlow'); flow.innerHTML = '';
       document.getElementById('photoCountLabel').textContent = `${state.photos.length} / ${state.photoCapacity}`;
-      state.photos.forEach((p, idx) => {
-        const div = document.createElement('div');
-        div.className = 'photo-card'; div.style.backgroundImage = `url(${p.url})`;
-        div.onclick = async () => { if(confirm('删除照片？')) { await dbDelete('photos', p.id); URL.revokeObjectURL(p.url); state.photos.splice(idx,1); renderRiverPanel(); initPhotoFlow(); } };
-        flow.appendChild(div);
+      state.photos.forEach(photo => {
+        const card = document.createElement('div'); card.className = 'photo-card';
+        card.style.backgroundImage = `url("${photo.url}")`; card.title = photo.name;
+        const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×';
+        remove.addEventListener('click', async event => {
+          event.stopPropagation(); if (!confirm('确定删除这张照片吗？')) return;
+          await dbRequest('photos', 'readwrite', 'delete', photo.id);
+          URL.revokeObjectURL(photo.url); state.photos = state.photos.filter(item => item.id !== photo.id); renderRiverPanel();
+        });
+        card.appendChild(remove); flow.appendChild(card);
       });
     }
-
-    document.getElementById('photoInput').addEventListener('change', async (e) => {
-      const files = Array.from(e.target.files); e.target.value = '';
-      if(state.photos.length + files.length > state.photoCapacity) return toast('容量不足');
-      for(const f of files) {
-        const id = 'p_' + Date.now();
-        await dbPut('photos', { id, name: f.name, blob: f, createdAt: Date.now() });
-        state.photos.push({ id, name: f.name, url: URL.createObjectURL(f) });
+    document.getElementById('photoInput').addEventListener('change', async event => {
+      const files = Array.from(event.target.files || []); event.target.value = '';
+      if (state.photos.length + files.length > state.photoCapacity) return toast('照片容量不足，请调整设置');
+      for (const file of files) {
+        if (!file.type.startsWith('image/')) continue;
+        const id = `photo-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        await dbRequest('photos', 'readwrite', 'put', { id, name: file.name, blob: file, createdAt: Date.now() });
+        state.photos.push({ id, name: file.name, url: URL.createObjectURL(file) });
       }
-      renderRiverPanel(); initPhotoFlow(); toast('上传成功');
+      renderRiverPanel(); toast('照片已加入河畔相册');
     });
 
-    // --- 果树视频 ---
+    // -------------------- 树上的视频果实 --------------------
     function renderTreePanel() {
-      const grid = document.getElementById('fruitGrid'); grid.innerHTML = '';
-      document.getElementById('fruitCountLabel').textContent = `${state.videos.length} 个果子`;
-      state.videos.forEach(v => {
-        const div = document.createElement('div');
-        div.className = 'fruit-item'; div.textContent = '🍎';
-        div.onclick = () => { document.getElementById('videoPlayer').src = v.url; document.getElementById('videoModal').classList.add('active'); document.getElementById('videoPlayer').play(); };
-        grid.appendChild(div);
+      const list = document.getElementById('videoList'); list.innerHTML = '';
+      document.getElementById('fruitCountLabel').textContent = `${state.videos.length} 个果实`;
+      state.videos.forEach(video => {
+        const card = document.createElement('button'); card.type = 'button'; card.className = 'video-card';
+        card.innerHTML = `<span class="fruit">🍎</span><span>${escapeHtml(video.name)}</span>`;
+        card.addEventListener('click', () => {
+          const player = document.getElementById('videoPlayer'); player.src = video.url;
+          document.getElementById('videoModal').classList.add('active'); player.play().catch(() => {});
+        });
+        list.appendChild(card);
       });
     }
-
-    document.getElementById('videoInput').addEventListener('change', async (e) => {
-      const f = e.target.files[0]; e.target.value = '';
-      if(!f) return;
-      const id = 'v_' + Date.now();
-      await dbPut('videos', { id, name: f.name, blob: f, createdAt: Date.now() });
-      state.videos.push({ id, name: f.name, url: URL.createObjectURL(f) });
-      renderTreePanel(); addFruitVisual(); toast('结出新果子');
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    }
+    document.getElementById('videoInput').addEventListener('change', async event => {
+      const file = event.target.files?.[0]; event.target.value = ''; if (!file) return;
+      if (!file.type.startsWith('video/')) return toast('请选择视频文件');
+      const id = `video-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      await dbRequest('videos', 'readwrite', 'put', { id, name: file.name, blob: file, createdAt: Date.now() });
+      state.videos.push({ id, name: file.name, url: URL.createObjectURL(file) }); renderTreePanel(); toast('视频果实已挂到树上');
+    });
+    document.getElementById('closeVideoBtn').addEventListener('click', () => {
+      const player = document.getElementById('videoPlayer'); player.pause(); player.removeAttribute('src'); player.load();
+      document.getElementById('videoModal').classList.remove('active');
     });
 
-    document.getElementById('closeVideoBtn').onclick = () => { const v = document.getElementById('videoPlayer'); v.pause(); v.src=''; document.getElementById('videoModal').classList.remove('active'); };
+    // -------------------- 角色绑定和宠物好感度 --------------------
+    let selectedGender = 'male';
+    function showProfileGate(force = false) {
+      if (state.profile && !force) return;
+      document.getElementById('profileName').value = state.profile?.name || '';
+      selectedGender = state.profile?.gender || 'male'; updateGenderChoice();
+      document.getElementById('profileGate').classList.add('active');
+    }
+    function updateGenderChoice() {
+      document.getElementById('chooseMale').classList.toggle('selected', selectedGender === 'male');
+      document.getElementById('chooseFemale').classList.toggle('selected', selectedGender === 'female');
+    }
+    document.querySelectorAll('[data-gender]').forEach(button => button.addEventListener('click', () => {
+      selectedGender = button.dataset.gender; updateGenderChoice();
+    }));
+    document.getElementById('saveProfileBtn').addEventListener('click', () => {
+      const name = document.getElementById('profileName').value.trim();
+      if (!name) return toast('请先填写角色昵称');
+      state.profile = { name, gender: selectedGender }; saveProfile();
+      document.getElementById('profileGate').classList.remove('active'); updateProfileUI();
+      if (document.getElementById('panel-pet').classList.contains('active')) renderPetPanel();
+      toast(`角色「${name}」绑定成功`);
+    });
+    function updateProfileUI() {
+      const chip = document.getElementById('profileChip');
+      chip.textContent = state.profile ? `👤 ${state.profile.name} · ${state.profile.gender === 'male' ? '男生' : '女生'}` : '👤 绑定角色';
+      document.getElementById('settingsProfile').textContent = state.profile ? `${state.profile.name}（${state.profile.gender === 'male' ? '男生' : '女生'}）` : '尚未绑定';
+    }
+    document.getElementById('profileChip').addEventListener('click', () => showProfileGate(true));
+    document.getElementById('editProfileBtn').addEventListener('click', () => showProfileGate(true));
 
-    // --- 宠物 ---
-    const cdMap = {};
+    function openPet(petId) {
+      if (!state.profile) { showProfileGate(); return; }
+      state.currentPetId = petId; renderPetPanel(); openPanel('panel-pet');
+    }
     function renderPetPanel() {
-      const list = document.getElementById('petList'); list.innerHTML = '';
-      state.pets.forEach(p => {
-        list.innerHTML += `
-          <div class="pet-card">
-            <div class="pet-avatar">${p.emoji}</div>
-            <div class="pet-info">
-              <div style="font-weight:bold;">${p.name}</div>
-              <div style="font-size:0.8rem;">👨 好感度 ${p.affinityMale}%</div>
-              <div class="affinity-bar"><div class="affinity-fill" style="width:${p.affinityMale}%"></div></div>
-              <div style="font-size:0.8rem;">👩 好感度 ${p.affinityFemale}%</div>
-              <div class="affinity-bar"><div class="affinity-fill" style="width:${p.affinityFemale}%"></div></div>
-            </div>
-            <div class="pet-actions">
-              <button class="btn small" data-p="${p.id}" data-a="feed" data-t="male">🍖喂男</button>
-              <button class="btn small" data-p="${p.id}" data-a="feed" data-t="female">🍖喂女</button>
-              <button class="btn small secondary" data-p="${p.id}" data-a="pet" data-t="male">🤚摸男</button>
-              <button class="btn small secondary" data-p="${p.id}" data-a="pet" data-t="female">🤚摸女</button>
-            </div>
-          </div>`;
-      });
-      list.querySelectorAll('button[data-p]').forEach(btn => {
-        btn.onclick = (e) => {
-          const key = btn.dataset.p + btn.dataset.a + btn.dataset.t;
-          if(cdMap[key] && Date.now() - cdMap[key] < PET_ACTIONS[btn.dataset.a].cooldown) return toast('冷却中');
-          cdMap[key] = Date.now();
-          const p = state.pets.find(x=>x.id===btn.dataset.p);
-          const delta = PET_ACTIONS[btn.dataset.a].base + Math.floor(Math.random()*3);
-          if(btn.dataset.t === 'male') p.affinityMale = Math.min(100, p.affinityMale + delta); else p.affinityFemale = Math.min(100, p.affinityFemale + delta);
-          savePets(); renderPetPanel(); toast('好感度 +' + delta);
-          spawnHearts(e);
-        };
-      });
+      const pet = state.pets.find(item => item.id === state.currentPetId); if (!pet) return;
+      const isMale = state.profile?.gender !== 'female';
+      const affinity = isMale ? pet.affinityMale : pet.affinityFemale;
+      const genderText = isMale ? '男生角色' : '女生角色';
+      document.getElementById('petPanelTitle').textContent = `${pet.emoji} ${pet.name}`;
+      const detail = document.getElementById('petDetail'); detail.innerHTML = `
+        <div class="pet-detail">
+          <div class="pet-avatar">${pet.emoji}</div>
+          <div class="pet-main">
+            <div class="pet-name">${pet.name}</div>
+            <div class="affinity-label">与你的好感度 · ${escapeHtml(state.profile?.name || '未绑定角色')}（${genderText}）</div>
+            <div class="affinity-bar"><div class="affinity-fill" style="width:${affinity}%"></div></div>
+            <div class="affinity-label" style="margin-top:5px">${affinity} / 100</div>
+          </div>
+          <div class="pet-actions">
+            <button class="btn" data-action="feed">🍖 喂食</button>
+            <button class="btn secondary" data-action="pet">🤚 抚摸</button>
+            <button class="btn soft" data-action="play">🎾 玩耍</button>
+          </div>
+          <div class="pet-mood">${affinity >= 80 ? '它已经很亲近你啦！' : affinity >= 45 ? '它正在慢慢熟悉你。' : '多陪陪它，它会越来越喜欢你。'}</div>
+        </div>
+        <div class="row"><button class="btn soft small" id="backToScene">返回小屋</button></div>`;
+      detail.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', () => performPetAction(pet, button.dataset.action)));
+      document.getElementById('backToScene').addEventListener('click', closePanels);
+    }
+    function performPetAction(pet, action) {
+      if (!state.profile) return showProfileGate();
+      const key = `${pet.id}:${state.profile.gender}:${action}`, now = Date.now();
+      const cooldown = PET_ACTIONS[action].cooldown;
+      if (cooldowns.has(key) && now - cooldowns.get(key) < cooldown) return toast('动作冷却中，请稍等一下');
+      cooldowns.set(key, now);
+      const delta = PET_ACTIONS[action].base + Math.floor(Math.random() * 3);
+      const property = state.profile.gender === 'male' ? 'affinityMale' : 'affinityFemale';
+      pet[property] = Math.min(100, pet[property] + delta); savePets(); renderPetPanel();
+      const labels = { feed: '喂食', pet: '抚摸', play: '玩耍' };
+      toast(`${pet.name}${labels[action]}成功，好感度 +${delta}`);
     }
 
-    // --- 房屋 ---
-    function renderHousePanel() {
-      document.querySelectorAll('.room-tab').forEach(t => t.classList.toggle('active', t.dataset.room === state.room.currentRoom));
-      document.querySelectorAll('.style-btn').forEach(b => b.classList.toggle('active', b.dataset.style === state.room.currentStyle));
-      document.getElementById('roomBg').className = 'room-bg ' + state.room.currentStyle;
-      
-      const wrap = document.getElementById('roomCanvasWrap'); wrap.querySelectorAll('.placed-furniture').forEach(e=>e.remove());
-      (state.room.furniture[state.room.currentRoom]||[]).forEach((item, i) => {
-        const el = document.createElement('div');
-        el.className = 'placed-furniture'; el.textContent = item.emoji;
-        el.style.left = item.x+'%'; el.style.top = item.y+'%'; el.style.transform = `translate(-50%,-100%)`;
-        el.ondblclick = () => { state.room.furniture[state.room.currentRoom].splice(i,1); saveRoom(); renderHousePanel(); };
-        
-        let isDrag = false, sx, sy, ox, oy;
-        el.onpointerdown = (e) => { e.preventDefault(); isDrag=true; sx=e.clientX; sy=e.clientY; ox=item.x; oy=item.y; el.setPointerCapture(e.pointerId); };
-        el.onpointermove = (e) => { if(!isDrag) return; const r = wrap.getBoundingClientRect(); item.x = Math.max(5, Math.min(95, ox + ((e.clientX-sx)/r.width)*100)); item.y = Math.max(5, Math.min(95, oy + ((e.clientY-sy)/r.height)*100)); el.style.left=item.x+'%'; el.style.top=item.y+'%'; };
-        el.onpointerup = (e) => { isDrag=false; el.releasePointerCapture(e.pointerId); saveRoom(); };
-        wrap.appendChild(el);
-      });
-      
-      const pal = document.getElementById('furniturePalette'); pal.innerHTML = '';
-      (FURNITURE_LIB[state.room.currentStyle]||[]).forEach(f => {
-        const b = document.createElement('button'); b.className = 'furniture-btn';
-        b.innerHTML = `${f.emoji}<span>${f.name}</span>`;
-        b.onclick = () => { state.room.furniture[state.room.currentRoom].push({ emoji: f.emoji, x: 20+Math.random()*60, y: 30+Math.random()*50 }); saveRoom(); renderHousePanel(); };
-        pal.appendChild(b);
-      });
-    }
-
-    document.querySelectorAll('.room-tab').forEach(t => t.onclick = () => { state.room.currentRoom = t.dataset.room; saveRoom(); renderHousePanel(); });
-    document.querySelectorAll('.style-btn').forEach(b => b.onclick = () => { state.room.currentStyle = b.dataset.style; saveRoom(); renderHousePanel(); });
-
-    // --- 设置 ---
+    // -------------------- 设置 --------------------
     function fillSettings() {
       document.getElementById('setPhotoCap').value = state.photoCapacity;
-      document.getElementById('setCdFeed').value = PET_ACTIONS.feed.cooldown/1000;
-      document.getElementById('setCdPet').value = PET_ACTIONS.pet.cooldown/1000;
-      document.getElementById('setCdPlay').value = PET_ACTIONS.play.cooldown/1000;
+      document.getElementById('setCdFeed').value = PET_ACTIONS.feed.cooldown / 1000;
+      document.getElementById('setCdPet').value = PET_ACTIONS.pet.cooldown / 1000;
+      document.getElementById('setCdPlay').value = PET_ACTIONS.play.cooldown / 1000;
+      updateProfileUI();
     }
-    document.getElementById('saveSettingsBtn').onclick = () => {
-      state.photoCapacity = parseInt(document.getElementById('setPhotoCap').value)||1000;
-      PET_ACTIONS.feed.cooldown = (parseFloat(document.getElementById('setCdFeed').value)||0)*1000;
-      PET_ACTIONS.pet.cooldown = (parseFloat(document.getElementById('setCdPet').value)||0)*1000;
-      PET_ACTIONS.play.cooldown = (parseFloat(document.getElementById('setCdPlay').value)||0)*1000;
-      saveSettings(); toast('设置已保存'); document.getElementById('panel-settings').classList.remove('active');
-    };
-    document.getElementById('clearDataBtn').onclick = async () => {
-      if(!confirm('确定清空所有数据？')) return;
-      await dbClear('photos'); await dbClear('videos'); localStorage.clear(); location.reload();
-    };
+    function saveSettings() {
+      state.photoCapacity = Math.max(1, Number.parseInt(document.getElementById('setPhotoCap').value, 10) || 1000);
+      PET_ACTIONS.feed.cooldown = Math.max(0, Number.parseFloat(document.getElementById('setCdFeed').value) || 0) * 1000;
+      PET_ACTIONS.pet.cooldown = Math.max(0, Number.parseFloat(document.getElementById('setCdPet').value) || 0) * 1000;
+      PET_ACTIONS.play.cooldown = Math.max(0, Number.parseFloat(document.getElementById('setCdPlay').value) || 0) * 1000;
+      localStorage.setItem(STORE.settings, JSON.stringify({ photoCapacity: state.photoCapacity, cooldowns: {
+        feed: PET_ACTIONS.feed.cooldown, pet: PET_ACTIONS.pet.cooldown, play: PET_ACTIONS.play.cooldown
+      } }));
+      toast('设置已保存');
+    }
+    function loadSettings() {
+      let settings = safeParse(STORE.settings, null);
+      if (!settings) {
+        const legacy = safeParse('lh_settings_v1', null);
+        if (legacy) settings = { photoCapacity: legacy.cap, cooldowns: {
+          feed: (legacy.cd?.feed ?? 2) * 1000, pet: (legacy.cd?.pet ?? 1) * 1000, play: (legacy.cd?.play ?? 1.5) * 1000
+        } };
+      }
+      if (!settings) return;
+      state.photoCapacity = settings.photoCapacity || 1000;
+      if (settings.cooldowns) Object.keys(PET_ACTIONS).forEach(key => {
+        if (Number.isFinite(settings.cooldowns[key])) PET_ACTIONS[key].cooldown = settings.cooldowns[key];
+      });
+    }
+    document.getElementById('saveSettingsBtn').addEventListener('click', () => { saveSettings(); document.getElementById('panel-settings').classList.remove('active'); });
+    document.getElementById('clearDataBtn').addEventListener('click', async () => {
+      if (!confirm('确定清空当前浏览器中保存的照片、视频、角色、好感度、漂流瓶和房屋装修吗？此操作无法撤销。')) return;
+      await dbRequest('photos', 'readwrite', 'clear', null).catch(() => {});
+      await dbRequest('videos', 'readwrite', 'clear', null).catch(() => {});
+      await dbRequest('wallArt', 'readwrite', 'clear', null).catch(() => {});
+      Object.values(STORE).forEach(key => localStorage.removeItem(key)); location.reload();
+    });
 
-    // ==================== 绑定热区 & 启动 ====================
-    document.getElementById('hs-river').onclick = () => { renderRiverPanel(); openPanel('panel-river'); };
-    document.getElementById('hs-house').onclick = () => { renderHousePanel(); openPanel('panel-house'); };
-    document.getElementById('hs-tree').onclick = () => { renderTreePanel(); openPanel('panel-tree'); };
-    document.getElementById('hs-cat').onclick = () => { renderPetPanel(); openPanel('panel-pet'); };
-    document.getElementById('hs-dog').onclick = () => { renderPetPanel(); openPanel('panel-pet'); };
-    document.getElementById('hs-couple').onclick = () => { renderPetPanel(); openPanel('panel-pet'); };
+    // -------------------- 点击热区：不设置河流/草地/人物的宽泛热区 --------------------
+    document.querySelectorAll('#sceneHotspots [data-target]').forEach(shape => {
+      const activate = () => {
+        switch (shape.dataset.target) {
+          case 'tree': renderTreePanel(); openPanel('panel-tree'); break;
+          case 'house': openPanel('panel-house'); break;
+          case 'cat': openPet('cat1'); break;
+          case 'dog': openPet('dog1'); break;
+        }
+      };
+      shape.addEventListener('click', activate);
+      shape.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activate(); } });
+    });
 
-    (async function() {
-      await openDB(); await loadMedia(); loadPets(); loadRoom(); loadSettings();
-      
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.4.2/pixi.min.js';
-      script.onload = () => { initPixi(); setTimeout(()=>toast('💕 欢迎回到恋爱小屋'), 600); };
-      document.head.appendChild(script);
+    // ================================================================
+    // Three.js 房间模型：真实透视 3D，支持拖动旋转、滚轮/触控缩放
+    // ================================================================
+    const FURNITURE = {
+      chinese: [
+        { id: 'cn-daybed', name: '红木罗汉榻', symbol: '🛋️' }, { id: 'cn-tea', name: '圆形茶台', symbol: '🪵' },
+        { id: 'cn-shelf', name: '中式博古架', symbol: '🪟' }, { id: 'cn-lantern', name: '宫灯', symbol: '🏮' },
+        { id: 'cn-stool', name: '鼓凳', symbol: '🪑' }, { id: 'cn-screen', name: '木雕屏风', symbol: '🪭' }, { id: 'cn-vase', name: '青花瓷瓶', symbol: '🏺' }
+      ],
+      american: [
+        { id: 'us-sofa', name: '美式布艺沙发', symbol: '🛋️' }, { id: 'us-table', name: '乡村实木桌', symbol: '🪑' },
+        { id: 'us-chair', name: '单人休闲椅', symbol: '🪑' }, { id: 'us-lamp', name: '铁艺落地灯', symbol: '💡' },
+        { id: 'us-sideboard', name: '乡村餐边柜', symbol: '🗄️' }, { id: 'us-ottoman', name: '软包脚凳', symbol: '🟫' }, { id: 'us-bookshelf', name: '复古书架', symbol: '📚' }
+      ],
+      european: [
+        { id: 'eu-sofa', name: '雕花双人沙发', symbol: '🛋️' }, { id: 'eu-table', name: '大理石边几', symbol: '🪞' },
+        { id: 'eu-cabinet', name: '复古展示柜', symbol: '🗄️' }, { id: 'eu-chandelier', name: '水晶吊灯', symbol: '💎' },
+        { id: 'eu-armchair', name: '雕花扶手椅', symbol: '🪑' }, { id: 'eu-mirror', name: '金边拱形镜', symbol: '🪞' }, { id: 'eu-pouf', name: '丝绒圆凳', symbol: '🟣' }
+      ],
+      modern: [
+        { id: 'md-sofa', name: '模块组合沙发', symbol: '🛋️' }, { id: 'md-table', name: '悬浮椭圆茶几', symbol: '⬭' },
+        { id: 'md-console', name: '悬浮电视柜', symbol: '▰' }, { id: 'md-lamp', name: '弧线落地灯', symbol: '💡' },
+        { id: 'md-chair', name: '模块单椅', symbol: '🪑' }, { id: 'md-shelf', name: '开放式层架', symbol: '▤' }, { id: 'md-planter', name: '几何花器', symbol: '🪴' }
+      ]
+    };
+    const STYLE_LOOK = {
+      // 所有风格进入时墙面先保持未粉刷的浅灰毛坯状态，墙漆与壁纸由用户自己决定。
+      raw: { floor: '#b7b0a4', trim: '#8d8579', wall: '#d7d5cf' },
+      chinese: { floor: '#8c6849', trim: '#523320', wall: '#d7d5cf' },
+      american: { floor: '#b38e65', trim: '#75543c', wall: '#d7d5cf' },
+      european: { floor: '#c7bba9', trim: '#aa8754', wall: '#d7d5cf' },
+      modern: { floor: '#a9aaa6', trim: '#777b7b', wall: '#d7d5cf' }
+    };
+    let renderer = null, scene = null, camera = null, roomRoot = null, wallMaterials = [];
+    let roomInitialized = false, roomYaw = Math.PI / 4, roomPitch = .32, roomDistance = 11.7;
+    let draggingRoom = false, pointerMoved = false, pointerStart = null;
+    
+    function initRoom3D() {
+      if (roomInitialized) return;
+      if (!window.THREE) { document.getElementById('threeError').style.display = 'block'; return; }
+      const THREE = window.THREE;
+      const canvas = document.getElementById('room3dCanvas');
+      try {
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setClearColor(0xe6ded2, 1);
+        renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        scene = new THREE.Scene(); scene.background = new THREE.Color(0xe6ded2);
+        camera = new THREE.PerspectiveCamera(42, 1, .1, 100);
+        roomRoot = new THREE.Group(); scene.add(roomRoot);
+        scene.add(new THREE.HemisphereLight(0xfff3df, 0x71685d, 1.25));
+        const sun = new THREE.DirectionalLight(0xfff0d9, 1.25); sun.position.set(5, 9, 6); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); scene.add(sun);
+        const fill = new THREE.DirectionalLight(0xd6e3ff, .42); fill.position.set(-5, 5, -2); scene.add(fill);
+        attachRoomControls(canvas); roomInitialized = true; resizeRoom3D();
+      } catch (error) {
+        console.error('3D room initialization failed:', error);
+        document.getElementById('threeError').style.display = 'block';
+      }
+    }
+    function resizeRoom3D() {
+      if (!renderer || !camera) return;
+      const viewport = document.getElementById('roomViewport');
+      const width = Math.max(1, viewport.clientWidth), height = Math.max(1, viewport.clientHeight);
+      renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix(); updateRoomCamera();
+    }
+    function updateRoomCamera() {
+      if (!camera) return;
+      const horizontal = roomDistance * Math.cos(roomPitch);
+      camera.position.set(horizontal * Math.sin(roomYaw), 1.2 + roomDistance * Math.sin(roomPitch), horizontal * Math.cos(roomYaw));
+      camera.lookAt(0, 1.25, 0);
+      if (renderer && scene) renderer.render(scene, camera);
+    }
+    let wallArtDrag = null;
+    function setRayFromEvent(event) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointerNdc.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointerNdc.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      furnitureRaycaster.setFromCamera(pointerNdc, camera);
+    }
+    function findWallArtAt(event) {
+      if (!renderer || !camera || !roomRoot) return null;
+      setRayFromEvent(event);
+      const hits = furnitureRaycaster.intersectObjects(roomRoot.children, true);
+      for (const hit of hits) {
+        let node = hit.object;
+        while (node && node !== roomRoot && node.userData.wallArtId === undefined) node = node.parent;
+        if (node && node !== roomRoot && node.userData.wallArtId !== undefined) return { id: node.userData.wallArtId, point: hit.point.clone() };
+      }
+      return null;
+    }
+    function intersectArtWall(event, wall) {
+      setRayFromEvent(event);
+      const plane = wall === 'sideWall'
+        ? new THREE.Plane(new THREE.Vector3(1, 0, 0), 3.905)
+        : new THREE.Plane(new THREE.Vector3(0, 0, 1), 3.405);
+      return furnitureRaycaster.ray.intersectPlane(plane, new THREE.Vector3());
+    }
+    function attachRoomControls(canvas) {
+      canvas.addEventListener('pointerdown', event => {
+        const artHit = findWallArtAt(event);
+        if (artHit) {
+          const art = (state.room.wallArts[state.room.currentRoom] || []).find(item => item.id === artHit.id);
+          if (art && art.mode !== 'wallpaper') {
+            state.room.selectedWallArtId = art.id; state.room.selectedFurnitureIndex = -1; clearFurnitureSelection();
+            const point = intersectArtWall(event, art.wall);
+            let coordX = art.wall === 'sideWall' ? (point?.z ?? art.x ?? 0) : (point?.x ?? art.x ?? 0);
+            wallArtDrag = {
+              id: art.id, wall: art.wall, mode: event.shiftKey ? 'rotate' : event.altKey ? 'scale' : 'move',
+              startX: event.clientX, startY: event.clientY, startArtX: art.x ?? 0, startArtY: art.y ?? 2,
+              offsetX: (art.x ?? 0) - coordX, offsetY: (art.y ?? 2) - (point?.y ?? 2),
+              startWidth: art.width || 1.8, startRotation: art.rotation || 0
+            };
+            draggingRoom = true; pointerMoved = false; pointerStart = null; canvas.setPointerCapture(event.pointerId);
+            renderWallArtControls(); renderRoom3D();
+            return;
+          }
+        }
+        draggingRoom = true; pointerMoved = false; wallArtDrag = null;
+        pointerStart = { x: event.clientX, y: event.clientY, yaw: roomYaw, pitch: roomPitch };
+        canvas.setPointerCapture(event.pointerId);
+      });
+      canvas.addEventListener('pointermove', event => {
+        if (!draggingRoom) return;
+        if (wallArtDrag) {
+          const art = (state.room.wallArts[state.room.currentRoom] || []).find(item => item.id === wallArtDrag.id);
+          if (!art) return;
+          const dx = event.clientX - wallArtDrag.startX;
+          const dy = event.clientY - wallArtDrag.startY;
+          if (Math.abs(dx) + Math.abs(dy) > 2) pointerMoved = true;
+          if (wallArtDrag.mode === 'rotate') {
+            art.rotation = Math.max(-180, Math.min(180, wallArtDrag.startRotation + dx * .55));
+          } else if (wallArtDrag.mode === 'scale') {
+            art.width = Math.max(.35, Math.min(7.4, wallArtDrag.startWidth + dx * .012));
+          } else {
+            const point = intersectArtWall(event, art.wall);
+            if (point) {
+              const rawX = art.wall === 'sideWall' ? point.z : point.x;
+              art.x = Math.max(-3.5, Math.min(3.5, rawX + wallArtDrag.offsetX));
+              art.y = Math.max(.35, Math.min(3.65, point.y + wallArtDrag.offsetY));
+            }
+          }
+          updateWallArtMeshTransform(art);
+          syncWallArtSliders(art);
+          return;
+        }
+        if (!pointerStart) return;
+        const dx = event.clientX - pointerStart.x, dy = event.clientY - pointerStart.y;
+        if (Math.abs(dx) + Math.abs(dy) > 3) pointerMoved = true;
+        if (pointerMoved) {
+          roomYaw = pointerStart.yaw - dx * .009;
+          roomPitch = Math.max(.08, Math.min(.95, pointerStart.pitch + dy * .006)); updateRoomCamera();
+        }
+      });
+      const endDrag = event => {
+        if (wallArtDrag) {
+          const moved = pointerMoved;
+          const art = (state.room.wallArts[state.room.currentRoom] || []).find(item => item.id === wallArtDrag.id);
+          if (art) { saveRoom(); renderWallArtControls(); if (moved) toast('墙贴位置已更新'); }
+          wallArtDrag = null;
+        } else {
+          const wasClick = draggingRoom && !pointerMoved;
+          if (wasClick) selectFurnitureAt(event);
+        }
+        if (draggingRoom && canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+        draggingRoom = false; pointerStart = null;
+      };
+      canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
+      canvas.addEventListener('wheel', event => {
+        event.preventDefault();
+        if (state.room.selectedWallArtId && event.shiftKey) {
+          const art = getSelectedWallArt();
+          if (art && art.mode !== 'wallpaper') { art.width = Math.max(.35, Math.min(7.4, (art.width || 1.8) - Math.sign(event.deltaY) * .12)); updateWallArtMeshTransform(art); syncWallArtSliders(art); saveRoom(); }
+          return;
+        }
+        roomDistance = Math.max(7.2, Math.min(17, roomDistance + Math.sign(event.deltaY) * .65)); updateRoomCamera();
+      }, { passive: false });
+      window.addEventListener('resize', resizeRoom3D);
+    }
+    // 家具建模时根据默认材质颜色映射为“主体 / 布料 / 细节”三类，
+    // 每件家具分别保存覆盖色，因此调整一件家具不会影响同房间的其他家具。
+    let activeFurnitureColorMap = null;
+    function material(color, roughness = .78, metalness = .02) {
+      let resolvedColor = color;
+      if (activeFurnitureColorMap) {
+        const role = activeFurnitureColorMap.roleByBase[String(color).toLowerCase()];
+        if (role && activeFurnitureColorMap.colors[role]) resolvedColor = activeFurnitureColorMap.colors[role];
+      }
+      return new THREE.MeshStandardMaterial({ color: resolvedColor, roughness, metalness });
+    }
+    function addMesh(parent, geometry, mat, position, cast = true, receive = true) {
+      const mesh = new THREE.Mesh(geometry, mat); mesh.position.set(...position); mesh.castShadow = cast; mesh.receiveShadow = receive; parent.add(mesh); return mesh;
+    }
+    function box(parent, w, h, d, color, x, y, z, options = {}) {
+      return addMesh(parent, new THREE.BoxGeometry(w, h, d), material(color, options.roughness ?? .8, options.metalness ?? .01), [x, y, z]);
+    }
+    function cylinder(parent, top, bottom, height, color, x, y, z, segments = 16, metalness = .02) {
+      return addMesh(parent, new THREE.CylinderGeometry(top, bottom, height, segments), material(color, .65, metalness), [x, y, z]);
+    }
+    function sphere(parent, radius, color, x, y, z, scale = [1, 1, 1]) {
+      const mesh = addMesh(parent, new THREE.SphereGeometry(radius, 16, 12), material(color, .48, .04), [x, y, z]); mesh.scale.set(...scale); return mesh;
+    }
+    function tube(parent, points, radius, color) {
+      const curve = new THREE.CatmullRomCurve3(points.map(point => new THREE.Vector3(...point)));
+      return addMesh(parent, new THREE.TubeGeometry(curve, 28, radius, 8, false), material(color, .45, .3), [0, 0, 0]);
+    }
+    function getCurrentSurfaceColors() {
+      const style = STYLE_LOOK[state.room.currentStyle] || STYLE_LOOK.raw;
+      const saved = state.room.surfaces?.[state.room.currentRoom] || {};
+      return {
+        backWall: saved.backWall || style.wall,
+        sideWall: saved.sideWall || style.wall,
+        floor: saved.floor || style.floor,
+        trim: saved.trim || style.trim
+      };
+    }
+    function createRoomShell() {
+      const THREE = window.THREE, style = STYLE_LOOK[state.room.currentStyle] || STYLE_LOOK.raw;
+      const colors = getCurrentSurfaceColors();
+      wallMaterials = [];
+      const floorMat = material(colors.floor, .86);
+      const floor = addMesh(roomRoot, new THREE.BoxGeometry(8, .18, 7), floorMat, [0, -.09, 0]); floor.receiveShadow = true;
+      const wallBackMat = material(colors.backWall, .92), wallLeftMat = material(colors.sideWall, .92);
+      wallMaterials.push(wallBackMat, wallLeftMat);
+      addMesh(roomRoot, new THREE.BoxGeometry(8, 4, .16), wallBackMat, [0, 2, -3.5]);
+      addMesh(roomRoot, new THREE.BoxGeometry(.16, 4, 7), wallLeftMat, [-4, 2, 0]);
+      const trim = colors.trim;
+      box(roomRoot, 8, .13, .19, trim, 0, .08, -3.39);
+      box(roomRoot, .19, .13, 7, trim, -3.89, .08, 0);
+      // 毛坯房保留基础门窗洞口，墙面依然是连续可粉刷的墙体
+      const frame = state.room.currentStyle === 'raw' ? '#77736c' : trim;
+      box(roomRoot, 2.15, .12, .12, frame, -.9, 3.1, -3.38);
+      box(roomRoot, 2.15, .12, .12, frame, -.9, 1.72, -3.38);
+      box(roomRoot, .12, 1.5, .12, frame, -1.98, 2.4, -3.38);
+      box(roomRoot, .12, 1.5, .12, frame, .18, 2.4, -3.38);
+      const glass = addMesh(roomRoot, new THREE.BoxGeometry(1.98, 1.35, .025), new THREE.MeshStandardMaterial({ color: 0x9dbbc3, roughness: .18, metalness: .18, transparent: true, opacity: .52 }), [-.9, 2.4, -3.36], false, false);
+      // 左侧简单门洞装饰
+      box(roomRoot, .12, 2.3, .12, frame, -3.88, 1.25, 1.45);
+      box(roomRoot, .12, 2.3, .12, frame, -3.88, 1.25, 3.02);
+      box(roomRoot, .12, .12, 1.7, frame, -3.88, 2.4, 2.23);
+      // 地面伸缩网格不遮挡空间，帮助辨认尺度
+      const grid = new THREE.GridHelper(8, 16, 0x999186, 0xbeb6aa); grid.position.y = .006; grid.material.transparent = true; grid.material.opacity = .17; roomRoot.add(grid);
+      renderWallArt3D();
+    }
+
+    function getWallArtTexture(assetId) {
+      if (wallArtTextures.has(assetId)) return wallArtTextures.get(assetId);
+      const url = wallArtAssets.get(assetId);
+      if (!url) return null;
+      const texture = new THREE.TextureLoader().load(url, () => updateRoomCamera());
+      texture.encoding = THREE.sRGBEncoding;
+      texture.anisotropy = renderer?.capabilities?.getMaxAnisotropy?.() || 1;
+      wallArtTextures.set(assetId, texture);
+      return texture;
+    }
+    function getWallArtPlacementPosition(art) {
+      return art.wall === 'sideWall'
+        ? new THREE.Vector3(-3.905, art.y ?? 2, art.x ?? 0)
+        : new THREE.Vector3(art.x ?? 0, art.y ?? 2, -3.405);
+    }
+    function updateWallArtMeshTransform(art) {
+      const mesh = wallArtMeshes.get(art.id);
+      if (!mesh) return;
+      mesh.position.copy(getWallArtPlacementPosition(art));
+      if (art.wall === 'sideWall') mesh.rotation.set(0, Math.PI / 2, (art.rotation || 0) * Math.PI / 180);
+      else mesh.rotation.set(0, 0, (art.rotation || 0) * Math.PI / 180);
+      const scale = (art.width || 1.8) / (mesh.userData.baseWidth || art.width || 1.8);
+      mesh.scale.setScalar(scale);
+      const outline = roomRoot?.children.find(child => child.userData.wallArtOutlineId === art.id);
+      if (outline) {
+        outline.position.copy(mesh.position);
+        if (art.wall === 'sideWall') outline.rotation.set(0, Math.PI / 2, (art.rotation || 0) * Math.PI / 180);
+        else outline.rotation.set(0, 0, (art.rotation || 0) * Math.PI / 180);
+        outline.scale.setScalar(scale);
+        if (art.wall === 'sideWall') outline.position.x += .009; else outline.position.z += .009;
+      }
+      if (renderer && scene && camera) renderer.render(scene, camera);
+    }
+    function renderWallArt3D() {
+      if (!roomRoot || !window.THREE) return;
+      wallArtMeshes.clear();
+      const list = state.room.wallArts?.[state.room.currentRoom] || [];
+      list.forEach(art => {
+        const texture = getWallArtTexture(art.assetId || art.id);
+        if (!texture) return;
+        const wallpaper = art.mode === 'wallpaper';
+        const width = wallpaper ? (art.wall === 'backWall' ? 7.82 : 6.82) : Math.max(.35, Math.min(7.4, art.width || 1.8));
+        const height = wallpaper ? 3.82 : Math.max(.25, width / Math.max(.15, art.aspect || 1));
+        const geometry = new THREE.PlaneGeometry(width, height);
+        const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide, depthWrite: false, toneMapped: false });
+        const mesh = new THREE.Mesh(geometry, mat);
+        mesh.renderOrder = 3;
+        mesh.position.copy(getWallArtPlacementPosition(art));
+        if (art.wall === 'sideWall') mesh.rotation.set(0, Math.PI / 2, wallpaper ? 0 : (art.rotation || 0) * Math.PI / 180);
+        else mesh.rotation.set(0, 0, wallpaper ? 0 : (art.rotation || 0) * Math.PI / 180);
+        mesh.userData.wallArtId = art.id;
+        mesh.userData.wallArtAssetId = art.assetId || art.id;
+        mesh.userData.baseWidth = width;
+        roomRoot.add(mesh);
+        wallArtMeshes.set(art.id, mesh);
+
+        if (art.id === state.room.selectedWallArtId && !wallpaper) {
+          const outlineGeometry = new THREE.EdgesGeometry(new THREE.PlaneGeometry(width + .08, height + .08));
+          const outlineMaterial = new THREE.LineBasicMaterial({ color: 0xf0ad35, transparent: true, opacity: .98, depthTest: false });
+          const outline = new THREE.LineSegments(outlineGeometry, outlineMaterial);
+          outline.position.copy(mesh.position);
+          if (art.wall === 'sideWall') { outline.rotation.set(0, Math.PI / 2, (art.rotation || 0) * Math.PI / 180); outline.position.x += .009; }
+          else { outline.rotation.set(0, 0, (art.rotation || 0) * Math.PI / 180); outline.position.z += .009; }
+          outline.scale.copy(mesh.scale); outline.renderOrder = 8; outline.userData.wallArtOutlineId = art.id; roomRoot.add(outline);
+        }
+      });
+    }
+
+    function addModernFurniture(root, id) {
+      const g = new THREE.Group(); root.add(g);
+      if (id === 'md-sofa') {
+        box(g, 2.6, .42, .92, '#aeb4b2', 0, .46, 0); box(g, 2.38, .18, .72, '#d5d7d1', 0, .76, .05);
+        box(g, 2.45, .7, .2, '#9da5a3', 0, 1.0, -.36);
+        box(g, .25, .58, .9, '#899391', -1.18, .78, .02); box(g, .25, .58, .9, '#899391', 1.18, .78, .02);
+        [-.88, .88].forEach(x => box(g, .12, .24, .12, '#484b4a', x, .12, .3));
+      } else if (id === 'md-table') {
+        const top = addMesh(g, new THREE.CylinderGeometry(.68, .68, .12, 48), material('#d9d7cf', .3), [0, .72, 0]); top.scale.z = .62;
+        cylinder(g, .19, .25, .6, '#777d7b', 0, .35, 0, 20, .3);
+      } else if (id === 'md-console') {
+        box(g, 2.0, .42, .48, '#a9aaa5', 0, .56, 0); box(g, 2.06, .07, .5, '#555b5a', 0, .8, 0);
+        [-.72, 0, .72].forEach(x => box(g, .018, .27, .02, '#5c625f', x, .56, .246));
+      } else if (id === 'md-lamp') {
+        cylinder(g, .24, .28, .08, '#4b5150', 0, .04, 0, 24, .6);
+        tube(g, [[0,.1,0],[0,1.1,0],[.25,1.65,0],[.8,1.8,0]], .035, '#4d5553');
+        const shade = addMesh(g, new THREE.ConeGeometry(.28, .38, 24, 1, true), material('#eee5d5', .55), [.8, 1.65, 0]); shade.rotation.z = Math.PI;
+        sphere(g, .1, '#f8e6ab', .8, 1.45, 0);
+      } else if (id === 'md-chair') {
+        box(g, .95, .38, .9, '#c9ccc7', 0, .48, 0); box(g, .95, .85, .18, '#aeb4b2', 0, .98, -.34);
+        box(g, .16, .54, .86, '#9da5a3', -.4, .75, 0); box(g, .16, .54, .86, '#9da5a3', .4, .75, 0);
+        [-.32,.32].forEach(x => box(g,.08,.28,.08,'#4b5150',x,.14,.28));
+      } else if (id === 'md-shelf') {
+        box(g, 1.75, .10, .38, '#a9aaa5', 0, .55, 0); box(g, 1.75, .10, .38, '#a9aaa5', 0, 1.15, 0); box(g, 1.75, .10, .38, '#a9aaa5', 0, 1.75, 0);
+        [-.78,.78].forEach(x => box(g,.08,1.85,.34,'#777d7b',x,1.12,0));
+      } else if (id === 'md-planter') {
+        const pot = addMesh(g, new THREE.CylinderGeometry(.27,.4,.7,24), material('#d9d7cf',.7), [0,.4,0]);
+        for(let i=0;i<7;i++){ const a=i*Math.PI*2/7; const leaf=sphere(g,.42,'#718b76',Math.cos(a)*.19,.95+Math.sin(i*1.7)*.12,Math.sin(a)*.19,[.32,1,.22]); leaf.rotation.z=Math.cos(a)*.5; }
+      }
+      return g;
+    }
+    function addChineseFurniture(root, id) {
+      const g = new THREE.Group(); root.add(g); const wood = '#4c281a', wood2 = '#7b4228', gold = '#c6a15b';
+      if (id === 'cn-daybed') {
+        box(g, 2.45, .2, 1.0, wood, 0, .42, 0); box(g, 2.28, .16, .86, '#b88c66', 0, .61, .04);
+        box(g, 2.4, .12, .13, wood2, 0, 1.08, -.42); box(g, .13, .75, .95, wood, -1.13, .76, 0); box(g, .13, .75, .95, wood, 1.13, .76, 0);
+        [-.95,.95].forEach(x => { box(g, .14, .33, .14, wood, x, .18, -.35); box(g, .14, .33, .14, wood, x, .18, .35); });
+        for (let i=-3;i<=3;i++) box(g,.035,.32,.035,gold,i*.3,.87,-.48);
+      } else if (id === 'cn-tea') {
+        cylinder(g, .66, .7, .16, wood2, 0, .78, 0, 40); cylinder(g, .38, .48, .5, wood, 0, .45, 0, 16);
+        for (let i=0;i<4;i++) { const a=i*Math.PI/2+Math.PI/4; box(g,.11,.42,.11,wood,Math.cos(a)*.42,.22,Math.sin(a)*.42); }
+        cylinder(g,.51,.51,.06,gold,0,.87,0,40);
+      } else if (id === 'cn-shelf') {
+        box(g,1.5,2.15,.15,wood,0,1.08,0);
+        [-.68,.68].forEach(x => box(g,.12,2.15,.42,wood2,x,1.08,.02));
+        [.35,.95,1.55,2.05].forEach(y => box(g,1.46,.09,.48,wood2,0,y,0));
+        box(g,1.62,.1,.55,gold,0,2.18,0);
+        [-.42,0,.42].forEach(x => box(g,.035,1.8,.04,gold,x,1.12,.12));
+      } else if (id === 'cn-lantern') {
+        cylinder(g,.2,.24,.1,wood,0,.05,0); cylinder(g,.045,.06,1.6,wood2,0,.88,0);
+        box(g,.46,.55,.46,'#e7bd72',0,1.85,0); box(g,.52,.07,.52,wood,0,1.55,0); box(g,.55,.08,.55,wood,0,2.14,0);
+        const roof = addMesh(g,new THREE.ConeGeometry(.42,.28,4),material(wood),[0,2.31,0]); roof.rotation.y=Math.PI/4;
+      } else if (id === 'cn-stool') {
+        cylinder(g,.43,.46,.16,'#d7c6a8',0,.63,0,32); cylinder(g,.39,.39,.42,wood,0,.35,0,24);
+        cylinder(g,.48,.48,.08,gold,0,.74,0,32,.55);
+      } else if (id === 'cn-screen') {
+        [-.76,0,.76].forEach(x => box(g,.08,2.25,.12,wood,x,1.15,0));
+        box(g,2.35,.10,.15,gold,0,2.27,0); box(g,2.35,.10,.15,gold,0,.06,0);
+        for(let x=-.68;x<=.7;x+=.17) box(g,.025,2.0,.05,wood2,x,1.16,.03);
+        box(g,2.2,.06,.08,gold,0,1.1,.04);
+      } else if (id === 'cn-vase') {
+        const vase = addMesh(g,new THREE.LatheGeometry([new THREE.Vector2(.06,0),new THREE.Vector2(.22,.12),new THREE.Vector2(.32,.48),new THREE.Vector2(.24,.82),new THREE.Vector2(.1,1.0),new THREE.Vector2(.09,1.18)],24),material('#315a68',.24,.12),[0,0,0]);
+        vase.position.y=.05;
+        cylinder(g,.12,.12,.07,gold,0,1.25,0,24,.55);
+      }
+      return g;
+    }
+    function addAmericanFurniture(root, id) {
+      const g = new THREE.Group(); root.add(g); const wood='#805536', fabric='#d2c0a8', dark='#3e3934';
+      if (id === 'us-sofa') {
+        box(g,2.6,.55,1.05,fabric,0,.55,0); box(g,2.45,.78,.24,'#b6a18b',0,1.12,-.4);
+        box(g,.32,.78,1.06,'#b6a18b',-1.14,.88,0); box(g,.32,.78,1.06,'#b6a18b',1.14,.88,0);
+        [-.85,.85].forEach(x=>box(g,.13,.3,.13,wood,x,.15,.34));
+        [-.65,.0,.65].forEach(x=>box(g,.48,.43,.13,'#e7dac7',x,1.19,-.22));
+      } else if (id === 'us-table') {
+        box(g,1.7,.16,1.0,wood,0,.86,0);
+        [-.68,.68].forEach(x=>[-.37,.37].forEach(z=>box(g,.14,.78,.14,'#63452f',x,.42,z)));
+        box(g,1.55,.09,.9,'#a7794e',0,.64,0);
+        box(g,.22,.6,.9,wood,-.62,.37,0); box(g,.22,.6,.9,wood,.62,.37,0);
+      } else if (id === 'us-chair') {
+        box(g,.9,.38,.86,fabric,0,.48,0); box(g,.9,.9,.18,'#b6a18b',0,.95,-.34);
+        box(g,.18,.58,.9,'#b6a18b',-.39,.77,0); box(g,.18,.58,.9,'#b6a18b',.39,.77,0);
+        [-.3,.3].forEach(x=>box(g,.1,.28,.1,wood,x,.15,.3));
+      } else if (id === 'us-lamp') {
+        cylinder(g,.25,.3,.12,dark,0,.06,0); cylinder(g,.035,.045,1.55,dark,0,.9,0,12,.55);
+        const shade=addMesh(g,new THREE.CylinderGeometry(.35,.19,.45,24,1,true),material('#e6d7bf'),[0,1.82,0]);
+        cylinder(g,.08,.08,.08,'#d3b779',0,1.55,0,12,.55);
+      } else if (id === 'us-sideboard') {
+        box(g,1.95,.85,.58,'#805536',0,.78,0); box(g,2.05,.12,.66,'#a7794e',0,1.25,0);
+        [-.55,0,.55].forEach(x=>{ box(g,.5,.62,.035,'#b6a18b',x,.78,.31); sphere(g,.035,'#d3b779',x+.18,.8,.35,[1,1,1]); });
+        [-.78,.78].forEach(x=>box(g,.12,.24,.12,'#63452f',x,.12,.18));
+      } else if (id === 'us-ottoman') {
+        box(g,1.05,.42,.82,'#d2c0a8',0,.55,0);
+        box(g,1.08,.10,.85,'#805536',0,.31,0);
+        [-.4,.4].forEach(x=>[-.28,.28].forEach(z=>box(g,.08,.25,.08,'#63452f',x,.13,z)));
+      } else if (id === 'us-bookshelf') {
+        box(g,1.4,2.25,.18,'#805536',0,1.13,0); [-.62,.62].forEach(x=>box(g,.12,2.25,.42,'#a7794e',x,1.13,.05));
+        [.35,.85,1.35,1.85,2.3].forEach(y=>box(g,1.32,.08,.42,'#805536',0,y,.06));
+        for(let row=0;row<3;row++) for(let col=0;col<4;col++) box(g,.16,.28+((row+col)%2)*.12,.16,['#55706b','#8b5747','#d0b28c','#4c3b2d'][(row+col)%4],-.48+col*.32,.55+row*.55,.1);
+      }
+      return g;
+    }
+    function addEuropeanFurniture(root, id) {
+      const g = new THREE.Group(); root.add(g); const gold='#b18b50', cream='#e4d5c1', velvet='#8c5a54';
+      if (id === 'eu-sofa') {
+        box(g,2.35,.48,.86,velvet,0,.55,0); box(g,2.3,.9,.2,velvet,0,1.05,-.34);
+        box(g,.34,.72,.86,cream,-1.05,.86,0); box(g,.34,.72,.86,cream,1.05,.86,0);
+        box(g,2.45,.08,.94,gold,0,.34,0);
+        [-.82,.82].forEach(x=>{ cylinder(g,.06,.1,.34,gold,x,.18,.28,12,.6); sphere(g,.09,gold,x,.95,-.43,[1,.8,.55]); });
+        for(let i=-3;i<=3;i++) sphere(g,.045,gold,i*.3,1.49,-.42,[1,1,.65]);
+      } else if (id === 'eu-table') {
+        cylinder(g,.62,.58,.13,'#e7e0d5',0,.85,0,40,.08); cylinder(g,.17,.28,.68,gold,0,.46,0,20,.65);
+        cylinder(g,.42,.42,.08,gold,0,.1,0,32,.55); sphere(g,.12,gold,0,.84,0,[1,.35,1]);
+      } else if (id === 'eu-cabinet') {
+        box(g,1.45,2.15,.42,cream,0,1.08,0); box(g,1.28,1.92,.06,'#765448',0,1.12,.23);
+        box(g,1.34,.12,.12,gold,0,2.18,.27); box(g,1.34,.12,.12,gold,0,.13,.27);
+        [-.63,.63].forEach(x=>box(g,.08,2.08,.1,gold,x,1.08,.29));
+        for(let y=.55;y<2;y+=.48) box(g,1.22,.06,.08,gold,0,y,.3);
+        sphere(g,.08,gold,0,2.32,0,[1,.65,1]);
+      } else if (id === 'eu-chandelier') {
+        cylinder(g,.18,.18,.12,gold,0,2.35,0,18,.7); cylinder(g,.035,.035,.5,gold,0,2.62,0,12,.6);
+        for(let i=0;i<5;i++){ const a=i*Math.PI*2/5; const x=Math.cos(a)*.68,z=Math.sin(a)*.68;
+          tube(g,[[0,2.3,0],[x*.55,2.22,z*.55],[x,2.0,z]],.035,gold); sphere(g,.13,'#e9dfcc',x,1.95,z,[.8,1.2,.8]);
+          cylinder(g,.05,.08,.18,'#fff0bd',x,1.78,z,12,.1);
+        }
+      } else if (id === 'eu-armchair') {
+        box(g,1.08,.42,.88,'#8c5a54',0,.55,0); box(g,1.08,.86,.18,'#8c5a54',0,1.05,-.34);
+        box(g,.17,.68,.84,'#e4d5c1',-.48,.8,0); box(g,.17,.68,.84,'#e4d5c1',.48,.8,0);
+        [-.42,.42].forEach(x=>{ cylinder(g,.045,.06,.34,gold,x,.18,.3,12,.65); sphere(g,.08,gold,x,1.35,-.4,[1,.7,.6]); });
+      } else if (id === 'eu-mirror') {
+        box(g,1.05,1.85,.12,gold,0,1.05,0);
+        const mirror=addMesh(g,new THREE.BoxGeometry(.82,1.58,.035),new THREE.MeshStandardMaterial({color:'#b7c6c9',metalness:.72,roughness:.16}),[0,1.08,.08]);
+        const arch=addMesh(g,new THREE.SphereGeometry(.43,24,16,0,Math.PI*2,0,Math.PI/2),material(gold,.35,.65),[0,2.02,0]); arch.scale.set(1.2,.65,.14);
+      } else if (id === 'eu-pouf') {
+        cylinder(g,.47,.49,.44,'#8c5a54',0,.42,0,32,.05); cylinder(g,.5,.5,.09,'#b18b50',0,.67,0,32,.55);
+        for(let i=0;i<8;i++){ const a=i*Math.PI/4; sphere(g,.035,'#b18b50',Math.cos(a)*.34,.67,Math.sin(a)*.34,[1,1,1]); }
+      }
+      return g;
+    }
+    const FURNITURE_COLOR_ROLES = {
+      chinese: {
+        '#4c281a': 'main', '#7b4228': 'main', '#b88c66': 'fabric', '#c6a15b': 'detail', '#d7c6a8': 'fabric', '#315a68': 'detail'
+      },
+      american: {
+        '#805536': 'main', '#63452f': 'main', '#a7794e': 'main',
+        '#d2c0a8': 'fabric', '#b6a18b': 'fabric', '#e7dac7': 'fabric', '#e6d7bf': 'fabric',
+        '#3e3934': 'detail', '#d3b779': 'detail', '#b6a18b': 'fabric', '#d2c0a8': 'fabric', '#805536': 'main', '#a7794e': 'main', '#e7dac7': 'fabric', '#4c3b2d': 'detail'
+      },
+      european: {
+        '#b18b50': 'detail', '#e4d5c1': 'fabric', '#8c5a54': 'main', '#e7e0d5': 'main', '#d8c9b6': 'fabric', '#765448': 'main', '#e9dfcc': 'fabric'
+      },
+      modern: {
+        '#aeb4b2': 'main', '#9da5a3': 'main', '#d9d7cf': 'main', '#a9aaa5': 'main',
+        '#d5d7d1': 'fabric', '#eee5d5': 'fabric', '#899391': 'detail', '#484b4a': 'detail',
+        '#777d7b': 'detail', '#555b5a': 'detail', '#5c625f': 'detail', '#4b5150': 'detail',
+        '#4d5553': 'detail', '#f8e6ab': 'detail', '#c9ccc7': 'fabric', '#777d7b': 'detail', '#d9d7cf': 'main'
+      }
+    };
+    const FURNITURE_DEFAULT_COLORS = {
+      chinese: { main: '#4c281a', fabric: '#b88c66', detail: '#c6a15b' },
+      american: { main: '#805536', fabric: '#d2c0a8', detail: '#3e3934' },
+      european: { main: '#8c5a54', fabric: '#e4d5c1', detail: '#b18b50' },
+      modern: { main: '#aeb4b2', fabric: '#d5d7d1', detail: '#4b5150' }
+    };
+    let selectionBox = null;
+    const furnitureRaycaster = new THREE.Raycaster();
+    const pointerNdc = new THREE.Vector2();
+
+    function buildFurniture(item, index) {
+      const root = new THREE.Group();
+      const styleKey = item.id.startsWith('cn-') ? 'chinese' : item.id.startsWith('us-') ? 'american' : item.id.startsWith('eu-') ? 'european' : 'modern';
+      activeFurnitureColorMap = { roleByBase: FURNITURE_COLOR_ROLES[styleKey] || {}, colors: item.colors || {} };
+      if (styleKey === 'chinese') addChineseFurniture(root, item.id);
+      else if (styleKey === 'american') addAmericanFurniture(root, item.id);
+      else if (styleKey === 'european') addEuropeanFurniture(root, item.id);
+      else addModernFurniture(root, item.id);
+      activeFurnitureColorMap = null;
+      root.position.set(item.x ?? 0, 0, item.z ?? 0); root.rotation.y = item.rotation || 0;
+      root.userData.itemId = item.id; root.userData.itemIndex = index;
+      return root;
+    }
+    function clearFurnitureSelection() {
+      if (selectionBox && scene) scene.remove(selectionBox);
+      if (selectionBox) { selectionBox.geometry?.dispose(); selectionBox.material?.dispose(); }
+      selectionBox = null;
+    }
+    function selectFurnitureAt(event) {
+      if (!renderer || !camera || !roomRoot) return;
+      const artHit = findWallArtAt(event);
+      if (artHit) {
+        const art = (state.room.wallArts[state.room.currentRoom] || []).find(item => item.id === artHit.id);
+        if (art) {
+          state.room.selectedWallArtId = art.id; state.room.selectedFurnitureIndex = -1; clearFurnitureSelection();
+          renderWallArtControls(); renderRoom3D(); toast(`已选中墙贴：${art.name}`); return;
+        }
+      }
+      setRayFromEvent(event);
+      const hits = furnitureRaycaster.intersectObjects(roomRoot.children, true);
+      let furnitureRoot = null;
+      for (const hit of hits) {
+        let node = hit.object;
+        while (node && node !== roomRoot && node.userData.itemIndex === undefined) node = node.parent;
+        if (node && node !== roomRoot && node.userData.itemIndex !== undefined) { furnitureRoot = node; break; }
+      }
+      state.room.selectedWallArtId = null;
+      if (!furnitureRoot) {
+        state.room.selectedFurnitureIndex = -1; clearFurnitureSelection(); renderColorControls(); renderWallArtControls();
+        return;
+      }
+      state.room.selectedFurnitureIndex = furnitureRoot.userData.itemIndex;
+      clearFurnitureSelection(); selectionBox = new THREE.BoxHelper(furnitureRoot, 0xe6a33b); scene.add(selectionBox);
+      renderColorControls(); renderWallArtControls();
+      const item = state.room.furniture[state.room.currentRoom][state.room.selectedFurnitureIndex];
+      toast(`已选中：${FURNITURE[state.room.currentStyle]?.find(x => x.id === item.id)?.name || '家具'}，可调整主体、布料和细节颜色`);
+    }
+    function disposeRoomObjects(root) {
+      root.traverse(object => {
+        if (object.geometry) object.geometry.dispose();
+        if (object.material) {
+          const materials = Array.isArray(object.material) ? object.material : [object.material];
+          materials.forEach(item => item.dispose());
+        }
+      });
+      root.clear();
+    }
+    function renderRoom3D() {
+      if (!roomInitialized || !roomRoot || !renderer || !scene) return;
+      clearFurnitureSelection(); disposeRoomObjects(roomRoot); createRoomShell();
+      const furniture = state.room.furniture[state.room.currentRoom] || [];
+      furniture.forEach((item, index) => roomRoot.add(buildFurniture(item, index)));
+      const selected = furniture[state.room.selectedFurnitureIndex];
+      if (selected) {
+        const selectedRoot = roomRoot.children.find(child => child.userData.itemIndex === state.room.selectedFurnitureIndex);
+        if (selectedRoot) { selectionBox = new THREE.BoxHelper(selectedRoot, 0xe6a33b); scene.add(selectionBox); }
+      }
+      updateRoomCamera();
+    }
+    function getSelectedFurniture() {
+      const list = state.room.furniture[state.room.currentRoom] || [];
+      return list[state.room.selectedFurnitureIndex] || null;
+    }
+    function getSelectedWallArt() {
+      const list = state.room.wallArts?.[state.room.currentRoom] || [];
+      return list.find(item => item.id === state.room.selectedWallArtId) || null;
+    }
+    function syncWallArtSliders(art = getSelectedWallArt()) {
+      if (!art) return;
+      const x = document.getElementById('wallArtX'), y = document.getElementById('wallArtY');
+      const width = document.getElementById('wallArtWidth'), rotation = document.getElementById('wallArtRotation');
+      if (x) x.value = Math.round((art.x || 0) * 100);
+      if (y) y.value = Math.round((art.y ?? 2) * 100);
+      if (width) width.value = Math.round((art.width || 1.8) * 100);
+      if (rotation) rotation.value = art.rotation || 0;
+    }
+    function renderWallArtControls() {
+      const wallSelect = document.getElementById('wallArtWall');
+      const modeSelect = document.getElementById('wallArtMode');
+      const listNode = document.getElementById('wallArtList');
+      const adjust = document.getElementById('wallArtAdjust');
+      const active = getSelectedWallArt();
+      wallSelect.value = active?.wall || state.room.wallArtWall || 'backWall';
+      modeSelect.value = active?.mode || state.room.wallArtMode || 'sticker';
+      listNode.innerHTML = '';
+      const arts = state.room.wallArts?.[state.room.currentRoom] || [];
+      if (!arts.length) {
+        const empty = document.createElement('span'); empty.className = 'wall-art-empty'; empty.textContent = '还没有添加墙面图案。可以从主题素材库选择，也可以上传自己的图片。'; listNode.appendChild(empty);
+      } else {
+        arts.forEach(art => {
+          const button = document.createElement('button'); button.type = 'button'; button.className = `wall-art-item${art.id === state.room.selectedWallArtId ? ' active' : ''}`;
+          const thumb = document.createElement('img');
+          thumb.src = wallArtAssets.get(art.assetId || art.id) || ''; thumb.alt = ''; thumb.style.cssText = 'width:30px;height:30px;object-fit:contain;border-radius:6px;background:#f2ebdf;flex:none;';
+          const name = document.createElement('span'); name.textContent = `${art.name} · ${art.wall === 'sideWall' ? '左墙' : '后墙'}${art.mode === 'wallpaper' ? ' · 整面' : ''}`;
+          button.append(thumb, name);
+          button.addEventListener('click', () => { state.room.selectedWallArtId = art.id; state.room.selectedFurnitureIndex = -1; state.room.wallArtWall = art.wall; renderWallArtControls(); renderRoom3D(); saveRoom(); });
+          listNode.appendChild(button);
+        });
+      }
+      adjust.hidden = !active;
+      const duplicate = document.getElementById('wallArtDuplicate');
+      if (duplicate) duplicate.disabled = !active;
+      if (active) {
+        syncWallArtSliders(active);
+        const disabled = active.mode === 'wallpaper';
+        ['wallArtX','wallArtY','wallArtWidth','wallArtRotation'].forEach(id => { document.getElementById(id).disabled = disabled; });
+      }
+    }
+    function renderStickerLibrary() {
+      const theme = document.getElementById('stickerTheme').value;
+      const node = document.getElementById('wallStickerGrid');
+      node.innerHTML = '';
+      const items = STICKER_CATALOG[theme] || [];
+      if (!items.length) {
+        const empty = document.createElement('span'); empty.className = 'wall-sticker-empty'; empty.textContent = '当前主题暂无可用素材。'; node.appendChild(empty); return;
+      }
+      items.forEach(asset => {
+        const button = document.createElement('button'); button.type = 'button'; button.className = 'wall-sticker-card';
+        button.title = `添加${asset.name}`;
+        const img = document.createElement('img'); img.src = asset.path; img.alt = asset.name; img.loading = 'lazy';
+        const label = document.createElement('span'); label.textContent = asset.sheet ? '整组贴纸' : asset.name.split('·').pop().trim();
+        button.append(img, label);
+        button.addEventListener('click', () => addStickerAsset(asset));
+        node.appendChild(button);
+      });
+    }
+    async function addStickerAsset(asset) {
+      try {
+        const response = await fetch(asset.path);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const blob = await response.blob();
+        const fileName = `${STICKER_THEME_NAMES[document.getElementById('stickerTheme').value]}_${asset.sheet ? '整组贴纸' : asset.path.split('/').pop()}`;
+        const file = new File([blob], fileName, { type: blob.type || 'image/png' });
+        document.getElementById('wallArtMode').value = 'sticker'; state.room.wallArtMode = 'sticker';
+        await addWallArt(file);
+      } catch (error) {
+        console.error('读取内置墙贴素材失败：', error); toast('素材读取失败，请使用本地服务器打开项目');
+      }
+    }
+    async function addWallArt(file) {
+      if (!file) return;
+      if (!file.type.startsWith('image/')) { toast('请选择图片文件'); return; }
+      if (file.size > 15 * 1024 * 1024) { toast('图片请控制在 15MB 以内'); return; }
+      let aspect = 1;
+      try { const bitmap = await createImageBitmap(file); aspect = bitmap.width / Math.max(1, bitmap.height); bitmap.close(); }
+      catch (error) { console.warn('无法读取图片尺寸，使用正方形比例：', error); }
+      const wall = document.getElementById('wallArtWall').value;
+      const mode = document.getElementById('wallArtMode').value;
+      const id = `wallart_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+      const record = { id, name: file.name, blob: file, createdAt: Date.now() };
+      try { await dbRequest('wallArt', 'readwrite', 'put', record); }
+      catch (error) { console.error('保存墙面图案失败：', error); toast('保存失败，请检查浏览器存储空间'); return; }
+      wallArtAssets.set(id, URL.createObjectURL(file));
+      const roomArts = state.room.wallArts[state.room.currentRoom];
+      const stickerIndex = roomArts.filter(item => item.mode !== 'wallpaper').length;
+      const slots = [
+        { x: 0, y: 2.05 }, { x: -1.55, y: 2.85 }, { x: 1.55, y: 2.85 },
+        { x: -1.55, y: 1.15 }, { x: 1.55, y: 1.15 }, { x: 0, y: 3.25 }, { x: 0, y: .85 }
+      ];
+      const slot = slots[stickerIndex % slots.length];
+      const defaultWidth = Math.min(1.8, Math.max(.42, aspect >= 1 ? 1.55 : 1.3 * aspect));
+      const art = { id, assetId: id, name: file.name, wall, mode, x: mode === 'wallpaper' ? 0 : slot.x, y: mode === 'wallpaper' ? 2 : slot.y, width: defaultWidth, rotation: 0, aspect };
+      roomArts.push(art);
+      state.room.wallArtWall = wall; state.room.wallArtMode = mode; state.room.selectedWallArtId = id; state.room.selectedFurnitureIndex = -1;
+      saveRoom(); renderWallArtControls(); renderRoom3D(); toast(mode === 'wallpaper' ? '整面壁纸已添加' : '墙贴已添加，可以直接拖动它');
+    }
+    function duplicateSelectedWallArt() {
+      const art = getSelectedWallArt(); if (!art) return;
+      const copy = { ...art, id: `wallart_${Date.now()}_${Math.random().toString(36).slice(2,8)}`, assetId: art.assetId || art.id,
+        name: `${art.name} 副本`, x: Math.max(-3.5, Math.min(3.5, (art.x || 0) + .38)), y: Math.max(.35, Math.min(3.65, (art.y ?? 2) - .28)) };
+      state.room.wallArts[state.room.currentRoom].push(copy); state.room.selectedWallArtId = copy.id;
+      saveRoom(); renderWallArtControls(); renderRoom3D(); toast('已复制墙贴，可以单独移动和调整');
+    }
+    async function deleteSelectedWallArt() {
+      const art = getSelectedWallArt(); if (!art) return;
+      if (!confirm(`删除墙面图案「${art.name}」？`)) return;
+      const assetId = art.assetId || art.id;
+      state.room.wallArts[state.room.currentRoom] = state.room.wallArts[state.room.currentRoom].filter(item => item.id !== art.id);
+      const stillUsed = ['living','bedroom','bathroom'].some(room => (state.room.wallArts[room] || []).some(item => (item.assetId || item.id) === assetId));
+      if (!stillUsed) {
+        await dbRequest('wallArt', 'readwrite', 'delete', assetId).catch(error => console.warn('删除图案记录失败：', error));
+        const url = wallArtAssets.get(assetId); if (url) URL.revokeObjectURL(url); wallArtAssets.delete(assetId);
+        const texture = wallArtTextures.get(assetId); if (texture) texture.dispose(); wallArtTextures.delete(assetId);
+      }
+      state.room.selectedWallArtId = null; saveRoom(); renderWallArtControls(); renderRoom3D(); toast('墙面图案已删除');
+    }
+    function updateSelectedWallArt(field, value) {
+      const art = getSelectedWallArt(); if (!art || art.mode === 'wallpaper') return;
+      art[field] = value;
+      saveRoom(); renderRoom3D();
+    }
+    function getTargetColor(target) {
+      if (['backWall', 'sideWall', 'floor', 'trim'].includes(target)) return getCurrentSurfaceColors()[target];
+      const item = getSelectedFurniture();
+      if (!item) return '#c7b39a';
+      const styleKey = item.id.startsWith('cn-') ? 'chinese' : item.id.startsWith('us-') ? 'american' : item.id.startsWith('eu-') ? 'european' : 'modern';
+      return item.colors?.[target] || FURNITURE_DEFAULT_COLORS[styleKey]?.[target] || '#c7b39a';
+    }
+    function renderColorControls() {
+      const target = document.getElementById('paintTarget').value;
+      state.room.colorTarget = target;
+      const selected = getSelectedFurniture();
+      const colorInput = document.getElementById('customRoomColor');
+      const hex = getTargetColor(target);
+      colorInput.value = /^#[0-9a-f]{6}$/i.test(hex) ? hex : '#c7b39a';
+      document.getElementById('colorHexValue').textContent = colorInput.value.toUpperCase();
+      const hint = document.getElementById('paintTargetHint');
+      if (['main', 'fabric', 'detail'].includes(target)) {
+        const itemName = selected ? (FURNITURE[state.room.currentStyle]?.find(x => x.id === selected.id)?.name || '已选家具') : '';
+        hint.textContent = selected ? `正在调整「${itemName}」的${target === 'main' ? '主体' : target === 'fabric' ? '布料 / 软装' : '装饰 / 金属细节'}颜色。只影响这件家具。` : '请先在上方 3D 场景中点击一件家具，出现金色选中框后即可调整它的颜色。';
+      } else {
+        const names = { backWall: '后墙', sideWall: '左侧墙', floor: '地板', trim: '门框 / 踢脚线 / 装饰线' };
+        hint.textContent = `正在调整${names[target]}。可以使用左侧预设色，也可以点击取色器选择任意颜色。`;
+      }
+      document.querySelectorAll('.paint-swatch').forEach(button => button.classList.toggle('active', button.dataset.color.toLowerCase() === colorInput.value.toLowerCase()));
+    }
+    function renderHouseControls() {
+      document.querySelectorAll('.room-tab').forEach(button => button.classList.toggle('active', button.dataset.room === state.room.currentRoom));
+      document.querySelectorAll('.style-btn').forEach(button => button.classList.toggle('active', button.dataset.style === state.room.currentStyle));
+      document.getElementById('paintTarget').value = state.room.colorTarget || 'backWall';
+      const palette = document.getElementById('furniturePalette'); palette.innerHTML = '';
+      const items = FURNITURE[state.room.currentStyle] || [];
+      if (!items.length) {
+        palette.innerHTML = '<span class="hint">毛坯空间暂不摆放风格家具。选择中式、美式、欧式或现代风格后，会显示对应家具。</span>';
+      } else {
+        items.forEach(item => {
+          const button = document.createElement('button'); button.type = 'button'; button.className = 'furniture-btn';
+          button.innerHTML = `<span class="furn-symbol">${item.symbol}</span><b>${item.name}</b>`;
+          button.addEventListener('click', () => addFurniture(item)); palette.appendChild(button);
+        });
+      }
+      renderColorControls();
+      renderWallArtControls();
+    }
+    function addFurniture(item) {
+      const current = state.room.furniture[state.room.currentRoom];
+      const index = current.length, columns = 3, col = index % columns, row = Math.floor(index / columns);
+      current.push({ id: item.id, x: -2.15 + col * 2.0, z: 1.8 - row * 1.45, rotation: 0, colors: {} });
+      state.room.selectedFurnitureIndex = current.length - 1; state.room.selectedWallArtId = null;
+      saveRoom(); renderHouseControls(); renderRoom3D(); toast(`${item.name}已摆放，可以继续调整颜色`);
+    }
+    function applyRoomColor(color) {
+      if (!/^#[0-9a-f]{6}$/i.test(color)) return;
+      const target = document.getElementById('paintTarget').value;
+      if (['backWall', 'sideWall', 'floor', 'trim'].includes(target)) {
+        const surfaces = state.room.surfaces[state.room.currentRoom] || (state.room.surfaces[state.room.currentRoom] = {});
+        surfaces[target] = color;
+        if (target === 'backWall') state.room.wallColor = color;
+      } else {
+        const item = getSelectedFurniture();
+        if (!item) { toast('请先在 3D 场景中点击选中一件家具'); renderColorControls(); return; }
+        item.colors = item.colors || {}; item.colors[target] = color;
+      }
+      saveRoom(); renderColorControls(); renderRoom3D();
+    }
+    document.querySelectorAll('.room-tab').forEach(button => button.addEventListener('click', () => {
+      state.room.currentRoom = button.dataset.room; state.room.selectedFurnitureIndex = -1; state.room.selectedWallArtId = null; clearFurnitureSelection();
+      saveRoom(); renderHouseControls(); renderRoom3D();
+    }));
+    document.querySelectorAll('.style-btn').forEach(button => button.addEventListener('click', () => {
+      const oldStyle = state.room.currentStyle;
+      const surfaces = state.room.surfaces[state.room.currentRoom] || (state.room.surfaces[state.room.currentRoom] = {});
+      const oldLook = STYLE_LOOK[oldStyle] || STYLE_LOOK.raw, newLook = STYLE_LOOK[button.dataset.style] || STYLE_LOOK.raw;
+      // 仅当某项仍在使用旧风格默认色时，切换风格才自动采用新风格的默认色。
+      ['backWall', 'sideWall', 'floor', 'trim'].forEach(key => {
+        if (!surfaces[key] || surfaces[key].toLowerCase() === ({ backWall: oldLook.wall, sideWall: oldLook.wall, floor: oldLook.floor, trim: oldLook.trim })[key].toLowerCase()) delete surfaces[key];
+      });
+      state.room.currentStyle = button.dataset.style; state.room.selectedFurnitureIndex = -1; state.room.selectedWallArtId = null;
+      saveRoom(); renderHouseControls(); renderRoom3D();
+    }));
+    document.getElementById('paintTarget').addEventListener('change', event => {
+      state.room.colorTarget = event.target.value; saveRoom(); renderColorControls();
+    });
+    document.querySelectorAll('.paint-swatch').forEach(button => button.addEventListener('click', () => applyRoomColor(button.dataset.color)));
+    document.getElementById('customRoomColor').addEventListener('input', event => {
+      document.getElementById('colorHexValue').textContent = event.target.value.toUpperCase();
+    });
+    document.getElementById('customRoomColor').addEventListener('change', event => applyRoomColor(event.target.value));
+    document.getElementById('wallArtWall').addEventListener('change', event => {
+      state.room.wallArtWall = event.target.value;
+      const selected = getSelectedWallArt(); if (selected) selected.wall = event.target.value;
+      saveRoom(); renderWallArtControls(); renderRoom3D();
+    });
+    document.getElementById('wallArtMode').addEventListener('change', event => { state.room.wallArtMode = event.target.value; saveRoom(); });
+    document.getElementById('wallArtUpload').addEventListener('change', async event => {
+      const files = Array.from(event.target.files || []); event.target.value = '';
+      for (const file of files) await addWallArt(file);
+    });
+    document.getElementById('wallArtDelete').addEventListener('click', deleteSelectedWallArt);
+    document.getElementById('wallArtDuplicate').addEventListener('click', duplicateSelectedWallArt);
+    document.getElementById('stickerTheme').addEventListener('change', renderStickerLibrary);
+    renderStickerLibrary();
+    document.getElementById('wallArtReset').addEventListener('click', () => {
+      const art = getSelectedWallArt(); if (!art) return;
+      art.x = 0; art.y = 2; art.width = 1.8; art.rotation = 0;
+      saveRoom(); renderWallArtControls(); renderRoom3D();
+    });
+    document.getElementById('wallArtX').addEventListener('input', event => updateSelectedWallArt('x', Number(event.target.value) / 100));
+    document.getElementById('wallArtY').addEventListener('input', event => updateSelectedWallArt('y', Number(event.target.value) / 100));
+    document.getElementById('wallArtWidth').addEventListener('input', event => updateSelectedWallArt('width', Number(event.target.value) / 100));
+    document.getElementById('wallArtRotation').addEventListener('input', event => updateSelectedWallArt('rotation', Number(event.target.value)));
+    document.getElementById('clearFurniture').addEventListener('click', () => {
+      if (!confirm('清空当前房间里的家具？')) return;
+      state.room.furniture[state.room.currentRoom] = []; state.room.selectedFurnitureIndex = -1;
+      saveRoom(); renderRoom3D(); renderColorControls(); toast('当前房间已清空');
+    });
+    document.getElementById('resetRoomView').addEventListener('click', () => {
+      roomYaw = Math.PI / 4; roomPitch = .32; roomDistance = 11.7; updateRoomCamera();
+    });
+
+    // -------------------- 启动 --------------------
+    (async function init() {
+      try {
+        await openDB(); await loadMedia();
+      } catch (error) {
+        console.error('本地媒体数据库初始化失败：', error); toast('本地媒体存储不可用，照片/视频暂不能保存');
+      }
+      loadPets(); loadRoom(); loadProfile(); loadBottles(); loadSettings();
+      try { await loadWallArtAssets(); } catch (error) { console.warn('墙面素材恢复失败：', error); }
+      createBottleNodes(); requestAnimationFrame(animateBottles); updateProfileUI();
+      if (!state.profile || !state.profile.name || !['male', 'female'].includes(state.profile.gender)) showProfileGate(true);
+      else setTimeout(() => toast('欢迎回到恋爱小屋，河面上有新的漂流瓶'), 500);
+      renderRiverPanel();
     })();
   </script>
 </body>
