@@ -1,0 +1,17 @@
+{
+  "name": "我们的恋爱小屋",
+  "short_name": "恋爱小屋",
+  "description": "走进河畔小屋，第一人称自由漫游、摆放家具、装修属于我们的家。",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7eddf",
+  "theme_color": "#f7eddf",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

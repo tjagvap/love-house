@@ -1,3 +1,14 @@
 node_modules/
 .DS_Store
 *.log
+.edge-debug/
+.edge-verify/
+java-app/data/
+java-app/target/
+.c1.js
+.c2.js
+.check.js
+.workbuddy/
+.edge-*/
+*.tmp.png
+*.tmp.js
