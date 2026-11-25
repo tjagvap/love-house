@@ -356,19 +356,42 @@
     }
 
     /* ===== 手机 / 平板：面板改为整屏，不再被正方形画面裁切 ===== */
+    /* iOS 微信 WebView 里 100vh/100dvh 与 fixed 的表现和安卓不一致，会导致面板被压成中间一条：
+       改由 JS 实测可视高度写入 --app-h，#app 直接撑满真实视口，面板用 absolute 相对 #app 定位 */
+    :root { --app-h: 100vh; }
     .topbar { transition: opacity .25s; }
     body.panel-open .topbar { opacity: 0; pointer-events: none; }
     body.touch-device { background: radial-gradient(circle at 50% 38%, #4b3a2a, #171310 78%); }
-    body.touch-device .panel, body.touch-device .modal-overlay { position: fixed; }
-    body.touch-device .panel { max-height: 100vh; max-height: 100dvh; }
+    body.touch-device #app {
+      width: 100vw; height: var(--app-h); aspect-ratio: auto;
+      background-size: contain; background-color: #1a130d;
+      border-radius: 0; box-shadow: none;
+    }
+    /* 主场景各层保持正方形并与背景图 contain 区域重合，热区不漂移 */
+    body.touch-device #nightBackdrop,
+    body.touch-device #environmentEffects,
+    body.touch-device #hoverMagnifier,
+    body.touch-device #sceneHotspots,
+    body.touch-device #indoorFigures,
+    body.touch-device #bottleLayer {
+      width: min(100vw, var(--app-h)); height: min(100vw, var(--app-h));
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+    }
+    body.touch-device .topbar { top: calc(8px + env(safe-area-inset-top)); }
+    body.touch-device .panel, body.touch-device .modal-overlay { position: absolute; }
+    body.touch-device .modal-overlay { inset: 0; }
+    body.touch-device .panel {
+      top: 0; left: 0; right: 0; bottom: 0; transform: none; margin: auto;
+      max-height: calc(var(--app-h) - 12px);
+    }
     body.touch-device .panel.house-panel {
-      width: 100%; height: 100vh; height: 100dvh; max-height: 100vh; max-height: 100dvh;
+      width: 100%; height: var(--app-h); max-height: var(--app-h);
       border-radius: 0; border-width: 0;
       padding: calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom));
     }
     body.touch-device .panel.house-panel h2 { font-size: 1.02rem; margin-bottom: 2px; }
     body.touch-device .panel.house-panel.game-mode #real3dViewport {
-      height: calc(100vh - 52px); height: calc(100dvh - 52px); min-height: 0;
+      height: calc(var(--app-h) - 52px); min-height: 0;
     }
     body.touch-device .panel.house-panel:not(.game-mode) .house-content { overflow-y: auto; }
 
@@ -1134,7 +1157,10 @@
     }
 
     // -------------------- 面板切换 --------------------
-    function syncPanelOpen() { document.body.classList.toggle('panel-open', Boolean(document.querySelector('.panel.active'))); }
+    function syncPanelOpen() {
+      const modalOpen = Array.from(document.querySelectorAll('.modal-overlay')).some(m => m.classList.contains('active'));
+      document.body.classList.toggle('panel-open', Boolean(document.querySelector('.panel.active')) || modalOpen);
+    }
     function closePanels() { document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active')); syncPanelOpen(); }
     function openPanel(id) {
       closePanels(); document.getElementById(id).classList.add('active'); syncPanelOpen();
@@ -1338,8 +1364,9 @@
       document.getElementById('bottleSubTitle').textContent = '放一张照片，写下想说的话，让它随河漂流。';
       renderBottlePhotoFrame(); renderAlbumPickList();
       document.getElementById('bottleDialog').classList.add('active');
+      syncPanelOpen();
     }
-    function closeBottleDialog() { document.getElementById('bottleDialog').classList.remove('active'); state.currentBottleId = null; }
+    function closeBottleDialog() { document.getElementById('bottleDialog').classList.remove('active'); state.currentBottleId = null; syncPanelOpen(); }
     document.getElementById('closeBottleBtn').addEventListener('click', closeBottleDialog);
     document.getElementById('bottlePickFromAlbum').addEventListener('click', () => { renderAlbumPickList(); document.getElementById('albumPickList')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); });
     document.getElementById('bottleRemovePhoto').addEventListener('click', () => { bottleDraftPhotoId = null; renderBottlePhotoFrame(); renderAlbumPickList(); });
@@ -1429,6 +1456,7 @@
       document.getElementById('profileName').value = state.profile?.name || '';
       selectedGender = state.profile?.gender || 'male'; updateGenderChoice();
       document.getElementById('profileGate').classList.add('active');
+      syncPanelOpen();
     }
     function updateGenderChoice() {
       document.getElementById('chooseMale').classList.toggle('selected', selectedGender === 'male');
@@ -1441,7 +1469,7 @@
       const name = document.getElementById('profileName').value.trim();
       if (!name) return toast('请先填写角色昵称');
       state.profile = { name, gender: selectedGender }; saveProfile();
-      document.getElementById('profileGate').classList.remove('active'); updateProfileUI();
+      document.getElementById('profileGate').classList.remove('active'); updateProfileUI(); syncPanelOpen();
       if (document.getElementById('panel-pet').classList.contains('active')) renderPetPanel();
       toast(`角色「${name}」绑定成功`);
     });
@@ -2362,6 +2390,15 @@
     const IS_TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0 ||
       (window.matchMedia && matchMedia('(pointer: coarse)').matches);
     if (IS_TOUCH) document.body.classList.add('touch-device');
+    // iOS 微信/Safari 的 100vh、100dvh 与真实可视高度不一致：JS 实测后写入 --app-h 供 CSS 使用
+    const fpSyncAppH = () => {
+      const h = Math.round(window.innerHeight || document.documentElement.clientHeight || 0);
+      if (h > 0) document.documentElement.style.setProperty('--app-h', h + 'px');
+    };
+    fpSyncAppH();
+    window.addEventListener('resize', fpSyncAppH);
+    window.addEventListener('orientationchange', () => setTimeout(fpSyncAppH, 150));
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', fpSyncAppH);
     f3d.walk.joy = { x:0, y:0, id:null };
     const fpJoy = document.getElementById('fpJoystick'), fpKnob = document.getElementById('fpJoyKnob');
     if (fpJoy && fpKnob) {
