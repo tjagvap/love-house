@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>恋爱小屋 · 漫画恋爱记录</title>
+  <title>恋爱小屋 · 唯美风景</title>
   <style>
     * {
       margin: 0;
@@ -12,7 +12,7 @@
       user-select: none;
     }
     body {
-      background: #2b1e16;
+      background: #1a1a1a;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -21,32 +21,56 @@
       font-family: 'Comic Sans MS', 'Chalkboard SE', 'Microsoft YaHei', cursive, sans-serif;
     }
     
-    /* 核心修复：让容器始终保持 16:9 居中 */
+    /* 完美适配 1:1 比例图片 */
     #app {
       position: relative;
-      width: min(100vw, calc(100vh * 16 / 9));
-      aspect-ratio: 16 / 9;
-      max-width: 1100px; /* 电脑端最大宽度 */
-      background: #a7d8e8;
+      width: min(100vw, 100vh);
+      aspect-ratio: 1 / 1;
+      background-image: url('bg.jpg'); 
+      background-size: cover;
+      background-position: center;
       overflow: hidden;
       cursor: default;
     }
 
-    /* 电脑端（大屏幕）才显示圆角卡片样式 */
-    @media (min-width: 1101px) {
+    @media (min-width: 800px) {
       #app {
-        border-radius: 32px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 0 0 6px #fbe9d0, inset 0 0 0 12px #d9b382;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       }
     }
 
-    canvas {
-      display: block;
+    /* PixiJS 特效画布层 */
+    #sceneCanvas {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       touch-action: none;
+      z-index: 2;
+      pointer-events: none; /* 让点击事件穿透到下方的DOM热点 */
     }
 
+    /* ======= 透明点击热区（已根据新图重新校准） ======= */
+    .hotspot {
+      position: absolute;
+      z-index: 3;
+      cursor: pointer;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+    .hotspot:active {
+      background: rgba(255, 255, 255, 0.15); /* 点击反馈 */
+    }
+    
+    #hs-river { left: 0; top: 20%; width: 50%; height: 80%; } /* 河流 */
+    #hs-house { right: 0; top: 5%; width: 40%; height: 45%; } /* 房子 */
+    #hs-tree { left: 25%; top: 30%; width: 30%; height: 35%; } /* 大树 */
+    #hs-cat { left: 39%; top: 73%; width: 8%; height: 10%; } /* 黑白猫 */
+    #hs-dog { left: 55%; top: 80%; width: 10%; height: 12%; } /* 柴犬 */
+    #hs-couple { left: 47%; top: 65%; width: 38%; height: 20%; } /* 人物 */
+
+    /* UI 界面层 */
     .ui-layer {
       position: absolute;
       inset: 0;
@@ -54,224 +78,155 @@
       z-index: 10;
     }
 
-    /* 面板样式通用 */
+    #settingsBtn {
+      position: absolute; top: 16px; right: 20px; width: 46px; height: 46px;
+      border-radius: 50%; background: rgba(255, 255, 255, 0.85); border: none; 
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      font-size: 1.4rem; cursor: pointer; pointer-events: auto; z-index: 15;
+      transition: 0.1s; display: flex; align-items: center; justify-content: center;
+    }
+    #settingsBtn:active { transform: scale(0.9); }
+
+    /* 弹窗面板 */
     .panel {
       position: absolute;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 85%;
-      max-width: 780px;
+      width: 90%; max-width: 600px;
       background: #fff7ec;
-      border-radius: 48px 48px 32px 32px;
-      box-shadow: 0 12px 0 #b28b5c, 0 20px 30px rgba(0, 0, 0, 0.3);
-      padding: 24px 28px 28px;
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      padding: 20px 24px 24px;
       pointer-events: auto;
       display: none;
       flex-direction: column;
-      max-height: 88%;
-      border: 4px solid #b28b5c;
+      max-height: 85%;
+      border: 4px solid #d9b382;
       z-index: 20;
     }
     .panel.active { display: flex; }
     .panel h2 {
-      font-size: 1.8rem;
-      color: #4a2c1a;
-      text-align: center;
-      margin-bottom: 12px;
-      letter-spacing: 2px;
-      text-shadow: 2px 2px 0 #e8c9a0;
+      font-size: 1.5rem; color: #4a2c1a; text-align: center; margin-bottom: 12px;
     }
     .panel .close-btn {
-      position: absolute;
-      top: 12px;
-      right: 24px;
-      font-size: 2rem;
-      background: none;
-      border: none;
-      color: #8b5a2b;
-      cursor: pointer;
-      font-weight: bold;
-      pointer-events: auto;
-      line-height: 1;
+      position: absolute; top: 12px; right: 16px; font-size: 1.8rem;
+      background: none; border: none; color: #8b5a2b; cursor: pointer;
     }
     .panel .content {
-      overflow-y: auto;
-      padding: 4px 0;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+      overflow-y: auto; display: flex; flex-direction: column; gap: 16px;
+      padding-bottom: 10px;
     }
 
-    /* 手机端面板自适应 */
-    @media (max-width: 768px) {
-      .panel {
-        width: 92%;
-        padding: 16px 16px 20px;
-        border-radius: 24px;
-      }
-      .panel h2 { font-size: 1.4rem; }
-      .setting-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+    @media (max-width: 480px) {
+      .panel { width: 95%; padding: 16px; }
+      .panel h2 { font-size: 1.3rem; }
     }
 
-    .photo-flow {
-      display: flex; gap: 12px; overflow-x: auto; padding: 12px 4px; scrollbar-width: thin;
-    }
+    /* 各种组件样式 */
+    .photo-flow { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; }
     .photo-card {
-      flex: 0 0 120px; height: 120px; border-radius: 24px 12px 24px 12px;
-      background: #ffe8d4; border: 3px dashed #d9a066;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 2rem; color: #d9a066; transition: transform 0.2s; cursor: pointer;
+      flex: 0 0 100px; height: 100px; border-radius: 12px;
+      background: #ffe8d4; border: 2px dashed #d9a066;
+      background-size: cover; background-position: center; cursor: pointer;
     }
-    .photo-card:hover { transform: scale(1.05); }
-    
     .upload-row { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; }
     .btn {
-      background: #f7c948; border: none; border-radius: 40px;
-      padding: 10px 22px; font-size: 1.1rem; font-weight: bold; color: #4a2c1a;
-      box-shadow: 0 5px 0 #b28b5c; cursor: pointer; transition: 0.1s;
-      font-family: inherit; pointer-events: auto;
+      background: #f7c948; border: none; border-radius: 30px; padding: 8px 20px;
+      font-size: 1rem; font-weight: bold; color: #4a2c1a; box-shadow: 0 4px 0 #b28b5c;
+      cursor: pointer; font-family: inherit; transition: 0.1s;
     }
     .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #b28b5c; }
-    .btn.secondary { background: #c1d9d0; box-shadow: 0 5px 0 #7f9e91; }
-    .btn.small { padding: 6px 16px; font-size: 0.9rem; }
-    .btn.danger { background: #f4a3a3; box-shadow: 0 5px 0 #b35959; }
+    .btn.secondary { background: #c1d9d0; box-shadow: 0 4px 0 #7f9e91; }
+    .btn.small { padding: 6px 14px; font-size: 0.85rem; }
+    .btn.danger { background: #f4a3a3; box-shadow: 0 4px 0 #b35959; }
 
-    .fruit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 14px; }
+    .fruit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; }
     .fruit-item {
-      aspect-ratio: 1; background: #ffb882; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-      display: flex; align-items: center; justify-content: center; font-size: 2rem;
-      box-shadow: inset -8px -8px 0 rgba(0, 0, 0, 0.1), 0 6px 0 #b35959;
-      cursor: pointer; transition: 0.15s; border: 2px solid #e07a5f;
+      aspect-ratio: 1; background: #ffb882; border-radius: 50%; font-size: 1.8rem;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 0 #b35959; cursor: pointer; border: 2px solid #e07a5f;
     }
-    .fruit-item:hover { transform: scale(1.1) rotate(3deg); }
+    .fruit-item:active { transform: scale(0.9); }
 
     .pet-card {
-      background: #f5ede1; border-radius: 32px; padding: 16px 20px;
-      display: flex; align-items: center; gap: 20px; flex-wrap: wrap; border: 2px solid #d9b382;
+      background: #f5ede1; border-radius: 20px; padding: 12px 16px;
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border: 2px solid #d9b382;
     }
-    .pet-avatar {
-      font-size: 3rem; width: 70px; height: 70px; background: #fff; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 0 #b28b5c;
-    }
-    .pet-info { flex: 1; min-width: 140px; }
-    .affinity-bar {
-      height: 16px; background: #e0d0bc; border-radius: 20px; margin: 6px 0;
-      overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    .affinity-fill {
-      height: 100%; width: 0%; background: linear-gradient(90deg, #f7b267, #f4845f);
-      border-radius: 20px; transition: width 0.4s;
-    }
-    .pet-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pet-avatar { font-size: 2.5rem; width: 60px; height: 60px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .pet-info { flex: 1; min-width: 120px; }
+    .affinity-bar { height: 12px; background: #e0d0bc; border-radius: 10px; margin: 4px 0; overflow: hidden; }
+    .affinity-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #f7b267, #f4845f); transition: width 0.3s; }
+    .pet-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 
-    .room-tabs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px; }
-    .room-tab {
-      background: #e3d5c4; border: none; border-radius: 30px; padding: 8px 20px;
-      font-weight: bold; color: #5a3e28; cursor: pointer; font-family: inherit;
-      font-size: 1rem; transition: 0.1s; pointer-events: auto;
+    .room-tabs, .style-selector { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px; }
+    .room-tab, .style-btn {
+      background: #e3d5c4; border: none; border-radius: 20px; padding: 6px 14px;
+      font-weight: bold; color: #5a3e28; cursor: pointer; font-size: 0.9rem;
     }
-    .room-tab.active { background: #f7c948; box-shadow: 0 4px 0 #b28b5c; }
-
-    .style-selector { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
-    .style-btn {
-      background: #fff; border: 2px solid #b28b5c; border-radius: 24px;
-      padding: 6px 16px; font-weight: bold; color: #4a2c1a; cursor: pointer;
-      font-family: inherit; font-size: 0.95rem; transition: 0.1s; pointer-events: auto;
-    }
-    .style-btn.active { background: #b28b5c; color: #fff; }
+    .room-tab.active, .style-btn.active { background: #f7c948; box-shadow: 0 3px 0 #b28b5c; }
 
     .room-canvas-wrap {
-      position: relative; background: #d9c8b2; border-radius: 24px; overflow: hidden;
-      aspect-ratio: 16 / 10; border: 4px solid #b28b5c;
-      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1); cursor: crosshair; pointer-events: auto;
+      position: relative; background: #d9c8b2; border-radius: 16px; overflow: hidden;
+      aspect-ratio: 16 / 10; border: 3px solid #b28b5c;
     }
-    .room-bg { position: absolute; inset: 0; background-size: cover; transition: background 0.3s; }
-    .room-bg.raw { background: #c0b0a0; background-image: repeating-linear-gradient(45deg, #b8a898 0px, #b8a898 20px, #c8b8a8 20px, #c8b8a8 40px); }
+    .room-bg { position: absolute; inset: 0; transition: background 0.3s; }
+    .room-bg.raw { background: repeating-linear-gradient(45deg, #b8a898, #b8a898 10px, #c8b8a8 10px, #c8b8a8 20px); }
     .room-bg.chinese { background: linear-gradient(135deg, #dfc8a8, #c9a87c); }
     .room-bg.american { background: linear-gradient(135deg, #b8c4b0, #8a9a80); }
     .room-bg.european { background: linear-gradient(135deg, #e8d8c8, #c8b8a8); }
     .room-bg.modern { background: linear-gradient(135deg, #d0d8e0, #a8b8c8); }
-    
+
     .placed-furniture {
-      position: absolute; width: 50px; height: 50px; display: flex; align-items: center;
-      justify-content: center; font-size: 1.8rem; cursor: grab; transition: 0.05s;
-      filter: drop-shadow(2px 4px 4px rgba(0, 0, 0, 0.2)); user-select: none;
-      transform-origin: center bottom; pointer-events: auto;
+      position: absolute; width: 40px; height: 40px; display: flex; align-items: center;
+      justify-content: center; font-size: 1.5rem; cursor: grab; transform-origin: center bottom;
     }
-    .placed-furniture:active { cursor: grabbing; z-index: 100 !important; }
-    
-    .furniture-palette {
-      display: flex; gap: 10px; overflow-x: auto; padding: 10px 4px;
-      flex-wrap: wrap; max-height: 120px; overflow-y: auto;
-    }
+    .furniture-palette { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; flex-wrap: wrap; }
     .furniture-btn {
-      background: #fff; border: 2px solid #d9b382; border-radius: 16px;
-      padding: 6px 10px; display: flex; flex-direction: column; align-items: center;
-      gap: 2px; cursor: pointer; font-family: inherit; font-size: 1.8rem;
-      min-width: 64px; transition: 0.1s; pointer-events: auto;
+      background: #fff; border: 2px solid #d9b382; border-radius: 12px; padding: 4px 8px;
+      display: flex; flex-direction: column; align-items: center; font-size: 1.5rem; cursor: pointer;
     }
-    .furniture-btn span { font-size: 0.7rem; color: #4a2c1a; }
-    .furniture-btn:active { transform: scale(0.95); background: #f7e4c8; }
-    
-    .hint-text { text-align: center; color: #8b6b4b; font-size: 0.9rem; margin-top: 6px; }
-    
+    .furniture-btn span { font-size: 0.65rem; color: #4a2c1a; }
+
     .upload-label {
-      background: #f7c948; border: none; border-radius: 40px; padding: 10px 22px;
-      font-size: 1.1rem; font-weight: bold; color: #4a2c1a; box-shadow: 0 5px 0 #b28b5c;
-      cursor: pointer; font-family: inherit; pointer-events: auto; display: inline-block; transition: 0.1s;
+      background: #f7c948; border-radius: 30px; padding: 8px 20px; font-weight: bold;
+      color: #4a2c1a; box-shadow: 0 4px 0 #b28b5c; cursor: pointer; display: inline-block;
     }
     .upload-label:active { transform: translateY(4px); box-shadow: 0 1px 0 #b28b5c; }
     input[type="file"] { display: none; }
 
-    .setting-row {
-      display: flex; align-items: center; justify-content: space-between; gap: 14px;
-      padding: 10px 4px; border-bottom: 2px dashed #e8d8c4; flex-wrap: wrap;
-    }
-    .setting-row label { color: #4a2c1a; font-weight: bold; font-size: 1.02rem; }
-    .setting-row input {
-      width: 96px; padding: 8px 12px; border-radius: 18px; border: 2px solid #d9b382;
-      font-family: inherit; font-size: 1rem; text-align: center; background: #fff;
-      color: #4a2c1a; pointer-events: auto; outline: none;
-    }
-    .setting-row input:focus { border-color: #f7c948; }
+    .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e8d8c4; }
+    .setting-row input { width: 80px; padding: 6px; border-radius: 10px; border: 1px solid #d9b382; text-align: center; }
 
-    #settingsBtn {
-      position: absolute; top: 16px; right: 20px; width: 52px; height: 52px;
-      border-radius: 50%; background: #f7c948; border: none; box-shadow: 0 5px 0 #b28b5c;
-      font-size: 1.5rem; cursor: pointer; pointer-events: auto; z-index: 15;
-      transition: 0.1s; display: flex; align-items: center; justify-content: center;
-    }
-    #settingsBtn:active { transform: translateY(4px); box-shadow: 0 1px 0 #b28b5c; }
-
-    .video-modal {
-      position: absolute; inset: 0; background: rgba(0, 0, 0, 0.85);
-      display: none; align-items: center; justify-content: center; z-index: 100; pointer-events: auto;
-    }
+    .video-modal { position: absolute; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 100; }
     .video-modal.active { display: flex; }
-    .video-modal video { max-width: 90%; max-height: 80%; border-radius: 24px; box-shadow: 0 0 40px rgba(0, 0, 0, 0.5); }
-    .video-modal .close-video {
-      position: absolute; top: 20px; right: 30px; font-size: 3rem;
-      color: #fff; cursor: pointer; background: none; border: none; font-weight: bold;
-    }
-    
+    .video-modal video { max-width: 95%; max-height: 80%; border-radius: 16px; }
+    .video-modal .close-video { position: absolute; top: 20px; right: 20px; font-size: 2.5rem; color: #fff; background: none; border: none; }
+
     .toast {
-      position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-      background: #4a2c1a; color: #ffe8d4; padding: 10px 28px; border-radius: 40px;
-      font-size: 1rem; z-index: 200; pointer-events: none; opacity: 0;
-      transition: opacity 0.4s; white-space: nowrap; box-shadow: 0 6px 0 #1f120a;
+      position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+      background: rgba(74, 44, 26, 0.9); color: #ffe8d4; padding: 10px 24px; 
+      border-radius: 30px; font-size: 0.95rem; z-index: 200; opacity: 0; transition: opacity 0.3s; pointer-events: none;
     }
     .toast.show { opacity: 1; }
   </style>
 </head>
 <body>
   <div id="app">
+    <!-- 透明点击热区 -->
+    <div class="hotspot" id="hs-river"></div>
+    <div class="hotspot" id="hs-house"></div>
+    <div class="hotspot" id="hs-tree"></div>
+    <div class="hotspot" id="hs-cat"></div>
+    <div class="hotspot" id="hs-dog"></div>
+    <div class="hotspot" id="hs-couple"></div>
+
+    <!-- 特效画布 -->
     <canvas id="sceneCanvas"></canvas>
 
+    <!-- UI 层 -->
     <div class="ui-layer">
       <button id="settingsBtn" title="设置">⚙️</button>
 
-      <!-- 河流相册面板 -->
       <div class="panel" id="panel-river">
         <button class="close-btn" data-close="panel-river">✕</button>
         <h2>🌊 河流相册</h2>
@@ -282,14 +237,12 @@
             <span id="photoCountLabel" style="color:#8b6b4b; font-weight:bold;">0 / 1000</span>
           </div>
           <div class="photo-flow" id="photoFlow"></div>
-          <div class="hint-text">💡 点击照片可删除；容量可在右上角 ⚙️ 设置中修改</div>
         </div>
       </div>
 
-      <!-- 果树视频面板 -->
       <div class="panel" id="panel-tree">
         <button class="close-btn" data-close="panel-tree">✕</button>
-        <h2>🌳 果树 · 我们的视频</h2>
+        <h2>🌳 果树 · 视频</h2>
         <div class="content">
           <div class="upload-row">
             <label class="upload-label" for="videoInput">🎬 挂一个视频</label>
@@ -297,20 +250,16 @@
             <span id="fruitCountLabel" style="color:#8b6b4b; font-weight:bold;">0 个果子</span>
           </div>
           <div class="fruit-grid" id="fruitGrid"></div>
-          <div class="hint-text">💡 每存一个视频，树上就多结一个果子</div>
         </div>
       </div>
 
-      <!-- 宠物面板 -->
       <div class="panel" id="panel-pet">
         <button class="close-btn" data-close="panel-pet">✕</button>
         <h2>🐾 宠物伙伴</h2>
         <div class="content" id="petList"></div>
-        <div class="hint-text">💡 互动会提升好感度（冷却时间可在 ⚙️ 设置中调整）</div>
       </div>
 
-      <!-- 房屋面板 -->
-      <div class="panel" id="panel-house" style="max-width: 900px;">
+      <div class="panel" id="panel-house">
         <button class="close-btn" data-close="panel-house">✕</button>
         <h2>🏠 我们的家</h2>
         <div class="content">
@@ -330,18 +279,16 @@
             <div class="room-bg modern" id="roomBg"></div>
           </div>
           <div class="furniture-palette" id="furniturePalette"></div>
-          <div class="hint-text">💡 点击家具添加，拖动调整位置，双击删除</div>
         </div>
       </div>
 
-      <!-- 设置面板 -->
-      <div class="panel" id="panel-settings" style="max-width: 640px;">
+      <div class="panel" id="panel-settings">
         <button class="close-btn" data-close="panel-settings">✕</button>
         <h2>⚙️ 设置</h2>
         <div class="content">
           <div class="setting-row">
-            <label>🌊 照片容量上限</label>
-            <input type="number" id="setPhotoCap" min="1" step="1" value="1000">
+            <label>照片容量上限</label>
+            <input type="number" id="setPhotoCap" min="1" value="1000">
           </div>
           <div class="setting-row">
             <label>🍖 喂食冷却（秒）</label>
@@ -355,15 +302,13 @@
             <label>🎾 玩耍冷却（秒）</label>
             <input type="number" id="setCdPlay" min="0" step="0.5" value="1.5">
           </div>
-          <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:8px;">
-            <button class="btn" id="saveSettingsBtn">💾 保存设置</button>
-            <button class="btn danger" id="clearDataBtn">🗑️ 清空所有数据</button>
+          <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
+            <button class="btn" id="saveSettingsBtn">保存</button>
+            <button class="btn danger" id="clearDataBtn">清空数据</button>
           </div>
-          <div class="hint-text">数据保存在本浏览器中（IndexedDB + localStorage）</div>
         </div>
       </div>
 
-      <!-- 视频播放弹窗 -->
       <div class="video-modal" id="videoModal">
         <button class="close-video" id="closeVideoBtn">✕</button>
         <video id="videoPlayer" controls playsinline></video>
@@ -374,967 +319,332 @@
   </div>
 
   <script>
-    // ==================== 全局数据 ====================
+    // ==================== 数据状态 ====================
     const state = {
-      photos: [],              
-      photoCapacity: 1000,
-      videos: [],              
+      photos: [], photoCapacity: 1000,
+      videos: [],
       pets: [
-        { id: 'cat1', name: '咪咪', kind: 'cat', emoji: '🐱', affinityMale: 30, affinityFemale: 55 },
-        { id: 'dog1', name: '旺财', kind: 'dog', emoji: '🐶', affinityMale: 60, affinityFemale: 20 }
+        { id: 'cat1', name: '猫猫', kind: 'cat', emoji: '🐱', affinityMale: 30, affinityFemale: 55 },
+        { id: 'dog1', name: '狗狗', kind: 'dog', emoji: '🐶', affinityMale: 60, affinityFemale: 20 }
       ],
-      room: {
-        currentRoom: 'living',
-        currentStyle: 'modern',
-        furniture: { living: [], bedroom: [], bathroom: [] }
-      }
+      room: { currentRoom: 'living', currentStyle: 'modern', furniture: { living: [], bedroom: [], bathroom: [] } }
     };
 
     const FURNITURE_LIB = {
-      chinese: [
-        { key: 'ch_sofa', name: '罗汉床', emoji: '🛋️' },
-        { key: 'ch_table', name: '条案', emoji: '🪑' },
-        { key: 'ch_lamp', name: '宫灯', emoji: '🏮' },
-        { key: 'ch_screen', name: '屏风', emoji: '🖼️' },
-        { key: 'ch_plant', name: '兰草', emoji: '🪴' }
-      ],
-      american: [
-        { key: 'am_sofa', name: '布艺沙发', emoji: '🛋️' },
-        { key: 'am_table', name: '实木茶几', emoji: '🪵' },
-        { key: 'am_lamp', name: '落地灯', emoji: '💡' },
-        { key: 'am_rug', name: '地毯', emoji: '🟫' },
-        { key: 'am_painting', name: '挂画', emoji: '🖼️' }
-      ],
-      european: [
-        { key: 'eu_sofa', name: '雕花沙发', emoji: '🛋️' },
-        { key: 'eu_table', name: '大理石桌', emoji: '🪞' },
-        { key: 'eu_chandelier', name: '水晶灯', emoji: '💎' },
-        { key: 'eu_mirror', name: '落地镜', emoji: '🪞' },
-        { key: 'eu_vase', name: '花瓶', emoji: '🏺' }
-      ],
-      modern: [
-        { key: 'md_sofa', name: '简约沙发', emoji: '🛋️' },
-        { key: 'md_table', name: '几何茶几', emoji: '🔲' },
-        { key: 'md_lamp', name: '弧线灯', emoji: '💡' },
-        { key: 'md_tv', name: '电视墙', emoji: '📺' },
-        { key: 'md_plant', name: '绿植', emoji: '🌿' }
-      ]
+      chinese: [{ name: '罗汉床', emoji: '🛋️' }, { name: '条案', emoji: '🪑' }, { name: '宫灯', emoji: '🏮' }],
+      american: [{ name: '沙发', emoji: '🛋️' }, { name: '木桌', emoji: '🪵' }, { name: '落地灯', emoji: '💡' }],
+      european: [{ name: '雕花沙发', emoji: '🛋️' }, { name: '大理石桌', emoji: '🪞' }, { name: '水晶灯', emoji: '💎' }],
+      modern: [{ name: '简约沙发', emoji: '🛋️' }, { name: '茶几', emoji: '🔲' }, { name: '弧线灯', emoji: '💡' }, { name: '电视', emoji: '📺' }]
     };
+    const ROOM_FURNITURE = { living: ['🛋️', '🪑', '📺'], bedroom: ['🛏️', '🪑', '🧸'], bathroom: ['🚿', '🛁', '🪞'] };
 
-    const ROOM_FURNITURE = {
-      living: ['🛋️', '🪑', '📺', '💡', '🪴', '🖼️', '🟫'],
-      bedroom: ['🛏️', '🪑', '💡', '🪴', '🖼️', '🧸'],
-      bathroom: ['🚿', '🛁', '🚽', '🪞', '🧴', '🪴']
-    };
+    // ==================== 本地存储 ====================
+    const DB_NAME = 'love-house-db', DB_VERSION = 1; let db = null;
+    function openDB() { return new Promise((res, rej) => { const r = indexedDB.open(DB_NAME, DB_VERSION); r.onupgradeneeded = e => { const d = e.target.result; if(!d.objectStoreNames.contains('photos')) d.createObjectStore('photos', { keyPath: 'id' }); if(!d.objectStoreNames.contains('videos')) d.createObjectStore('videos', { keyPath: 'id' }); }; r.onsuccess = e => { db = e.target.result; res(); }; r.onerror = rej; }); }
+    function dbPut(store, val) { return new Promise((res, rej) => { const tx = db.transaction(store, 'readwrite'); tx.objectStore(store).put(val); tx.oncomplete = res; tx.onerror = rej; }); }
+    function dbGetAll(store) { return new Promise((res, rej) => { const r = db.transaction(store, 'readonly').objectStore(store).getAll(); r.onsuccess = () => res(r.result); r.onerror = rej; }); }
+    function dbDelete(store, id) { return new Promise((res, rej) => { const tx = db.transaction(store, 'readwrite'); tx.objectStore(store).delete(id); tx.oncomplete = res; tx.onerror = rej; }); }
+    function dbClear(store) { return new Promise((res, rej) => { const tx = db.transaction(store, 'readwrite'); tx.objectStore(store).clear(); tx.oncomplete = res; tx.onerror = rej; }); }
 
-    // ==================== 持久化：IndexedDB ====================
-    const DB_NAME = 'love-house-db';
-    const DB_VERSION = 1;
-    let db = null;
+    const LS_PETS = 'lh_pets_v1', LS_ROOM = 'lh_room_v1', LS_SETTINGS = 'lh_settings_v1';
+    function savePets() { localStorage.setItem(LS_PETS, JSON.stringify(state.pets.map(p => ({ id: p.id, aM: p.affinityMale, aF: p.affinityFemale })))); }
+    function loadPets() { try { const arr = JSON.parse(localStorage.getItem(LS_PETS)); if(arr) arr.forEach(s => { const p = state.pets.find(x => x.id === s.id); if(p) { p.affinityMale = s.aM; p.affinityFemale = s.aF; } }); } catch(e){} }
+    function saveRoom() { localStorage.setItem(LS_ROOM, JSON.stringify(state.room)); }
+    function loadRoom() { try { const r = JSON.parse(localStorage.getItem(LS_ROOM)); if(r) state.room = { ...state.room, ...r }; } catch(e){} }
 
-    function openDB() {
-      return new Promise((resolve, reject) => {
-        const req = indexedDB.open(DB_NAME, DB_VERSION);
-        req.onupgradeneeded = (e) => {
-          const d = e.target.result;
-          if (!d.objectStoreNames.contains('photos')) d.createObjectStore('photos', { keyPath: 'id' });
-          if (!d.objectStoreNames.contains('videos')) d.createObjectStore('videos', { keyPath: 'id' });
-        };
-        req.onsuccess = (e) => { db = e.target.result; resolve(db); };
-        req.onerror = (e) => reject(e);
-      });
-    }
-
-    function dbPut(store, value) {
-      return new Promise((res, rej) => {
-        const tx = db.transaction(store, 'readwrite');
-        tx.objectStore(store).put(value);
-        tx.oncomplete = () => res();
-        tx.onerror = (e) => rej(e);
-      });
-    }
-
-    function dbGetAll(store) {
-      return new Promise((res, rej) => {
-        const tx = db.transaction(store, 'readonly');
-        const r = tx.objectStore(store).getAll();
-        r.onsuccess = () => res(r.result);
-        r.onerror = (e) => rej(e);
-      });
-    }
-
-    function dbDelete(store, id) {
-      return new Promise((res, rej) => {
-        const tx = db.transaction(store, 'readwrite');
-        tx.objectStore(store).delete(id);
-        tx.oncomplete = () => res();
-        tx.onerror = (e) => rej(e);
-      });
-    }
-
-    function dbClear(store) {
-      return new Promise((res, rej) => {
-        const tx = db.transaction(store, 'readwrite');
-        tx.objectStore(store).clear();
-        tx.oncomplete = () => res();
-        tx.onerror = (e) => rej(e);
-      });
-    }
-
-    // ==================== 持久化：localStorage ====================
-    const LS_PETS = 'lh_pets_v1';
-    const LS_ROOM = 'lh_room_v1';
-    const LS_SETTINGS = 'lh_settings_v1';
-
-    function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
-
-    function saveSettings() {
-      const data = {
-        photoCapacity: state.photoCapacity,
-        cooldowns: {
-          feed: PET_ACTIONS.feed.cooldown / 1000,
-          pet: PET_ACTIONS.pet.cooldown / 1000,
-          play: PET_ACTIONS.play.cooldown / 1000
-        }
-      };
-      localStorage.setItem(LS_SETTINGS, JSON.stringify(data));
-    }
-
-    function loadSettings() {
-      try {
-        const s = JSON.parse(localStorage.getItem(LS_SETTINGS) || 'null');
-        if (s) {
-          if (typeof s.photoCapacity === 'number' && s.photoCapacity >= 1) {
-            state.photoCapacity = Math.floor(s.photoCapacity);
-          }
-          if (s.cooldowns) {
-            ['feed', 'pet', 'play'].forEach(k => {
-              const v = Number(s.cooldowns[k]);
-              if (!isNaN(v) && v >= 0) PET_ACTIONS[k].cooldown = v * 1000;
-            });
-          }
-        }
-      } catch (e) {}
-      if (state.photoCapacity < state.photos.length) state.photoCapacity = state.photos.length || 1;
-    }
-
-    function savePets() {
-      const data = state.pets.map(p => ({ id: p.id, aM: p.affinityMale, aF: p.affinityFemale }));
-      localStorage.setItem(LS_PETS, JSON.stringify(data));
-    }
-
-    function loadPets() {
-      try {
-        const arr = JSON.parse(localStorage.getItem(LS_PETS) || 'null');
-        if (Array.isArray(arr)) {
-          arr.forEach(saved => {
-            const p = state.pets.find(x => x.id === saved.id);
-            if (p) {
-              p.affinityMale = clamp(Number(saved.aM) || 0, 0, 100);
-              p.affinityFemale = clamp(Number(saved.aF) || 0, 0, 100);
-            }
-          });
-        }
-      } catch (e) {}
-    }
-
-    function saveRoom() {
-      localStorage.setItem(LS_ROOM, JSON.stringify(state.room));
-    }
-
-    function loadRoom() {
-      try {
-        const r = JSON.parse(localStorage.getItem(LS_ROOM) || 'null');
-        if (r && r.furniture) {
-          if (['living', 'bedroom', 'bathroom'].includes(r.currentRoom)) state.room.currentRoom = r.currentRoom;
-          if (['raw', 'chinese', 'american', 'european', 'modern'].includes(r.currentStyle)) state.room.currentStyle = r.currentStyle;
-          ['living', 'bedroom', 'bathroom'].forEach(k => {
-            if (Array.isArray(r.furniture[k])) state.room.furniture[k] = r.furniture[k];
-          });
-        }
-      } catch (e) {}
-    }
+    const PET_ACTIONS = { feed: { base: 5, cooldown: 2000 }, pet: { base: 3, cooldown: 1000 }, play: { base: 4, cooldown: 1500 } };
+    function saveSettings() { localStorage.setItem(LS_SETTINGS, JSON.stringify({ cap: state.photoCapacity, cd: { feed: PET_ACTIONS.feed.cooldown/1000, pet: PET_ACTIONS.pet.cooldown/1000, play: PET_ACTIONS.play.cooldown/1000 } })); }
+    function loadSettings() { try { const s = JSON.parse(localStorage.getItem(LS_SETTINGS)); if(s) { state.photoCapacity = s.cap || 1000; if(s.cd) { PET_ACTIONS.feed.cooldown = s.cd.feed*1000; PET_ACTIONS.pet.cooldown = s.cd.pet*1000; PET_ACTIONS.play.cooldown = s.cd.play*1000; } } } catch(e){} }
 
     async function loadMedia() {
-      try {
-        const photos = await dbGetAll('photos');
-        photos.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-        state.photos = photos.map(p => ({ id: p.id, name: p.name, url: URL.createObjectURL(p.blob) }));
-
-        const videos = await dbGetAll('videos');
-        videos.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-        state.videos = videos.map(v => ({ id: v.id, name: v.name, url: URL.createObjectURL(v.blob) }));
-      } catch (e) {
-        console.warn('读取本地媒体失败', e);
-      }
+      const p = await dbGetAll('photos'); state.photos = p.sort((a,b)=>a.createdAt-b.createdAt).map(x => ({ id: x.id, name: x.name, url: URL.createObjectURL(x.blob) }));
+      const v = await dbGetAll('videos'); state.videos = v.sort((a,b)=>a.createdAt-b.createdAt).map(x => ({ id: x.id, name: x.name, url: URL.createObjectURL(x.blob) }));
     }
 
-    // ==================== PixiJS 场景 ====================
-    const canvas = document.getElementById('sceneCanvas');
-    let app = null;
-    let sceneRoot = null;
-    let treeContainer = null;
-    let fruitSprites = [];
-    let petSprites = {};
-    let photoSprites = [];
-    let heartTexture = null;
-    let flowOffset = 0;
-    let sceneElements = {};
-
-    function riverPoint(t) {
-      const x = t * 1.1 - 0.05;
-      const y = 0.72 + Math.sin(t * Math.PI * 2.2) * 0.03 + Math.sin(t * Math.PI * 5.1) * 0.012;
-      return { x, y };
-    }
-
-    async function initScene() {
+    // ==================== PixiJS 特效层 ====================
+    let app = null, heartTexture = null, heartContainer = null, photoContainer = null, fruitSprites = [];
+    
+    async function initPixi() {
       const PIXI = window.PIXI;
-      if (!PIXI) return;
-
       app = new PIXI.Application({
-        view: canvas,
-        width: canvas.clientWidth || 1100,
-        height: canvas.clientHeight || 620,
-        backgroundColor: 0xa7d8e8,
+        view: document.getElementById('sceneCanvas'),
+        resizeTo: document.getElementById('app'),
+        backgroundAlpha: 0, // 透明背景，露出底下的图片
         antialias: true,
         resolution: window.devicePixelRatio || 1,
-        autoDensity: true,
-        resizeTo: canvas.parentElement // 核心：让画布跟随容器自适应缩放
+        autoDensity: true
       });
 
-      sceneRoot = new PIXI.Container();
-      app.stage.addChild(sceneRoot);
+      heartContainer = new PIXI.Container();
+      photoContainer = new PIXI.Container();
+      app.stage.addChild(heartContainer, photoContainer);
 
-      buildSky();
-      buildMountains();
-      buildHouse();
-      buildTree();
-      buildRiver();
-      buildCoupleAndPets();
-
-      app.ticker.add((delta) => { animateScene(delta); });
-
-      window.addEventListener('resize', () => {
-        if (app) {
-          app.renderer.resize(canvas.clientWidth, canvas.clientHeight);
-          rebuildLayout();
-        }
-      });
-    }
-
-    function buildSky() {
-      const PIXI = window.PIXI;
-      const sky = new PIXI.Graphics();
-      sky.beginFill(0xa7d8e8);
-      sky.drawRect(0, 0, app.screen.width, app.screen.height);
-      sky.endFill();
-
-      const cloud1 = new PIXI.Graphics();
-      cloud1.beginFill(0xffffff, 0.85);
-      cloud1.drawEllipse(0, 0, 60, 28); cloud1.drawEllipse(50, -10, 45, 22); cloud1.drawEllipse(-45, -5, 40, 20);
-      cloud1.endFill();
-      cloud1.position.set(app.screen.width * 0.2, app.screen.height * 0.1);
-      sceneRoot.addChild(sky, cloud1);
-      sceneElements.cloud1 = cloud1;
-
-      const cloud2 = new PIXI.Graphics();
-      cloud2.beginFill(0xffffff, 0.75);
-      cloud2.drawEllipse(0, 0, 50, 22); cloud2.drawEllipse(38, -8, 38, 18); cloud2.drawEllipse(-38, -4, 34, 16);
-      cloud2.endFill();
-      cloud2.position.set(app.screen.width * 0.7, app.screen.height * 0.15);
-      sceneRoot.addChild(cloud2);
-      sceneElements.cloud2 = cloud2;
-
-      const cloud3 = new PIXI.Graphics();
-      cloud3.beginFill(0xffffff, 0.7);
-      cloud3.drawEllipse(0, 0, 44, 20); cloud3.drawEllipse(32, -6, 32, 15);
-      cloud3.endFill();
-      cloud3.position.set(app.screen.width * 0.5, app.screen.height * 0.06);
-      sceneRoot.addChild(cloud3);
-      sceneElements.cloud3 = cloud3;
-    }
-
-    function buildMountains() {
-      const PIXI = window.PIXI;
-      const W = app.screen.width, H = app.screen.height;
-      const mtn = new PIXI.Graphics();
-      mtn.beginFill(0x8fb8a8);
-      mtn.moveTo(0, H * 0.55); mtn.lineTo(W * 0.12, H * 0.32); mtn.lineTo(W * 0.28, H * 0.5); mtn.lineTo(W * 0.42, H * 0.26); mtn.lineTo(W * 0.58, H * 0.48); mtn.lineTo(W * 0.72, H * 0.3); mtn.lineTo(W * 0.88, H * 0.46); mtn.lineTo(W, H * 0.35); mtn.lineTo(W, H * 0.58); mtn.lineTo(0, H * 0.58);
-      mtn.closePath(); mtn.endFill();
-      mtn.beginFill(0x6a9e88);
-      mtn.moveTo(0, H * 0.6); mtn.lineTo(W * 0.15, H * 0.42); mtn.lineTo(W * 0.32, H * 0.58); mtn.lineTo(W * 0.5, H * 0.4); mtn.lineTo(W * 0.68, H * 0.56); mtn.lineTo(W * 0.85, H * 0.44); mtn.lineTo(W, H * 0.52); mtn.lineTo(W, H * 0.62); mtn.lineTo(0, H * 0.62);
-      mtn.closePath(); mtn.endFill();
-      sceneRoot.addChild(mtn);
-      sceneElements.mountains = mtn;
-
-      const grass = new PIXI.Graphics();
-      grass.beginFill(0x8fbf6a); grass.drawRect(0, H * 0.58, W, H * 0.42); grass.endFill();
-      grass.beginFill(0x7aad57, 0.4);
-      for (let i = 0; i < 30; i++) {
-        grass.drawEllipse(Math.random() * W, H * 0.6 + Math.random() * H * 0.38, 20 + Math.random() * 30, 8 + Math.random() * 12);
-      }
-      grass.endFill();
-      sceneRoot.addChild(grass);
-      sceneElements.grass = grass;
-
-      const path = new PIXI.Graphics();
-      path.beginFill(0xd9b382, 0.9);
-      path.moveTo(W * 0.32, H * 0.7); path.quadraticCurveTo(W * 0.42, H * 0.78, W * 0.5, H * 0.95); path.lineTo(W * 0.58, H * 0.95); path.quadraticCurveTo(W * 0.5, H * 0.78, W * 0.38, H * 0.7);
-      path.closePath(); path.endFill();
-      sceneRoot.addChild(path);
-      sceneElements.path = path;
-    }
-
-    function buildHouse() {
-      const PIXI = window.PIXI;
-      const W = app.screen.width, H = app.screen.height;
-      const house = new PIXI.Container();
-
-      const body = new PIXI.Graphics();
-      body.beginFill(0xf2e0c0); body.drawRoundedRect(-70, -30, 140, 100, 12); body.endFill();
-      body.beginFill(0xc47a5a); body.moveTo(-90, -30); body.lineTo(0, -95); body.lineTo(90, -30); body.closePath(); body.endFill();
-      body.beginFill(0x9a5a3a); body.drawRect(40, -90, 20, 45); body.endFill();
-      body.beginFill(0x8b5a2b); body.drawRoundedRect(-22, 20, 44, 60, 8); body.endFill();
-      body.beginFill(0xf7c948); body.drawCircle(12, 50, 4); body.endFill();
-      body.beginFill(0xa7d8e8); body.drawRoundedRect(-60, 0, 30, 28, 6); body.drawRoundedRect(32, 0, 30, 28, 6); body.endFill();
-      body.lineStyle(3, 0x8b5a2b); body.moveTo(-45, 0); body.lineTo(-45, 28); body.moveTo(-60, 14); body.lineTo(-30, 14); body.moveTo(47, 0); body.lineTo(47, 28); body.moveTo(32, 14); body.lineTo(62, 14); body.lineStyle(0);
-
-      house.addChild(body);
-      house.position.set(W * 0.68, H * 0.62);
-      house.eventMode = 'static'; house.cursor = 'pointer';
-      house.on('pointertap', () => { openPanel('panel-house'); renderHousePanel(); });
-
-      const label = createLabel('🏠 我们的家'); label.position.set(0, -110); house.addChild(label); house.label = label;
-      sceneRoot.addChild(house);
-      sceneElements.house = house;
-      addHoverEffect(house);
-    }
-
-    function buildTree() {
-      const PIXI = window.PIXI;
-      const W = app.screen.width, H = app.screen.height;
-      const tree = new PIXI.Container();
-
-      const trunk = new PIXI.Graphics();
-      trunk.beginFill(0x8b5a2b); trunk.drawRoundedRect(-12, -10, 24, 70, 6); trunk.endFill();
-      trunk.beginFill(0x8b5a2b); trunk.moveTo(0, 10); trunk.quadraticCurveTo(-25, -20, -40, -40); trunk.quadraticCurveTo(-20, -20, 0, 0); trunk.closePath(); trunk.endFill();
-      trunk.beginFill(0x8b5a2b); trunk.moveTo(0, -5); trunk.quadraticCurveTo(30, -30, 45, -50); trunk.quadraticCurveTo(25, -25, 0, -15); trunk.closePath(); trunk.endFill();
-
-      const canopy = new PIXI.Graphics();
-      const greens = [0x5a9e4a, 0x4a8e3a, 0x6aae5a, 0x3a7e2a];
-      [{x:0,y:-70,r:55}, {x:-45,y:-50,r:40}, {x:45,y:-50,r:40}, {x:-20,y:-100,r:38}, {x:25,y:-95,r:35}, {x:0,y:-40,r:45}].forEach((c, i) => {
-        canopy.beginFill(greens[i % greens.length]); canopy.drawCircle(c.x, c.y, c.r); canopy.endFill();
-      });
-      canopy.beginFill(0x8fcf6a, 0.5); canopy.drawCircle(-15, -85, 20); canopy.drawCircle(20, -95, 14); canopy.endFill();
-
-      tree.addChild(trunk, canopy);
-      tree.position.set(W * 0.2, H * 0.7);
-      tree.eventMode = 'static'; tree.cursor = 'pointer';
-      tree.on('pointertap', () => { openPanel('panel-tree'); renderTreePanel(); });
-
-      const label = createLabel('🌳 我们的树'); label.position.set(0, -160); tree.addChild(label); tree.label = label;
-      sceneRoot.addChild(tree);
-      sceneElements.tree = tree;
-      treeContainer = tree;
-      addHoverEffect(tree);
-    }
-
-    function buildRiver() {
-      const PIXI = window.PIXI;
-      const W = app.screen.width, H = app.screen.height;
-      const riverContainer = new PIXI.Container();
-
-      const river = new PIXI.Graphics();
-      const drawRiver = () => {
-        river.clear();
-        river.beginFill(0x4a9ec8, 0.85);
-        river.moveTo(W * -0.02, H * 0.75);
-        for (let i = 0; i <= 20; i++) { const t = i / 20; const p = riverPoint(t); river.lineTo(W * p.x, H * p.y - 30); }
-        for (let i = 20; i >= 0; i--) { const t = i / 20; const p = riverPoint(t); river.lineTo(W * p.x, H * p.y + 30); }
-        river.closePath(); river.endFill();
-        river.lineStyle(2, 0x8fd4f0, 0.6);
-        for (let i = 0; i <= 20; i++) {
-          const t = i / 20; const p = riverPoint(t);
-          const wave = Math.sin(i * 1.7 + flowOffset * 3) * 6;
-          river.moveTo(W * p.x, H * p.y + wave); river.lineTo(W * (t + 0.03), H * riverPoint(Math.min(t + 0.03, 1)).y + wave + 2);
-        }
-        river.lineStyle(0);
-      };
-      drawRiver();
-      riverContainer.addChild(river);
-      sceneElements.drawRiver = drawRiver;
-
-      const hitArea = new PIXI.Graphics();
-      hitArea.beginFill(0xffffff, 0.001); hitArea.drawRect(0, H * 0.6, W, H * 0.35); hitArea.endFill();
-      hitArea.eventMode = 'static'; hitArea.cursor = 'pointer';
-      hitArea.on('pointertap', () => { openPanel('panel-river'); renderRiverPanel(); });
-      riverContainer.addChild(hitArea);
-
-      const flowContainer = new PIXI.Container(); riverContainer.addChild(flowContainer); sceneElements.flowContainer = flowContainer;
-      const heartContainer = new PIXI.Container(); riverContainer.addChild(heartContainer); sceneElements.heartContainer = heartContainer;
-
-      sceneRoot.addChild(riverContainer);
-      const label = createLabel('🌊 回忆之河'); label.position.set(W * 0.5, H * 0.68); sceneRoot.addChild(label); sceneElements.riverLabel = label;
-    }
-
-    function buildCoupleAndPets() {
-      const PIXI = window.PIXI;
-      const W = app.screen.width, H = app.screen.height;
-
-      const boy = new PIXI.Container();
-      const boyBody = new PIXI.Graphics();
-      boyBody.beginFill(0x4a6a9e); boyBody.drawRoundedRect(-12, 20, 10, 30, 4); boyBody.drawRoundedRect(2, 20, 10, 30, 4); boyBody.endFill();
-      boyBody.beginFill(0x5a8ac8); boyBody.drawRoundedRect(-16, -10, 32, 35, 8); boyBody.endFill();
-      boyBody.beginFill(0xffe0c0); boyBody.drawCircle(0, -25, 16); boyBody.endFill();
-      boyBody.beginFill(0x3a2a1a); boyBody.drawCircle(0, -32, 16); boyBody.drawRect(-16, -32, 32, 10); boyBody.endFill();
-      boyBody.beginFill(0x2a1a0a); boyBody.drawCircle(-5, -26, 2.5); boyBody.drawCircle(5, -26, 2.5); boyBody.endFill();
-      boyBody.lineStyle(2, 0x8b5a2b); boyBody.arc(0, -20, 5, 0, Math.PI); boyBody.lineStyle(0);
-      boy.addChild(boyBody); boy.position.set(W * 0.42, H * 0.78);
-      sceneRoot.addChild(boy); sceneElements.boy = boy;
-
-      const girl = new PIXI.Container();
-      const girlBody = new PIXI.Graphics();
-      girlBody.beginFill(0xd97a8a); girlBody.drawRoundedRect(-12, 20, 10, 30, 4); girlBody.drawRoundedRect(2, 20, 10, 30, 4); girlBody.endFill();
-      girlBody.beginFill(0xf4a3b0); girlBody.drawRoundedRect(-16, -10, 32, 35, 8); girlBody.endFill();
-      girlBody.beginFill(0xffe0c0); girlBody.drawCircle(0, -25, 16); girlBody.endFill();
-      girlBody.beginFill(0x6a3a1a); girlBody.drawCircle(0, -32, 17); girlBody.drawRoundedRect(-18, -32, 36, 20, 8); girlBody.drawCircle(-14, -20, 8); girlBody.drawCircle(14, -20, 8); girlBody.endFill();
-      girlBody.beginFill(0x2a1a0a); girlBody.drawCircle(-5, -26, 2.5); girlBody.drawCircle(5, -26, 2.5); girlBody.endFill();
-      girlBody.lineStyle(2, 0x8b5a2b); girlBody.arc(0, -20, 5, 0, Math.PI); girlBody.lineStyle(0);
-      girlBody.beginFill(0xf4a3a3, 0.5); girlBody.drawCircle(-11, -22, 3); girlBody.drawCircle(11, -22, 3); girlBody.endFill();
-      girl.addChild(girlBody); girl.position.set(W * 0.52, H * 0.78);
-      sceneRoot.addChild(girl); sceneElements.girl = girl;
-
-      const cat = new PIXI.Container();
-      const catBody = new PIXI.Graphics();
-      catBody.beginFill(0xf5a623); catBody.drawEllipse(0, 0, 22, 16); catBody.drawCircle(-14, -8, 12); catBody.endFill();
-      catBody.beginFill(0xf5a623); catBody.moveTo(-24, -16); catBody.lineTo(-20, -28); catBody.lineTo(-14, -18); catBody.closePath(); catBody.moveTo(-8, -18); catBody.lineTo(-4, -28); catBody.lineTo(2, -16); catBody.closePath(); catBody.endFill();
-      catBody.beginFill(0x2a1a0a); catBody.drawCircle(-17, -10, 2); catBody.drawCircle(-10, -10, 2); catBody.endFill();
-      catBody.beginFill(0xf06a6a); catBody.drawCircle(-13.5, -5, 1.5); catBody.endFill();
-      catBody.lineStyle(4, 0xf5a623); catBody.arc(20, -5, 14, 0.2, Math.PI * 0.9); catBody.lineStyle(0);
-      cat.addChild(catBody); cat.position.set(W * 0.6, H * 0.85);
-      cat.eventMode = 'static'; cat.cursor = 'pointer';
-      cat.on('pointertap', () => { openPanel('panel-pet'); renderPetPanel(); });
-      sceneRoot.addChild(cat); sceneElements.cat = cat; petSprites.cat1 = cat;
-
-      const dog = new PIXI.Container();
-      const dogBody = new PIXI.Graphics();
-      dogBody.beginFill(0xa0724a); dogBody.drawEllipse(0, 0, 24, 18); dogBody.drawCircle(-16, -10, 13); dogBody.endFill();
-      dogBody.beginFill(0x7a5a32); dogBody.drawEllipse(-24, -18, 8, 12); dogBody.drawEllipse(-8, -20, 7, 11); dogBody.endFill();
-      dogBody.beginFill(0x2a1a0a); dogBody.drawCircle(-20, -12, 2.2); dogBody.drawCircle(-12, -12, 2.2); dogBody.endFill();
-      dogBody.beginFill(0x2a1a0a); dogBody.drawCircle(-16, -6, 2.5); dogBody.endFill();
-      dogBody.lineStyle(4, 0xa0724a); dogBody.arc(22, -8, 14, 0.1, Math.PI * 0.8); dogBody.lineStyle(0);
-      dog.addChild(dogBody); dog.position.set(W * 0.35, H * 0.85);
-      dog.eventMode = 'static'; dog.cursor = 'pointer';
-      dog.on('pointertap', () => { openPanel('panel-pet'); renderPetPanel(); });
-      sceneRoot.addChild(dog); sceneElements.dog = dog; petSprites.dog1 = dog;
-
-      for (let i = 0; i < 4; i++) {
-        const heart = createHeartSprite();
-        heart.position.set(W * (0.44 + i * 0.03), H * (0.7 - i * 0.02));
-        heart.alpha = 0.3; heart.scale.set(0.6);
-        sceneRoot.addChild(heart);
-      }
-    }
-
-    function createHeartSprite(size = 1) {
-      const PIXI = window.PIXI;
+      // 生成爱心纹理
       const g = new PIXI.Graphics();
-      g.beginFill(0xf06a8a);
-      const s = 8 * size;
-      g.moveTo(0, s * 0.4); g.bezierCurveTo(-s, -s * 0.4, -s * 1.2, s * 0.8, 0, s * 1.6); g.bezierCurveTo(s * 1.2, s * 0.8, s, -s * 0.4, 0, s * 0.4);
-      g.endFill(); return g;
-    }
-
-    function createHeartTexture() {
-      const g = createHeartSprite(1.8);
+      g.beginFill(0xff4d6d);
+      g.moveTo(0, 6); g.bezierCurveTo(-8, -4, -14, 8, 0, 18); g.bezierCurveTo(14, 8, 8, -4, 0, 6);
+      g.endFill();
       heartTexture = app.renderer.generateTexture(g);
       g.destroy();
+
+      initPhotoFlow();
+      state.videos.forEach(() => addFruitVisual());
+
+      app.ticker.add(animate);
     }
 
-    function createLabel(text, fontSize = 18) {
-      const PIXI = window.PIXI;
-      const style = new PIXI.TextStyle({
-        fontFamily: 'Comic Sans MS, Microsoft YaHei, sans-serif', fontSize: fontSize,
-        fill: 0x4a2c1a, stroke: 0xfff7ec, strokeThickness: 5, fontWeight: 'bold'
-      });
-      const t = new PIXI.Text(text, style); t.anchor.set(0.5); return t;
-    }
-
-    function addHoverEffect(container) {
-      container.on('pointerover', () => { container.scale.set(1.04); if (container.label) container.label.alpha = 1; });
-      container.on('pointerout', () => { container.scale.set(1); if (container.label) container.label.alpha = 0.85; });
-    }
-
-    function rebuildLayout() {
-      const W = app.screen.width, H = app.screen.height;
-      if (sceneElements.house) sceneElements.house.position.set(W * 0.68, H * 0.62);
-      if (sceneElements.tree) sceneElements.tree.position.set(W * 0.2, H * 0.7);
-      if (sceneElements.boy) sceneElements.boy.position.set(W * 0.42, H * 0.78);
-      if (sceneElements.girl) sceneElements.girl.position.set(W * 0.52, H * 0.78);
-      if (sceneElements.cat) sceneElements.cat.position.set(W * 0.6, H * 0.85);
-      if (sceneElements.dog) sceneElements.dog.position.set(W * 0.35, H * 0.85);
-      if (sceneElements.riverLabel) sceneElements.riverLabel.position.set(W * 0.5, H * 0.68);
-    }
-
+    // 照片流动逻辑（沿左侧河流飘动，从左上到右下）
+    let photoSprites = [];
     function initPhotoFlow() {
       const PIXI = window.PIXI;
-      if (!sceneElements.flowContainer || !heartTexture) return;
-      const old = sceneElements.flowContainer.removeChildren(); old.forEach(c => c.destroy());
+      if(!photoContainer) return;
+      photoContainer.removeChildren();
       photoSprites = [];
 
-      for (let i = 0; i < 10; i++) {
-        const sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
-        sprite.anchor.set(0.5);
-        sprite._t = i / 10; sprite._speed = 0.0010 + Math.random() * 0.0009;
-        sprite._yOffset = (Math.random() - 0.5) * 26; sprite._slot = i;
-        sprite._currentId = null; sprite._targetW = 70;
-        assignSpriteTexture(sprite);
-        sceneElements.flowContainer.addChild(sprite); photoSprites.push(sprite);
+      for(let i = 0; i < 10; i++) {
+        const s = new PIXI.Sprite(PIXI.Texture.WHITE);
+        s.anchor.set(0.5);
+        s._t = Math.random(); 
+        s._speed = 0.001 + Math.random() * 0.0015;
+        s._slot = i;
+        s._currentId = null;
+        assignTexture(s);
+        photoContainer.addChild(s);
+        photoSprites.push(s);
       }
     }
 
-    function assignSpriteTexture(sprite) {
+    function assignTexture(s) {
       const PIXI = window.PIXI;
-      if (state.photos.length > 0) {
-        const photo = state.photos[sprite._slot % state.photos.length];
-        if (sprite._currentId !== photo.id) {
-          try { sprite.texture = PIXI.Texture.from(photo.url); } catch (e) { sprite.texture = PIXI.Texture.WHITE; }
-          sprite._currentId = photo.id; sprite._targetW = 76;
+      if(state.photos.length > 0) {
+        const p = state.photos[s._slot % state.photos.length];
+        if(s._currentId !== p.id) {
+          try { s.texture = PIXI.Texture.from(p.url); } catch(e) { s.texture = PIXI.Texture.WHITE; }
+          s._currentId = p.id; s._targetW = 80; // 稍微调大一点点
         }
       } else {
-        if (sprite._currentId !== '__heart__') {
-          sprite.texture = heartTexture; sprite._currentId = '__heart__'; sprite._targetW = 36;
-        }
+        if(s._currentId !== 'heart') { s.texture = heartTexture; s._currentId = 'heart'; s._targetW = 30; }
       }
     }
 
-    function animateScene(delta) {
+    function animate(delta) {
+      if(!app) return;
       const W = app.screen.width, H = app.screen.height;
-      flowOffset += 0.008 * delta;
 
-      if (sceneElements.cloud1) { sceneElements.cloud1.x += 0.15 * delta; if (sceneElements.cloud1.x > W + 100) sceneElements.cloud1.x = -100; }
-      if (sceneElements.cloud2) { sceneElements.cloud2.x += 0.1 * delta; if (sceneElements.cloud2.x > W + 100) sceneElements.cloud2.x = -100; }
-      if (sceneElements.cloud3) { sceneElements.cloud3.x += 0.12 * delta; if (sceneElements.cloud3.x > W + 100) sceneElements.cloud3.x = -100; }
-      if (sceneElements.drawRiver) sceneElements.drawRiver();
+      // 照片沿河流移动（匹配新图江面走向：从远方中上部飘向近处左下部）
+      photoContainer.children.forEach(s => {
+        s._t += s._speed * delta;
+        if(s._t > 1.05) { s._t = -0.05; assignTexture(s); }
+        
+        // 起点: 中上方江面(45%, 20%) -> 终点: 左下角(0%, 95%)
+        const x = W * (0.45 - s._t * 0.45);
+        const y = H * (0.20 + s._t * 0.75) + Math.sin(s._t * Math.PI * 4) * 15;
+        s.x = x; s.y = y;
 
-      if (sceneElements.flowContainer) {
-        sceneElements.flowContainer.children.forEach((sprite) => {
-          sprite._t += sprite._speed * delta;
-          if (sprite._t > 1.05) { sprite._t = -0.05; assignSpriteTexture(sprite); }
-          const p = riverPoint(Math.min(Math.max(sprite._t, 0), 1));
-          sprite.x = W * p.x; sprite.y = H * p.y + sprite._yOffset;
-          const depth = 0.55 + Math.sin(Math.max(0, Math.min(1, sprite._t)) * Math.PI) * 0.55;
-          const texW = sprite.texture.width || 70;
-          const base = (sprite._targetW || 70) / texW;
-          sprite.scale.set(base * depth); sprite.alpha = 0.55 + depth * 0.4;
-        });
-      }
+        const depth = 0.4 + Math.sin(Math.max(0, Math.min(1, s._t)) * Math.PI) * 0.6;
+        const base = s._targetW / (s.texture.width || 100);
+        s.scale.set(base * depth);
+        s.alpha = 0.5 + depth * 0.5;
+      });
 
-      if (sceneElements.heartContainer && state.photos.length === 0) { if (Math.random() < 0.03) spawnHeartParticle(); }
-      if (sceneElements.heartContainer) {
-        const hc = sceneElements.heartContainer;
-        for (let i = hc.children.length - 1; i >= 0; i--) {
-          const h = hc.children[i]; h.y -= 0.6 * delta; h.alpha -= 0.008 * delta; h.rotation += 0.02 * delta;
-          if (h.alpha <= 0) { hc.removeChild(h); h.destroy(); }
-        }
-      }
+      // 爱心粒子飘动
+      heartContainer.children.forEach(h => {
+        h.y -= 0.8 * delta; h.alpha -= 0.01 * delta; h.rotation += 0.02 * delta;
+        if(h.alpha <= 0) { heartContainer.removeChild(h); h.destroy(); }
+      });
 
-      if (petSprites.cat1) petSprites.cat1.rotation = Math.sin(Date.now() * 0.003) * 0.03;
-      if (petSprites.dog1) petSprites.dog1.rotation = Math.sin(Date.now() * 0.004 + 1) * 0.04;
-      if (treeContainer) treeContainer.rotation = Math.sin(Date.now() * 0.001) * 0.008;
+      // 果子飘动
+      fruitSprites.forEach(f => { if(f._baseY) f.y = f._baseY + Math.sin(Date.now()*0.002) * 3; });
     }
 
-    function spawnHeartParticle() {
-      if (!sceneElements.heartContainer) return;
-      const W = app.screen.width, H = app.screen.height;
-      const heart = createHeartSprite(0.8 + Math.random() * 0.5);
-      const p = riverPoint(Math.random());
-      heart.position.set(W * p.x + (Math.random() - 0.5) * 100, H * p.y + (Math.random() - 0.5) * 30);
-      heart.alpha = 0.8; heart.rotation = Math.random() * Math.PI;
-      sceneElements.heartContainer.addChild(heart);
+    function spawnHearts(e) {
+      if(!heartContainer) return;
+      const rect = document.getElementById('app').getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      for(let i=0; i<3; i++) {
+        const h = new PIXI.Sprite(heartTexture);
+        h.anchor.set(0.5);
+        h.x = x + (Math.random()-0.5)*20;
+        h.y = y + (Math.random()-0.5)*20;
+        h.scale.set(0.3 + Math.random()*0.3);
+        heartContainer.addChild(h);
+      }
     }
 
-    // ==================== 河流相册面板 ====================
+    // 树上结果子（匹配大树的树冠位置：约 25% ~ 55% 宽，30% ~ 55% 高）
+    function addFruitVisual() {
+      if(!app) return;
+      const PIXI = window.PIXI;
+      const fruit = new PIXI.Graphics();
+      fruit.beginFill(0xff3333); fruit.drawCircle(0, 0, 7); fruit.endFill();
+      fruit.beginFill(0xffd700); fruit.drawCircle(-2, -2, 1.5); fruit.endFill(); // 加个小高光
+      
+      fruit.x = app.screen.width * (0.28 + Math.random() * 0.22);
+      fruit.y = app.screen.height * (0.32 + Math.random() * 0.18);
+      fruit._baseY = fruit.y;
+
+      app.stage.addChild(fruit);
+      fruitSprites.push(fruit);
+    }
+
+    // ==================== 业务逻辑 ====================
+    function toast(msg) { const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 1500); }
+    
+    function openPanel(id) { document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id==='panel-settings') fillSettings(); }
+    document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => document.getElementById(btn.dataset.close).classList.remove('active')));
+    document.getElementById('settingsBtn').addEventListener('click', () => openPanel('panel-settings'));
+
+    // --- 河流相册 ---
     function renderRiverPanel() {
-      const flow = document.getElementById('photoFlow');
-      const label = document.getElementById('photoCountLabel');
-      flow.innerHTML = '';
-      label.textContent = `${state.photos.length} / ${state.photoCapacity}`;
-
-      if (state.photos.length === 0) {
-        flow.innerHTML = '<div style="color:#b28b5c; font-size:1.2rem; padding:20px; width:100%; text-align:center;">💕 还没有照片，上传第一张回忆吧</div>';
-      } else {
-        state.photos.forEach((photo, idx) => {
-          const div = document.createElement('div');
-          div.className = 'photo-card';
-          div.style.backgroundImage = `url(${photo.url})`;
-          div.style.backgroundSize = 'cover'; div.style.backgroundPosition = 'center';
-          div.title = photo.name;
-          div.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            if (confirm('删除这张照片？')) await deletePhoto(idx);
-          });
-          flow.appendChild(div);
-        });
-      }
-    }
-
-    async function handlePhotoUpload(files) {
-      const list = files.filter(f => f.type.startsWith('image/'));
-      if (list.length === 0) return;
-      const remaining = state.photoCapacity - state.photos.length;
-      if (list.length > remaining) { toast(`容量不足！最多还能上传 ${remaining} 张`); return; }
-      for (const file of list) {
-        const id = 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-        const record = { id, name: file.name, blob: file, createdAt: Date.now() };
-        try { await dbPut('photos', record); } catch (err) { console.warn('保存照片失败', err); continue; }
-        state.photos.push({ id, name: file.name, url: URL.createObjectURL(file) });
-      }
-      renderRiverPanel(); initPhotoFlow(); toast(`上传了 ${list.length} 张照片 💕`);
-    }
-
-    async function deletePhoto(idx) {
-      const photo = state.photos[idx];
-      if (!photo) return;
-      try { await dbDelete('photos', photo.id); } catch (e) {}
-      try {
-        if (window.PIXI && PIXI.utils.TextureCache[photo.url]) {
-          const tex = PIXI.utils.TextureCache[photo.url];
-          tex.destroy(true); delete PIXI.utils.TextureCache[photo.url];
-        }
-      } catch (e) {}
-      URL.revokeObjectURL(photo.url);
-      state.photos.splice(idx, 1);
-      if (state.photoCapacity < state.photos.length) state.photoCapacity = state.photos.length;
-      renderRiverPanel(); initPhotoFlow(); toast('照片已删除');
-    }
-
-    // ==================== 果树面板 ====================
-    function renderTreePanel() {
-      const grid = document.getElementById('fruitGrid');
-      const label = document.getElementById('fruitCountLabel');
-      grid.innerHTML = '';
-      label.textContent = `${state.videos.length} 个果子`;
-
-      if (state.videos.length === 0) {
-        grid.innerHTML = '<div style="color:#b28b5c; font-size:1.1rem; grid-column:1/-1; text-align:center; padding:20px;">🍎 还没有视频，上传第一个，树上就会结出第一个果子～</div>';
-        return;
-      }
-      state.videos.forEach((video) => {
+      const flow = document.getElementById('photoFlow'); flow.innerHTML = '';
+      document.getElementById('photoCountLabel').textContent = `${state.photos.length} / ${state.photoCapacity}`;
+      state.photos.forEach((p, idx) => {
         const div = document.createElement('div');
-        div.className = 'fruit-item'; div.textContent = '🍎'; div.title = video.name;
-        div.addEventListener('click', (e) => { e.stopPropagation(); playVideo(video.url); });
+        div.className = 'photo-card'; div.style.backgroundImage = `url(${p.url})`;
+        div.onclick = async () => { if(confirm('删除照片？')) { await dbDelete('photos', p.id); URL.revokeObjectURL(p.url); state.photos.splice(idx,1); renderRiverPanel(); initPhotoFlow(); } };
+        flow.appendChild(div);
+      });
+    }
+
+    document.getElementById('photoInput').addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files); e.target.value = '';
+      if(state.photos.length + files.length > state.photoCapacity) return toast('容量不足');
+      for(const f of files) {
+        const id = 'p_' + Date.now();
+        await dbPut('photos', { id, name: f.name, blob: f, createdAt: Date.now() });
+        state.photos.push({ id, name: f.name, url: URL.createObjectURL(f) });
+      }
+      renderRiverPanel(); initPhotoFlow(); toast('上传成功');
+    });
+
+    // --- 果树视频 ---
+    function renderTreePanel() {
+      const grid = document.getElementById('fruitGrid'); grid.innerHTML = '';
+      document.getElementById('fruitCountLabel').textContent = `${state.videos.length} 个果子`;
+      state.videos.forEach(v => {
+        const div = document.createElement('div');
+        div.className = 'fruit-item'; div.textContent = '🍎';
+        div.onclick = () => { document.getElementById('videoPlayer').src = v.url; document.getElementById('videoModal').classList.add('active'); document.getElementById('videoPlayer').play(); };
         grid.appendChild(div);
       });
     }
 
-    async function handleVideoUpload(file) {
-      if (!file || !file.type.startsWith('video/')) return;
-      const id = 'v_' + Date.now();
-      const record = { id, name: file.name, blob: file, createdAt: Date.now() };
-      try { await dbPut('videos', record); } catch (err) { console.warn('保存视频失败', err); toast('保存视频失败，存储空间可能不足'); return; }
-      state.videos.push({ id, name: file.name, url: URL.createObjectURL(file) });
-      renderTreePanel(); addFruitVisual(); toast('果树结出了新的果子 🍎');
-    }
-
-    function playVideo(url) {
-      const modal = document.getElementById('videoModal');
-      const player = document.getElementById('videoPlayer');
-      player.src = url; modal.classList.add('active'); player.play().catch(() => {});
-    }
-
-    document.getElementById('closeVideoBtn').addEventListener('click', () => {
-      const modal = document.getElementById('videoModal');
-      const player = document.getElementById('videoPlayer');
-      player.pause(); player.src = ''; modal.classList.remove('active');
-    });
-
-    document.getElementById('videoModal').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) document.getElementById('closeVideoBtn').click();
-    });
-
-    function addFruitVisual() {
-      if (!treeContainer) return;
-      const PIXI = window.PIXI;
-      const fruit = new PIXI.Graphics();
-      fruit.beginFill(0xf06a4a); fruit.drawCircle(0, 0, 8); fruit.endFill();
-      fruit.beginFill(0x8b3a1a); fruit.drawRect(-1, -10, 2, 5); fruit.endFill();
-      const angle = Math.random() * Math.PI * 2; const radius = 20 + Math.random() * 40;
-      fruit.position.set(Math.cos(angle) * radius, -70 + Math.sin(angle) * radius * 0.7);
-      treeContainer.addChild(fruit); fruitSprites.push(fruit);
-
-      fruit.scale.set(0); let s = 0;
-      const grow = () => { s += 0.08; fruit.scale.set(Math.min(1, s)); if (s < 1) requestAnimationFrame(grow); };
-      grow();
-    }
-
-    // ==================== 宠物面板 ====================
-    const PET_ACTIONS = {
-      feed: { base: 5, cooldown: 2000 },
-      pet: { base: 3, cooldown: 1000 },
-      play: { base: 4, cooldown: 1500 }
-    };
-    const petCooldowns = {};
-
-    function renderPetPanel() {
-      const list = document.getElementById('petList');
-      list.innerHTML = '';
-      state.pets.forEach((pet) => {
-        const card = document.createElement('div');
-        card.className = 'pet-card';
-        card.innerHTML = `
-          <div class="pet-avatar">${pet.emoji}</div>
-          <div class="pet-info">
-            <div style="font-weight:bold; color:#4a2c1a; font-size:1.1rem;">${pet.name} <span style="font-size:0.8rem; color:#8b6b4b;">(${pet.kind === 'cat' ? '猫' : '狗'})</span></div>
-            <div style="font-size:0.85rem; color:#8b6b4b;">👨 好感度 ${pet.affinityMale}%</div>
-            <div class="affinity-bar"><div class="affinity-fill" style="width:${pet.affinityMale}%"></div></div>
-            <div style="font-size:0.85rem; color:#8b6b4b;">👩 好感度 ${pet.affinityFemale}%</div>
-            <div class="affinity-bar"><div class="affinity-fill" style="width:${pet.affinityFemale}%"></div></div>
-          </div>
-          <div class="pet-actions">
-            <button class="btn small" data-pet="${pet.id}" data-action="feed" data-target="male">🍖 喂男生</button>
-            <button class="btn small" data-pet="${pet.id}" data-action="feed" data-target="female">🍖 喂女生</button>
-            <button class="btn small secondary" data-pet="${pet.id}" data-action="pet" data-target="male">🤚 摸男生</button>
-            <button class="btn small secondary" data-pet="${pet.id}" data-action="pet" data-target="female">🤚 摸女生</button>
-            <button class="btn small" data-pet="${pet.id}" data-action="play" data-target="male">🎾 陪男生玩</button>
-            <button class="btn small" data-pet="${pet.id}" data-action="play" data-target="female">🎾 陪女生玩</button>
-          </div>
-        `;
-        list.appendChild(card);
-      });
-
-      list.querySelectorAll('button[data-pet]').forEach((btn) => {
-        btn.addEventListener('click', () => { handlePetInteraction(btn.dataset.pet, btn.dataset.action, btn.dataset.target); });
-      });
-    }
-
-    function handlePetInteraction(petId, action, target) {
-      const pet = state.pets.find(p => p.id === petId);
-      if (!pet) return;
-
-      const cooldownKey = `${petId}_${action}_${target}`;
-      const now = Date.now();
-      const config = PET_ACTIONS[action];
-
-      if (petCooldowns[cooldownKey] && now - petCooldowns[cooldownKey] < config.cooldown) {
-        const remain = Math.ceil((config.cooldown - (now - petCooldowns[cooldownKey])) / 1000);
-        toast(`⏳ 冷却中，${remain}秒后再试`); return;
-      }
-      petCooldowns[cooldownKey] = now;
-
-      let bonus = 1;
-      if (pet.kind === 'cat' && action === 'pet') bonus = 1.5;
-      if (pet.kind === 'dog' && action === 'play') bonus = 1.5;
-      if (pet.kind === 'cat' && action === 'play') bonus = 0.7;
-      if (pet.kind === 'dog' && action === 'pet') bonus = 0.7;
-
-      const delta = Math.round(config.base * bonus * (0.8 + Math.random() * 0.4));
-      if (target === 'male') { pet.affinityMale = Math.min(100, pet.affinityMale + delta); }
-      else { pet.affinityFemale = Math.min(100, pet.affinityFemale + delta); }
-
-      const sprite = petSprites[petId];
-      if (sprite) { sprite.scale.set(1.2); setTimeout(() => sprite.scale.set(1), 200); }
-      showFloatingHeartAt(sprite);
-
-      savePets(); toast(`${pet.name} 好感度 +${delta} 💕`); renderPetPanel();
-    }
-
-    function showFloatingHeartAt(sprite) {
-      if (!sprite || !app) return;
-      const heart = createHeartSprite(1.2);
-      heart.position.copyFrom(sprite.position); heart.y -= 40;
-      sceneRoot.addChild(heart);
-      let t = 0;
-      const animate = () => {
-        t += 0.03; heart.y -= 1.5; heart.alpha -= 0.02;
-        if (heart.alpha > 0 && t < 100) { requestAnimationFrame(animate); }
-        else { sceneRoot.removeChild(heart); heart.destroy(); }
-      };
-      animate();
-    }
-
-    // ==================== 房屋面板 ====================
-    function renderHousePanel() {
-      document.querySelectorAll('.room-tab').forEach((tab) => { tab.classList.toggle('active', tab.dataset.room === state.room.currentRoom); });
-      document.querySelectorAll('.style-btn').forEach((btn) => { btn.classList.toggle('active', btn.dataset.style === state.room.currentStyle); });
-      const bg = document.getElementById('roomBg');
-      bg.className = 'room-bg ' + state.room.currentStyle;
-
-      const wrap = document.getElementById('roomCanvasWrap');
-      wrap.querySelectorAll('.placed-furniture').forEach(el => el.remove());
-
-      const furnitureList = state.room.furniture[state.room.currentRoom] || [];
-      furnitureList.forEach((item, idx) => {
-        const el = document.createElement('div');
-        el.className = 'placed-furniture';
-        el.textContent = item.emoji;
-        el.style.left = item.x + '%'; el.style.top = item.y + '%';
-        el.style.transform = `translate(-50%, -100%) rotate(${item.rotation || 0}deg) scale(${item.scale || 1})`;
-        el.style.zIndex = item.zIndex || idx;
-        el.dataset.idx = idx;
-        wrap.appendChild(el);
-
-        makeDraggable(el, item, idx);
-        el.addEventListener('dblclick', (e) => {
-          e.stopPropagation();
-          state.room.furniture[state.room.currentRoom].splice(idx, 1);
-          saveRoom(); renderHousePanel(); toast('家具已移除');
-        });
-      });
-      renderFurniturePalette();
-    }
-
-    function renderFurniturePalette() {
-      const palette = document.getElementById('furniturePalette');
-      palette.innerHTML = '';
-      const styleItems = FURNITURE_LIB[state.room.currentStyle] || [];
-      styleItems.forEach((item) => {
-        const btn = document.createElement('button');
-        btn.className = 'furniture-btn';
-        btn.innerHTML = `${item.emoji}<span>${item.name}</span>`;
-        btn.addEventListener('click', () => addFurniture(item.emoji, item.name));
-        palette.appendChild(btn);
-      });
-      const roomItems = ROOM_FURNITURE[state.room.currentRoom] || [];
-      roomItems.forEach((emoji) => {
-        const btn = document.createElement('button');
-        btn.className = 'furniture-btn';
-        btn.innerHTML = `${emoji}<span>家具</span>`;
-        btn.addEventListener('click', () => addFurniture(emoji, '家具'));
-        palette.appendChild(btn);
-      });
-    }
-
-    function addFurniture(emoji, name) {
-      const list = state.room.furniture[state.room.currentRoom];
-      list.push({ emoji: emoji, name: name, x: 20 + Math.random() * 60, y: 30 + Math.random() * 50, rotation: 0, scale: 1, zIndex: list.length });
-      saveRoom(); renderHousePanel(); toast(`添加了 ${name}`);
-    }
-
-    function makeDraggable(el, item, idx) {
-      let isDragging = false, startX, startY, origX, origY;
-      el.addEventListener('pointerdown', (e) => {
-        e.preventDefault(); e.stopPropagation();
-        isDragging = true; startX = e.clientX; startY = e.clientY; origX = item.x; origY = item.y;
-        el.setPointerCapture(e.pointerId); el.style.cursor = 'grabbing';
-      });
-      el.addEventListener('pointermove', (e) => {
-        if (!isDragging) return;
-        const wrap = document.getElementById('roomCanvasWrap');
-        const rect = wrap.getBoundingClientRect();
-        item.x = Math.min(95, Math.max(5, origX + ((e.clientX - startX) / rect.width) * 100));
-        item.y = Math.min(95, Math.max(5, origY + ((e.clientY - startY) / rect.height) * 100));
-        el.style.left = item.x + '%'; el.style.top = item.y + '%';
-      });
-      el.addEventListener('pointerup', (e) => {
-        if (!isDragging) return;
-        isDragging = false; el.style.cursor = 'grab';
-        el.releasePointerCapture(e.pointerId); saveRoom();
-      });
-    }
-
-    // ==================== 通用面板控制 ====================
-    function openPanel(id) {
-      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      if (id === 'panel-settings') fillSettingsPanel();
-    }
-
-    document.querySelectorAll('[data-close]').forEach((btn) => {
-      btn.addEventListener('click', () => { document.getElementById(btn.dataset.close).classList.remove('active'); });
-    });
-    document.querySelectorAll('.panel').forEach((panel) => {
-      panel.addEventListener('click', (e) => { if (e.target === panel) panel.classList.remove('active'); });
-    });
-
-    // ==================== 设置面板 ====================
-    function fillSettingsPanel() {
-      document.getElementById('setPhotoCap').value = state.photoCapacity;
-      document.getElementById('setCdFeed').value = (PET_ACTIONS.feed.cooldown / 1000).toFixed(1);
-      document.getElementById('setCdPet').value = (PET_ACTIONS.pet.cooldown / 1000).toFixed(1);
-      document.getElementById('setCdPlay').value = (PET_ACTIONS.play.cooldown / 1000).toFixed(1);
-    }
-
-    document.getElementById('settingsBtn').addEventListener('click', () => { openPanel('panel-settings'); });
-
-    document.getElementById('saveSettingsBtn').addEventListener('click', () => {
-      const cap = parseInt(document.getElementById('setPhotoCap').value, 10);
-      if (isNaN(cap) || cap < 1) { toast('照片容量至少为 1'); return; }
-      if (cap < state.photos.length) { toast(`容量不能小于已有照片数 ${state.photos.length}`); return; }
-
-      const cdFeed = parseFloat(document.getElementById('setCdFeed').value);
-      const cdPet = parseFloat(document.getElementById('setCdPet').value);
-      const cdPlay = parseFloat(document.getElementById('setCdPlay').value);
-      if ([cdFeed, cdPet, cdPlay].some(v => isNaN(v) || v < 0)) { toast('冷却时间必须是非负数字'); return; }
-
-      state.photoCapacity = cap;
-      PET_ACTIONS.feed.cooldown = cdFeed * 1000;
-      PET_ACTIONS.pet.cooldown = cdPet * 1000;
-      PET_ACTIONS.play.cooldown = cdPlay * 1000;
-
-      saveSettings(); renderRiverPanel(); toast('设置已保存 ✅');
-    });
-
-    document.getElementById('clearDataBtn').addEventListener('click', async () => {
-      if (!confirm('确定要清空所有照片、视频、宠物好感度、房间布置吗？此操作不可恢复。')) return;
-      try { await dbClear('photos'); await dbClear('videos'); } catch (e) {}
-      localStorage.removeItem(LS_PETS);
-      localStorage.removeItem(LS_ROOM);
-      localStorage.removeItem(LS_SETTINGS);
-      toast('数据已清空，正在重新加载...'); setTimeout(() => location.reload(), 600);
-    });
-
-    // ==================== Toast ====================
-    let toastTimer = null;
-    function toast(msg) {
-      const el = document.getElementById('toast');
-      el.textContent = msg; el.classList.add('show');
-      clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
-    }
-
-    // ==================== 文件上传事件 ====================
-    document.getElementById('photoInput').addEventListener('change', async (e) => {
-      const files = Array.from(e.target.files); e.target.value = '';
-      await handlePhotoUpload(files);
-    });
     document.getElementById('videoInput').addEventListener('change', async (e) => {
-      const file = e.target.files[0]; e.target.value = '';
-      await handleVideoUpload(file);
+      const f = e.target.files[0]; e.target.value = '';
+      if(!f) return;
+      const id = 'v_' + Date.now();
+      await dbPut('videos', { id, name: f.name, blob: f, createdAt: Date.now() });
+      state.videos.push({ id, name: f.name, url: URL.createObjectURL(f) });
+      renderTreePanel(); addFruitVisual(); toast('结出新果子');
     });
 
-    // ==================== 房间/风格切换 ====================
-    document.querySelectorAll('.room-tab').forEach((tab) => {
-      tab.addEventListener('click', () => { state.room.currentRoom = tab.dataset.room; saveRoom(); renderHousePanel(); });
-    });
-    document.querySelectorAll('.style-btn').forEach((btn) => {
-      btn.addEventListener('click', () => { state.room.currentStyle = btn.dataset.style; saveRoom(); renderHousePanel(); });
-    });
+    document.getElementById('closeVideoBtn').onclick = () => { const v = document.getElementById('videoPlayer'); v.pause(); v.src=''; document.getElementById('videoModal').classList.remove('active'); };
 
-    // ==================== 启动 ====================
-    function loadPixi(callback) {
-      if (window.PIXI) { callback(); return; }
+    // --- 宠物 ---
+    const cdMap = {};
+    function renderPetPanel() {
+      const list = document.getElementById('petList'); list.innerHTML = '';
+      state.pets.forEach(p => {
+        list.innerHTML += `
+          <div class="pet-card">
+            <div class="pet-avatar">${p.emoji}</div>
+            <div class="pet-info">
+              <div style="font-weight:bold;">${p.name}</div>
+              <div style="font-size:0.8rem;">👨 好感度 ${p.affinityMale}%</div>
+              <div class="affinity-bar"><div class="affinity-fill" style="width:${p.affinityMale}%"></div></div>
+              <div style="font-size:0.8rem;">👩 好感度 ${p.affinityFemale}%</div>
+              <div class="affinity-bar"><div class="affinity-fill" style="width:${p.affinityFemale}%"></div></div>
+            </div>
+            <div class="pet-actions">
+              <button class="btn small" data-p="${p.id}" data-a="feed" data-t="male">🍖喂男</button>
+              <button class="btn small" data-p="${p.id}" data-a="feed" data-t="female">🍖喂女</button>
+              <button class="btn small secondary" data-p="${p.id}" data-a="pet" data-t="male">🤚摸男</button>
+              <button class="btn small secondary" data-p="${p.id}" data-a="pet" data-t="female">🤚摸女</button>
+            </div>
+          </div>`;
+      });
+      list.querySelectorAll('button[data-p]').forEach(btn => {
+        btn.onclick = (e) => {
+          const key = btn.dataset.p + btn.dataset.a + btn.dataset.t;
+          if(cdMap[key] && Date.now() - cdMap[key] < PET_ACTIONS[btn.dataset.a].cooldown) return toast('冷却中');
+          cdMap[key] = Date.now();
+          const p = state.pets.find(x=>x.id===btn.dataset.p);
+          const delta = PET_ACTIONS[btn.dataset.a].base + Math.floor(Math.random()*3);
+          if(btn.dataset.t === 'male') p.affinityMale = Math.min(100, p.affinityMale + delta); else p.affinityFemale = Math.min(100, p.affinityFemale + delta);
+          savePets(); renderPetPanel(); toast('好感度 +' + delta);
+          spawnHearts(e);
+        };
+      });
+    }
+
+    // --- 房屋 ---
+    function renderHousePanel() {
+      document.querySelectorAll('.room-tab').forEach(t => t.classList.toggle('active', t.dataset.room === state.room.currentRoom));
+      document.querySelectorAll('.style-btn').forEach(b => b.classList.toggle('active', b.dataset.style === state.room.currentStyle));
+      document.getElementById('roomBg').className = 'room-bg ' + state.room.currentStyle;
+      
+      const wrap = document.getElementById('roomCanvasWrap'); wrap.querySelectorAll('.placed-furniture').forEach(e=>e.remove());
+      (state.room.furniture[state.room.currentRoom]||[]).forEach((item, i) => {
+        const el = document.createElement('div');
+        el.className = 'placed-furniture'; el.textContent = item.emoji;
+        el.style.left = item.x+'%'; el.style.top = item.y+'%'; el.style.transform = `translate(-50%,-100%)`;
+        el.ondblclick = () => { state.room.furniture[state.room.currentRoom].splice(i,1); saveRoom(); renderHousePanel(); };
+        
+        let isDrag = false, sx, sy, ox, oy;
+        el.onpointerdown = (e) => { e.preventDefault(); isDrag=true; sx=e.clientX; sy=e.clientY; ox=item.x; oy=item.y; el.setPointerCapture(e.pointerId); };
+        el.onpointermove = (e) => { if(!isDrag) return; const r = wrap.getBoundingClientRect(); item.x = Math.max(5, Math.min(95, ox + ((e.clientX-sx)/r.width)*100)); item.y = Math.max(5, Math.min(95, oy + ((e.clientY-sy)/r.height)*100)); el.style.left=item.x+'%'; el.style.top=item.y+'%'; };
+        el.onpointerup = (e) => { isDrag=false; el.releasePointerCapture(e.pointerId); saveRoom(); };
+        wrap.appendChild(el);
+      });
+      
+      const pal = document.getElementById('furniturePalette'); pal.innerHTML = '';
+      (FURNITURE_LIB[state.room.currentStyle]||[]).forEach(f => {
+        const b = document.createElement('button'); b.className = 'furniture-btn';
+        b.innerHTML = `${f.emoji}<span>${f.name}</span>`;
+        b.onclick = () => { state.room.furniture[state.room.currentRoom].push({ emoji: f.emoji, x: 20+Math.random()*60, y: 30+Math.random()*50 }); saveRoom(); renderHousePanel(); };
+        pal.appendChild(b);
+      });
+    }
+
+    document.querySelectorAll('.room-tab').forEach(t => t.onclick = () => { state.room.currentRoom = t.dataset.room; saveRoom(); renderHousePanel(); });
+    document.querySelectorAll('.style-btn').forEach(b => b.onclick = () => { state.room.currentStyle = b.dataset.style; saveRoom(); renderHousePanel(); });
+
+    // --- 设置 ---
+    function fillSettings() {
+      document.getElementById('setPhotoCap').value = state.photoCapacity;
+      document.getElementById('setCdFeed').value = PET_ACTIONS.feed.cooldown/1000;
+      document.getElementById('setCdPet').value = PET_ACTIONS.pet.cooldown/1000;
+      document.getElementById('setCdPlay').value = PET_ACTIONS.play.cooldown/1000;
+    }
+    document.getElementById('saveSettingsBtn').onclick = () => {
+      state.photoCapacity = parseInt(document.getElementById('setPhotoCap').value)||1000;
+      PET_ACTIONS.feed.cooldown = (parseFloat(document.getElementById('setCdFeed').value)||0)*1000;
+      PET_ACTIONS.pet.cooldown = (parseFloat(document.getElementById('setCdPet').value)||0)*1000;
+      PET_ACTIONS.play.cooldown = (parseFloat(document.getElementById('setCdPlay').value)||0)*1000;
+      saveSettings(); toast('设置已保存'); document.getElementById('panel-settings').classList.remove('active');
+    };
+    document.getElementById('clearDataBtn').onclick = async () => {
+      if(!confirm('确定清空所有数据？')) return;
+      await dbClear('photos'); await dbClear('videos'); localStorage.clear(); location.reload();
+    };
+
+    // ==================== 绑定热区 & 启动 ====================
+    document.getElementById('hs-river').onclick = () => { renderRiverPanel(); openPanel('panel-river'); };
+    document.getElementById('hs-house').onclick = () => { renderHousePanel(); openPanel('panel-house'); };
+    document.getElementById('hs-tree').onclick = () => { renderTreePanel(); openPanel('panel-tree'); };
+    document.getElementById('hs-cat').onclick = () => { renderPetPanel(); openPanel('panel-pet'); };
+    document.getElementById('hs-dog').onclick = () => { renderPetPanel(); openPanel('panel-pet'); };
+    document.getElementById('hs-couple').onclick = () => { renderPetPanel(); openPanel('panel-pet'); };
+
+    (async function() {
+      await openDB(); await loadMedia(); loadPets(); loadRoom(); loadSettings();
+      
       const script = document.createElement('script');
       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.4.2/pixi.min.js';
-      script.onload = callback;
-      script.onerror = () => { console.error('PixiJS 加载失败'); alert('加载渲染库失败，请检查网络后刷新'); };
+      script.onload = () => { initPixi(); setTimeout(()=>toast('💕 欢迎回到恋爱小屋'), 600); };
       document.head.appendChild(script);
-    }
-
-    (async function boot() {
-      try { await openDB(); await loadMedia(); } catch (e) { console.warn('IndexedDB 不可用', e); }
-      loadSettings(); loadPets(); loadRoom();
-
-      loadPixi(async () => {
-        await initScene();
-        createHeartTexture();
-        initPhotoFlow();
-        state.videos.forEach(() => addFruitVisual());
-        setTimeout(() => toast('💕 欢迎回到我们的恋爱小屋'), 600);
-      });
     })();
-
-    // 防止触摸滚动干扰
-    canvas.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
   </script>
 </body>
 </html>
