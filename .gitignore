@@ -16,3 +16,5 @@ wechat-dist/
 *.genie
 share-ios-card.png
 share-ios-qr.png
+.workbuddy/tmp_*
+/tmp/
