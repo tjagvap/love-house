@@ -113,7 +113,7 @@
     #profileChip { max-width: 58%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     .ui-layer { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
-    .panel, .modal-overlay { pointer-events: auto; }
+    .panel, .modal-overlay, .dialog-card, .recipe-backdrop { pointer-events: auto; }
     .panel {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       display: none; flex-direction: column; gap: 12px; width: min(92%, 680px); max-height: 91%;
@@ -388,7 +388,46 @@
       border: 1px solid #d8bd96; background: #fff8ec; color: #71543a;
     }
     .menu-card.picked .m-pick { background: #e8935c; border-color: #d97b41; color: #fff7e8; }
-    .menu-bar {
+    /* ===== 菜谱详情弹窗 ===== */
+    .m-recipe { border: 1px solid #e0c49c; background: #fff6e8; color: #7a5a34; border-radius: 14px; padding: 6px 11px; font-size: .76rem; font-weight: 800; }
+    .m-recipe:hover { background: #ffeacd; }
+    .m-actions { display: flex; gap: 7px; align-items: center; }
+    .m-actions .m-pick { flex: 1; }
+    .recipe-dialog { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(96%, 560px); max-height: 92%; padding: 0; overflow: hidden; display: none; z-index: 70; box-shadow: 0 20px 60px #0006; }
+    .recipe-dialog.active { display: flex; }
+    .recipe-backdrop { position: absolute; inset: 0; z-index: 69; display: none; background: rgba(26, 26, 24, .58); }
+    .recipe-backdrop.active { display: block; }
+    .recipe-inner { overflow-y: auto; min-height: 0; padding: 20px 22px 22px; }
+    .recipe-head { padding-right: 38px; }
+    .recipe-head h3 { text-align: left; margin: 0 0 6px; color: #553722; font-size: 1.3rem; }
+    .recipe-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .recipe-meta span { font-size: .72rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #f3e2c8; color: #7d5a34; }
+    .recipe-scale { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .recipe-scale > span { font-size: .78rem; font-weight: 800; color: #7a5a34; }
+    .recipe-scale > em { font-size: .7rem; color: #a58a70; font-style: normal; }
+    .recipe-scale button { border: 1px solid #dcbd92; background: #f7ecdb; color: #6d4d2e; border-radius: 999px; padding: 5px 12px; font-size: .78rem; font-weight: 800; }
+    .recipe-scale button.active { background: #e8935c; border-color: #d97b41; color: #fff7e8; box-shadow: 0 1px 0 #b96f39; }
+    .recipe-sec-title { margin: 16px 0 8px; font-size: .95rem; font-weight: 850; color: #6b4a2c; display: flex; align-items: center; gap: 6px; }
+    .recipe-sec-title::after { content: ''; flex: 1; height: 1px; background: #e6d3b4; }
+    .recipe-ing-list { display: flex; flex-direction: column; gap: 8px; }
+    .recipe-ing { background: #fffaf1; border: 1px solid #ecd9ba; border-radius: 12px; padding: 9px 11px; }
+    .recipe-ing-top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+    .recipe-ing-name { font-weight: 850; color: #5a3a22; font-size: .88rem; }
+    .recipe-ing-qty { font-weight: 800; color: #c2703c; font-size: .82rem; white-space: nowrap; }
+    .recipe-ing-note { margin-top: 4px; font-size: .76rem; line-height: 1.5; color: #8a755f; }
+    .recipe-ing-note b { color: #b05a3a; font-weight: 800; }
+    .recipe-steps { margin: 0; padding: 0 0 0 26px; display: flex; flex-direction: column; gap: 7px; }
+    .recipe-steps li { font-size: .84rem; line-height: 1.62; color: #6b523a; }
+    .recipe-steps li::marker { color: #d98b4a; font-weight: 800; }
+    .recipe-key { background: #fdf3df; border-left: 4px solid #e0a054; border-radius: 0 12px 12px 0; padding: 10px 12px; font-size: .82rem; line-height: 1.6; color: #7a5a34; }
+    .recipe-tip { background: #eef6ee; border-left: 4px solid #7fae72; border-radius: 0 12px 12px 0; padding: 10px 12px; font-size: .82rem; line-height: 1.6; color: #4f6b46; }
+    .recipe-none { padding: 26px 10px; text-align: center; color: #a58a70; font-size: .86rem; }
+    .recipe-foot { display: flex; gap: 10px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+    body.touch-device .recipe-dialog {
+      top: 0; left: 0; right: 0; bottom: 0; transform: none; margin: auto;
+      width: 100%; height: calc(var(--app-h) - 16px); max-height: calc(var(--app-h) - 16px); border-radius: 20px;
+    }
+    body.touch-device .menu-card .m-recipe { padding: 7px 12px; }    .menu-bar {
       display: flex; align-items: center; justify-content: space-between; gap: 10px;
       border-top: 1px dashed #d8bd96; padding-top: 9px; color: #71543a; font-weight: 700; font-size: .86rem;
     }
@@ -855,7 +894,7 @@
         <div class="content menu-content">
           <div class="menu-tabs" id="menuTabs"></div>
           <div class="menu-search-row">
-            <input type="search" id="menuSearch" placeholder="搜索菜名，比如：酸汤鱼、螺蛳粉…" />
+            <input type="search" id="menuSearch" placeholder="搜菜名、用料或做法，比如：酸汤鱼、折耳根、蒸" />
             <span class="menu-count" id="menuCountLabel">0 道</span>
           </div>
           <div class="menu-grid" id="menuGrid"></div>
@@ -865,6 +904,12 @@
           <button id="menuBarClear" type="button">清空</button>
         </div>
       </section>
+
+      <section class="dialog-card recipe-dialog" id="recipeDialog" aria-label="菜谱详情">
+        <button class="close-btn" data-close="recipeDialog" aria-label="关闭">×</button>
+        <div class="recipe-inner" id="recipeInner"></div>
+      </section>
+      <div class="recipe-backdrop" id="recipeBackdrop"></div>
 
       <section class="panel" id="panel-environment" aria-label="天气与昼夜">
         <button class="close-btn" data-close="panel-environment" aria-label="关闭">×</button>
@@ -965,6 +1010,7 @@
     </div>
   </main>
 
+  <script src="assets/menu-recipes.js"></script>
   <script>
     // Three.js 多线路加载：避免单一 CDN 访问失败导致整页脚本中断。
     window.__threeLoadPromise = new Promise(resolve => {
@@ -1006,11 +1052,12 @@
     };
     // -------------------- 点菜菜单数据：贵州最全，其次各地菜系 / 网红 / 家常 --------------------
     const MENU_CATS = [
+      { id: 'today', name: '❤️ 今天想吃' },
       { id: 'gz', name: '🍲 贵州美食' }, { id: 'gzh', name: '🥘 贵州家常' },
       { id: 'home', name: '🍚 家常菜' }, { id: 'chuan', name: '🌶️ 川菜' },
       { id: 'yue', name: '🦐 粤菜' }, { id: 'xiang', name: '🔥 湘菜' },
       { id: 'lu', name: '🥟 鲁菜·北方' }, { id: 'regions', name: '🗺️ 各地特色' },
-      { id: 'netred', name: '✨ 网红美食' }, { id: 'today', name: '❤️ 今天想吃' }
+      { id: 'netred', name: '✨ 网红美食' }
     ];
     const MENU_CATALOG = [
       // —— 贵州特色美食 ——
@@ -1064,6 +1111,26 @@
       { c: 'gz', n: '剪粉', s: 1, d: '剪成段的米皮，拌料开胃' },
       { c: 'gz', n: '贵州烤鱼', s: 2, d: '糊辣椒烤鱼，外焦里嫩' },
       { c: 'gz', n: '红酸汤锅底', s: 3, d: '苗家酸汤锅底，酸得正点' },
+      { c: 'gz', n: '遵义虾子羊肉粉', s: 2, d: '遵义虾子镇名吃，粉白汤红，羊肉无膻味' },
+      { c: 'gz', n: '贵阳肠旺粉', s: 2, d: '肠旺面的粉版，配脆哨油辣椒更香' },
+      { c: 'gz', n: '盘县火腿', s: 1, d: '六盘水盘州特产，陈年发酵咸香回甜' },
+      { c: 'gz', n: '威宁荞酥', s: 0, d: '苦荞压制的传统糕点，糖霜夹心' },
+      { c: 'gz', n: '织金竹荪炖鸡', s: 1, d: '织金竹荪配土鸡，菌香鸡汤鲜到掉眉毛' },
+      { c: 'gz', n: '赫章可乐猪蹄', s: 2, d: '可乐收汁的软糯猪蹄，甜咸微辣' },
+      { c: 'gz', n: '六枝岩脚面', s: 1, d: '六枝岩脚镇的手擀细面，筋道带麦香' },
+      { c: 'gz', n: '兴义杠子面', s: 1, d: '黔西南杠子面，鸡骨汤配软哨臊子' },
+      { c: 'gz', n: '惠水干拌面', s: 2, d: '酸辣油拌细面，糊辣椒是灵魂' },
+      { c: 'gz', n: '独山盐酸菜', s: 2, d: '黔南独山盐酸菜，酸脆爽口开胃' },
+      { c: 'gz', n: '贵定米粉', s: 1, d: '贵定清汤米粉，讲究清鲜不糊' },
+      { c: 'gz', n: '榕江手撕鸭', s: 3, d: '黔东南榕江手撕鸭，糊辣椒鲜香麻辣' },
+      { c: 'gz', n: '黔东南酸汤鸡', s: 3, d: '苗家酸汤煮鸡，酸辣鲜香同锅' },
+      { c: 'gz', n: '贵州酸汤黄鱼', s: 3, d: '红酸汤煮黄鱼，贵州版酸菜鱼升级版' },
+      { c: 'gz', n: '玉屏扣肉', s: 1, d: '玉屏侗族扣肉，糯而不腻咸香下饭' },
+      { c: 'gz', n: '贵州油粑粑', s: 1, d: '糯米豆沙油炸粑粑，外脆内糯' },
+      { c: 'gz', n: '织金糍粑', s: 0, d: '织金糯米糍粑，蒸熟蘸红糖或黄豆粉' },
+      { c: 'gz', n: '晴隆烤豆腐', s: 2, d: '黔西南炭火烤豆腐，撒折耳根辣椒面' },
+      { c: 'gz', n: '都匀细粑稀', s: 0, d: '都匀米浆细粑稀，配甜酒汤同吃' },
+      { c: 'gz', n: '遵义豆花面', s: 2, d: '遵义豆花面，荤豆花配软哨和油辣椒' },
       // —— 贵州家常菜 ——
       { c: 'gzh', n: '折耳根炒腊肉', s: 3, d: '鱼腥味和腊香的灵魂组合' },
       { c: 'gzh', n: '凉拌折耳根', s: 3, d: '生折耳根拌糊辣椒，外地人不敢夹第二筷' },
@@ -1090,6 +1157,21 @@
       { c: 'gzh', n: '四季豆焖饭', s: 0, d: '豆香饭香一锅出' },
       { c: 'gzh', n: '糟辣茄盒', s: 2, d: '茄盒酿肉浇糟辣' },
       { c: 'gzh', n: '糊辣椒拌皮蛋', s: 2, d: '糊辣椒一浇，皮蛋也下饭' },
+      { c: 'gzh', n: '折耳根炒洋芋', s: 3, d: '洋芋丝配折耳根，贵州人的日常下饭菜' },
+      { c: 'gzh', n: '洋芋片炒腊肉', s: 2, d: '腊肉咸香配洋芋片，锅巴最香' },
+      { c: 'gzh', n: '糟辣椒炒肉末', s: 3, d: '糟辣椒配肉末，拌饭拌面都香' },
+      { c: 'gzh', n: '糟辣椒拌豆腐', s: 2, d: '嫩豆腐浇糟辣椒，一拌就是一碟' },
+      { c: 'gzh', n: '折耳根拌豆腐', s: 3, d: '折耳根配豆腐脑，贵州版凉拌组合' },
+      { c: 'gzh', n: '水豆豉炒饭', s: 2, d: '水豆豉咸香炒饭，越吃越香' },
+      { c: 'gzh', n: '糟辣椒拌皮蛋', s: 2, d: '糟辣椒拌皮蛋，贵州夜宵标配' },
+      { c: 'gzh', n: '酸豆角拌折耳根', s: 3, d: '酸豆角配折耳根，重口开胃凉拌' },
+      { c: 'gzh', n: '糊辣椒炒洋芋', s: 2, d: '糊辣椒炒洋芋片，越炒越香' },
+      { c: 'gzh', n: '酸汤煮豆腐', s: 1, d: '清酸汤煮嫩豆腐，清爽不油腻' },
+      { c: 'gzh', n: '洋芋粑炒腊肉', s: 2, d: '洋芋粑切块配腊肉，焦香四溢' },
+      { c: 'gzh', n: '折耳根炒肉末', s: 3, d: '肉末炒香下折耳根，梗脆味足' },
+      { c: 'gzh', n: '糊辣椒鸡丁', s: 3, d: '糊辣椒爆炒鸡丁，糊香比鲜辣更上头' },
+      { c: 'gzh', n: '苦瓜炒腊肉', s: 1, d: '苦瓜回甜搭腊肉咸香，解腻一绝' },
+      { c: 'gzh', n: '土豆丝炒折耳根', s: 2, d: '土豆丝爽脆配折耳根，贵州家常标配' },
       // —— 大众家常菜 ——
       { c: 'home', n: '番茄炒蛋', s: 0, d: '国民第一菜，甜咸之争永远不减热度' },
       { c: 'home', n: '酸辣土豆丝', s: 2, d: '脆爽酸辣，下饭界常青树' },
@@ -1117,6 +1199,18 @@
       { c: 'home', n: '干煸豆角', s: 2, d: '煸出虎皮的豆角，干香有嚼劲' },
       { c: 'home', n: '酸汤肥牛', s: 2, d: '金汤肥牛卷，酸辣开胃' },
       { c: 'home', n: '清炒时蔬', s: 0, d: '当天最嫩的绿叶菜，简单清炒' },
+      { c: 'home', n: '手撕包菜', s: 1, d: '手撕的包菜边缘微焦，比刀切更香' },
+      { c: 'home', n: '蒜蓉西兰花', s: 0, d: '蒜香清爽，颜色翠绿不发黄' },
+      { c: 'home', n: '红烧肉', s: 0, d: '五花肉炖到颤颤巍巍，肥而不腻' },
+      { c: 'home', n: '香菇滑鸡', s: 1, d: '香菇吸满鸡汁，嫩滑不柴' },
+      { c: 'home', n: '梅菜扣肉', s: 0, d: '梅菜吸肉汁，扣出来颤巍巍' },
+      { c: 'home', n: '粉蒸排骨', s: 1, d: '米粉裹排骨蒸得软糯脱骨' },
+      { c: 'home', n: '干锅花菜', s: 2, d: '花菜煸到焦香，配肉片更下饭' },
+      { c: 'home', n: '蚝油生菜', s: 0, d: '脆生生淋蚝油，两分钟上桌' },
+      { c: 'home', n: '韭菜炒豆芽', s: 0, d: '清香爽脆，国民快手小炒' },
+      { c: 'home', n: '糖醋里脊', s: 0, d: '外壳酥脆挂汁，酸甜挂得住' },
+      { c: 'home', n: '酸辣鸡杂', s: 3, d: '鸡杂爽脆带酸辣，越嚼越香' },
+      { c: 'home', n: '冬瓜排骨汤', s: 0, d: '冬瓜清甜排骨浓汤，夏天也喝' },
       // —— 川菜 ——
       { c: 'chuan', n: '麻婆豆腐', s: 3, d: '麻辣烫嫩酥，豆腐界的天花板' },
       { c: 'chuan', n: '回锅肉', s: 2, d: '川菜之王，蒜苗豆瓣是灵魂' },
@@ -1143,6 +1237,14 @@
       { c: 'chuan', n: '乐山甜皮鸭', s: 0, d: '刷糖皮的卤鸭，甜脆咸香' },
       { c: 'chuan', n: '四川火锅', s: 3, d: '牛油锅底，涮什么都是麻辣' },
       { c: 'chuan', n: '口水鸡', s: 2, d: '凉刮嫩鸡浇红油，名字就说明一切' },
+      { c: 'chuan', n: '开水白菜', s: 0, d: '看似清水实则醇厚，川菜顶级功夫' },
+      { c: 'chuan', n: '樟茶鸭', s: 1, d: '樟木烟熏鸭，蒸出来皮香肉嫩' },
+      { c: 'chuan', n: '三大炮', s: 2, d: '糍粑炸脆裹红糖，甜香童年味' },
+      { c: 'chuan', n: '甜水面', s: 2, d: '粗面条拌红糖芝麻酱，甜到心里' },
+      { c: 'chuan', n: '军屯锅盔', s: 1, d: '成都军屯名点，酥脆掉渣夹肉吃' },
+      { c: 'chuan', n: '成都肥肠粉', s: 3, d: '肥肠卤得软糯，粉滑汤红' },
+      { c: 'chuan', n: '藤椒鸡', s: 2, d: '藤椒麻香配嫩鸡，清爽麻味' },
+      { c: 'chuan', n: '老妈蹄花', s: 2, d: '蹄花炖到糯烂，蘸椒麻碟' },
       // —— 粤菜 ——
       { c: 'yue', n: '白切鸡', s: 0, d: '皮爽肉滑，蘸姜葱蓉见真章' },
       { c: 'yue', n: '广式烧鹅', s: 0, d: '皮脆油香，斩件配酸梅酱' },
@@ -1160,6 +1262,14 @@
       { c: 'yue', n: '杨枝甘露', s: 0, d: '芒果西柚西米露，港式甜品' },
       { c: 'yue', n: '糯米鸡', s: 0, d: '荷叶包糯米鸡肉，蒸出荷香' },
       { c: 'yue', n: '干炒牛河', s: 0, d: '镬气十足，不油不断' },
+      { c: 'yue', n: '盐焗鸡', s: 0, d: '盐焗锁汁，皮爽肉滑带咸香' },
+      { c: 'yue', n: '客家酿豆腐', s: 1, d: '豆腐挖空酿肉，煎香再焖' },
+      { c: 'yue', n: '脆皮烧肉', s: 0, d: '皮烤到爆裂，肥瘦层次分明' },
+      { c: 'yue', n: '罗卜焖牛腩', s: 1, d: '白萝卜焖牛腩，浓香带甜' },
+      { c: 'yue', n: '沙姜猪手', s: 1, d: '沙姜香气扑鼻，爽脆弹牙' },
+      { c: 'yue', n: '干蒸烧卖', s: 0, d: '早茶必点，虾肉顶上一朵黄' },
+      { c: 'yue', n: '及第粥', s: 1, d: '粥底绵滑带料，暖胃一绝' },
+      { c: 'yue', n: '马拉糕', s: 0, d: '蜂窝气孔，松软带蛋香' },
       // —— 湘菜 ——
       { c: 'xiang', n: '剁椒鱼头', s: 2, d: '红剁椒铺满鱼头，汤拌面条是第二道菜' },
       { c: 'xiang', n: '辣椒炒肉', s: 2, d: '湖南人的一日三餐，螺丝椒带皮炒' },
@@ -1173,6 +1283,14 @@
       { c: 'xiang', n: '东安鸡', s: 1, d: '湘菜名鸡，酸辣嫩滑' },
       { c: 'xiang', n: '腊味合蒸', s: 1, d: '腊肉腊鱼腊肠一锅蒸，腊香扑鼻' },
       { c: 'xiang', n: '外婆菜炒蛋', s: 1, d: '腌菜炒蛋，拌饭一绝' },
+      { c: 'xiang', n: '永州血鸭', s: 2, d: '永州经典，血与鸭同炒香辣' },
+      { c: 'xiang', n: '湘西酸肉', s: 3, d: '湘西酸肉，酸辣咸香越嚼越有味' },
+      { c: 'xiang', n: '宁乡花猪', s: 1, d: '宁乡花猪肉质细嫩，久炒不柴' },
+      { c: 'xiang', n: '湘乡烘鸭', s: 1, d: '湘乡吊炉烘鸭，酱香带焦' },
+      { c: 'xiang', n: '湘西酸豆角炒肉末', s: 3, d: '酸豆角配肉末，泡饭一把好手' },
+      { c: 'xiang', n: '擂辣椒皮蛋', s: 2, d: '擂碎的烧青椒拌皮蛋，夏日必点' },
+      { c: 'xiang', n: '蒜薹腊肉', s: 2, d: '蒜薹脆甜搭腊肉咸香' },
+      { c: 'xiang', n: '乡里腊肉炒豆角', s: 3, d: '湘西腊肉炒干豆角，越焖越香' },
       // —— 鲁菜·北方 ——
       { c: 'lu', n: '九转大肠', s: 1, d: '酸甜苦辣咸五味俱全的鲁菜功夫菜' },
       { c: 'lu', n: '糖醋鲤鱼', s: 0, d: '造型跳跃的糖醋浇汁鱼' },
@@ -1190,6 +1308,17 @@
       { c: 'lu', n: '狗不理包子', s: 0, d: '天津名包，水馅半发面' },
       { c: 'lu', n: '胡辣汤', s: 1, d: '河南早点的胡椒浓汤' },
       { c: 'lu', n: '烤冷面', s: 1, d: '东北街头酸甜辣的三层口感' },
+      { c: 'lu', n: '葱爆羊肉', s: 1, d: '大葱爆炒羊肉，葱香盖膻' },
+      { c: 'lu', n: '扒牛肉', s: 0, d: '鲁菜经典，浓汁大芡裹牛肉' },
+      { c: 'lu', n: '熘肝尖', s: 1, d: '滑油爆炒猪肝，嫩到会抖' },
+      { c: 'lu', n: '干炸丸子', s: 1, d: '丸子炸到外酥里嫩，蘸椒盐' },
+      { c: 'lu', n: '爆炒腰花', s: 2, d: '腰花打花刀，脆嫩弹牙' },
+      { c: 'lu', n: '锅塌豆腐', s: 0, d: '豆腐煎后塌软挂汁，金黄微焦' },
+      { c: 'lu', n: '单县羊肉汤', s: 1, d: '单县羊汤浓白，羊肉不膻' },
+      { c: 'lu', n: '油旋', s: 0, d: '济南油旋层层旋，椒盐夹烧饼' },
+      { c: 'lu', n: '甜沫', s: 0, d: '济南甜沫，咸香小米糊带姜味' },
+      { c: 'lu', n: '粘豆包', s: 0, d: '黏豆沙糯米皮蒸熟，冬天小吃' },
+      { c: 'lu', n: '肉火烧', s: 1, d: '潍坊肉火烧，猪肉大葱馅多汁' },
       // —— 各地特色 ——
       { c: 'regions', n: '兰州牛肉面', s: 1, d: '一清二白三红四绿五黄' },
       { c: 'regions', n: '羊肉泡馍', s: 1, d: '自己掰馍，浓汤泡到入味' },
@@ -1225,6 +1354,25 @@
       { c: 'regions', n: '潮汕牛肉火锅', s: 1, d: '现切黄牛肉，吊龙匙柄分部位涮' },
       { c: 'regions', n: '潮汕生腌', s: 0, d: '海鲜毒药，腌虾蟹冰凉爽鲜' },
       { c: 'regions', n: '南昌瓦罐汤', s: 0, d: '瓦罐煨出来的排骨汤' },
+      { c: 'regions', n: '新疆烤全羊', s: 1, d: '整只炭烤，孜然辣椒面撒足' },
+      { c: 'regions', n: '新疆烤包子', s: 1, d: '坑烤羊肉包子，皮脆汁多' },
+      { c: 'regions', n: '青海手抓羊肉', s: 1, d: '现煮手抓，蘸椒盐原汁原味' },
+      { c: 'regions', n: '甘肃洋芋搅团', s: 0, d: '洋芋捣成团，酸汤或辣子拌食' },
+      { c: 'regions', n: '兰州酿皮', s: 1, d: '兰州酿皮，麻辣油醋蒜齐上' },
+      { c: 'regions', n: '岐山臊子面', s: 2, d: '陕西一绝，酸辣香，捞面要抢' },
+      { c: 'regions', n: '宝鸡擀面皮', s: 2, d: '宝鸡面皮薄筋，辣椒油是灵魂' },
+      { c: 'regions', n: '宁夏滩羊', s: 1, d: '宁夏盐池滩羊，盐池滩羊无膻' },
+      { c: 'regions', n: '内蒙古手把肉', s: 1, d: '只加盐煮的原味手把肉' },
+      { c: 'regions', n: '蒙古馅饼', s: 1, d: '草原馅饼，羊肉大葱饼皮酥' },
+      { c: 'regions', n: '延吉冷面', s: 2, d: '朝鲜冷面，荞麦面配冷面汤' },
+      { c: 'regions', n: '哈尔滨红肠', s: 1, d: '哈尔滨红肠，蒜香熏味十足' },
+      { c: 'regions', n: '地锅鸡', s: 2, d: '苏北地锅鸡，锅贴饼子吸汤汁' },
+      { c: 'regions', n: '昆明小锅米线', s: 2, d: '小锅现煮，酸辣鲜香一口一口' },
+      { c: 'regions', n: '宣威火腿', s: 1, d: '云腿代表，咸香回甜可生食' },
+      { c: 'regions', n: '大理乳扇', s: 0, d: '云南乳扇，奶香脆片烤着吃' },
+      { c: 'regions', n: '丽江粑粑', s: 1, d: '丽江油炸粑粑，薄脆甜香' },
+      { c: 'regions', n: '南宁老友粉', s: 2, d: '南宁老友粉，酸辣臭香够劲' },
+      { c: 'regions', n: '玉林牛巴', s: 1, d: '广西玉林牛巴，酱香有嚼劲' },
       // —— 网红美食 ——
       { c: 'netred', n: '柳州螺蛳粉', s: 2, d: '闻着臭吃着香，酸笋是灵魂' },
       { c: 'netred', n: '烤苕皮', s: 2, d: '外焦里糯，包酸萝卜粒刷辣油' },
@@ -1240,7 +1388,17 @@
       { c: 'netred', n: '手打柠檬茶', s: 0, d: '暴打香水柠檬，酸爽解辣' },
       { c: 'netred', n: '竹筒奶茶', s: 0, d: '网红竹筒奶盖茶' },
       { c: 'netred', n: '烤牛奶', s: 0, d: '外焦里嫩还能拉丝的奶块' },
-      { c: 'netred', n: '芝士烤红薯', s: 0, d: '红薯挖空填芝士，拉丝冬天限定' }
+      { c: 'netred', n: '芝士烤红薯', s: 0, d: '红薯挖空填芝士，拉丝冬天限定' },
+      { c: 'netred', n: '芝士玉米粒', s: 0, d: '拉丝芝士裹玉米粒，网红小吃' },
+      { c: 'netred', n: '提拉米苏', s: 0, d: '马斯卡彭咖啡酒，手指饼干蘸着吃' },
+      { c: 'netred', n: '蛋烘糕', s: 0, d: '成都街头小蛋糕，甜香四溢' },
+      { c: 'netred', n: '空气炸锅鸡米花', s: 1, d: '免油鸡米花，外酥里嫩追剧必备' },
+      { c: 'netred', n: '炒酸奶', s: 0, d: '酸奶倒盘冷冻，刮成片水果干' },
+      { c: 'netred', n: '脏脏包', s: 0, d: '巧克力dirty包，甜到糊嘴' },
+      { c: 'netred', n: '铁板牛排', s: 1, d: '滋滋作响铁板牛排，蘸黑椒汁' },
+      { c: 'netred', n: '舒芙蕾松饼', s: 0, d: '厚松饼蓬松如云，蜂蜜黄油' },
+      { c: 'netred', n: '熔岩芝士鸡排', s: 1, d: '切开流心的芝士鸡排' },
+      { c: 'netred', n: '网红芝士焗饭', s: 1, d: '拉丝芝士焗饭，网络爆款' }
     ];
     const state = {
       photos: [], videos: [], photoCapacity: 1000,
@@ -1340,7 +1498,7 @@
       const saved = safeParse(STORE.menu, null);
       if (saved && Array.isArray(saved.today)) state.menu.today = saved.today.filter(id => typeof id === 'string');
     }
-    const menuUi = { cat: 'gz', query: '' };
+    const menuUi = { cat: 'today', query: '' };
     const MENU_REGION_NAMES = { gz: '贵州', gzh: '贵州', home: '家常', chuan: '川', yue: '粤', xiang: '湘', lu: '北方', regions: '各地', netred: '网红' };
     function menuSpicyHtml(s) { return s ? `<span class="m-spicy">${'🌶️'.repeat(s)}</span>` : '<span class="m-spicy" style="opacity:.55">不辣</span>'; }
     function renderMenuTabs() {
@@ -1356,16 +1514,27 @@
     }
     function menuFilteredItems() {
       const query = menuUi.query.trim().toLowerCase();
+      if (query) {
+        // 搜索跨全分类（菜名 / 简介 / 用料 / 做法步骤）
+        return MENU_CATALOG.filter(item => menuMatch(item, query));
+      }
       if (menuUi.cat === 'today') return MENU_CATALOG.filter(item => state.menu.today.includes(item.n));
-      return query
-        ? MENU_CATALOG.filter(item => item.n.toLowerCase().includes(query) || item.d.includes(query))
-        : MENU_CATALOG.filter(item => item.c === menuUi.cat);
+      return MENU_CATALOG.filter(item => item.c === menuUi.cat);
+    }
+    // 搜索除了菜名与简介，还匹配用料表（例如搜"折耳根"能找到所有用它做主料的菜）
+    function menuMatch(item, query) {
+      if (item.n.toLowerCase().includes(query) || item.d.toLowerCase().includes(query)) return true;
+      const recipe = MENU_RECIPES[item.n];
+      if (!recipe) return false;
+      if ((recipe.ing || []).some(ing => String(ing.n || '').toLowerCase().includes(query))) return true;
+      if ((recipe.steps || []).some(s => s.toLowerCase().includes(query))) return true;
+      return false;
     }
     function renderMenuPanel() {
       renderMenuTabs();
       const grid = document.getElementById('menuGrid');
       const items = menuFilteredItems();
-      document.getElementById('menuCountLabel').textContent = `${items.length} 道`;
+      document.getElementById('menuCountLabel').textContent = menuUi.query.trim() ? `${items.length} 道（全部分类搜索）` : `${items.length} 道`;
       grid.innerHTML = '';
       if (!items.length) {
         const empty = document.createElement('div');
@@ -1381,8 +1550,12 @@
           <div class="m-name">${item.n}<span class="m-region">${MENU_REGION_NAMES[item.c] || ''}</span></div>
           ${menuSpicyHtml(item.s)}
           <div class="m-desc">${item.d}</div>
-          <button class="m-pick" type="button">${picked ? '✅ 已点 · 取消' : '＋ 点这道'}</button>`;
+          <div class="m-actions">
+            <button class="m-recipe" type="button">📖 看做法</button>
+            <button class="m-pick" type="button">${picked ? '✅ 已点 · 取消' : '＋ 点这道'}</button>
+          </div>`;
         card.querySelector('.m-pick').addEventListener('click', () => toggleMenuToday(item.n));
+        card.querySelector('.m-recipe').addEventListener('click', () => openRecipe(item.n));
         grid.appendChild(card);
       });
       renderMenuBar();
@@ -1401,14 +1574,124 @@
     }
     document.getElementById('menuSearch').addEventListener('input', event => {
       menuUi.query = event.target.value;
-      if (menuUi.query.trim() && menuUi.cat === 'today') menuUi.cat = 'gz';
       renderMenuPanel();
-    });
-    document.getElementById('menuBarClear').addEventListener('click', () => {
+    });    document.getElementById('menuBarClear').addEventListener('click', () => {
       if (!state.menu.today.length) return;
       state.menu.today = []; saveMenu(); renderMenuPanel(); toast('已清空今天想吃的菜单');
     });
     document.getElementById('menuBtn').addEventListener('click', () => openPanel('panel-menu'));
+
+    // -------------------- 菜谱详情：用料用量 / 正宗步骤 / 用量增减影响 --------------------
+    const MENU_RECIPES = window.MENU_RECIPES || {};
+    const RECIPE_SCALES = [1, 2, 3, 4];
+    let recipeScale = 2;
+    function escapeHtml(text) {
+      return String(text == null ? '' : text).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    }
+    // 把"加到X会…；减到Y则…"这类说明里强调的关键数字高亮出来
+    function highlightAdjust(text) {
+      const safe = escapeHtml(text);
+      return safe.replace(/([^；。，,；]{0,12})(加到|减到|增加到|减至|减半|翻倍|加至)([^；。，,；]{0,24})/g,
+        (m, pre, op, post) => `${pre}<b>${op}${post}</b>`);
+    }
+    // 用量换算：区分"整件食材"与"可按比例缩放的量"
+    //  · "1条约800g" → 4人份时为 "2条约1600g"（件数取整，重量同比）
+    //  · "400g" "3勺" "2瓣" → 直接按倍数缩放
+    function scaleQuantity(text, factor) {
+      if (!text || factor === 1) return text;
+      const unitRe = /(\d+(?:\.\d+)?)\s*(g|克|kg|千克|ml|毫升|L|升|勺|茶匙|汤匙|个|只|条|块|片|根|瓣|颗|粒|朵|张|碗|把|段)/g;
+      const pieceRe = /(\d+(?:\.\d+)?)\s*(条|只|整只|整条)\s*(约?\s*\d+(?:\.\d+)?\s*(?:g|克|kg|千克|斤))/g;
+      const scaled = num => {
+        const value = parseFloat(num) * factor;
+        return value >= 100 ? Math.round(value) : Math.round(value * 10) / 10;
+      };
+      // 比例（3:1、1/4）不参与换算，先替换成标记
+      const ratios = [];
+      let src = String(text).replace(/\d+\s*[:：]\s*\d+|\d+\s*\/\s*\d+/g, m2 => {
+        ratios.push(m2);
+        return `@@R${ratios.length - 1}@@`;
+      });
+      // 整件食材（1条约800g）件数与重量分别换算
+      const pieces = [];
+      src = src.replace(pieceRe, (m2, cnt, piece, weight) => {
+        const n = Math.max(1, Math.round(parseFloat(cnt) * factor));
+        const wm = weight.match(/(\d+(?:\.\d+)?)/);
+        const weightText = wm ? weight.replace(/\d+(?:\.\d+)?/, String(Math.round(parseFloat(wm[1]) * factor))) : weight;
+        pieces.push(`${n}${piece}${weightText}`);
+        return `@@P${pieces.length - 1}@@`;
+      });
+      // 其余计量单位按倍数缩放
+      src = src.replace(unitRe, (m2, num, unit) => `${scaled(num)}${unit}`);
+      // 还原标记
+      src = src.replace(/@@P(\d+)@@/g, (m2, i) => pieces[Number(i)]);
+      src = src.replace(/@@R(\d+)@@/g, (m2, i) => ratios[Number(i)]);
+      return src;
+    }
+    function renderRecipeBody(name) {
+      const box = document.getElementById('recipeInner');
+      const recipe = MENU_RECIPES[name];
+      if (!recipe) {
+        box.innerHTML = `<div class="recipe-none">这道菜的详细做法还在整理中～<br>先点「＋ 点这道」把它加进今天想吃吧 🍽️</div>
+          <div class="recipe-foot"><button class="btn" type="button" id="recipeFallbackPick">＋ 加入今天想吃</button></div>`;
+        const fb = document.getElementById('recipeFallbackPick');
+        if (fb) fb.addEventListener('click', () => { toggleMenuToday(name); closeRecipe(); });
+        return;
+      }
+      const factor = recipeScale / 2;   // 菜谱默认按 2 人份给出
+      const ings = (recipe.ing || []).map(item => `
+        <div class="recipe-ing">
+          <div class="recipe-ing-top">
+            <span class="recipe-ing-name">${escapeHtml(item.n)}</span>
+            <span class="recipe-ing-qty">${escapeHtml(factor === 1 ? item.q : scaleQuantity(item.q, factor))}</span>
+          </div>
+          ${item.a ? `<div class="recipe-ing-note">${highlightAdjust(factor === 1 ? item.a : scaleQuantity(item.a, factor))}</div>` : ''}
+        </div>`).join('');
+      const steps = (recipe.steps || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
+      const scaleBtns = RECIPE_SCALES.map(n => `<button type="button" class="${recipeScale === n ? 'active' : ''}" data-scale="${n}">${n} 人份</button>`).join('');
+      box.innerHTML = `
+        <div class="recipe-head">
+          <h3>${escapeHtml(name)}</h3>
+          <div class="recipe-meta">
+            ${recipe.time ? `<span>⏱ ${escapeHtml(recipe.time)}</span>` : ''}
+            ${recipe.level ? `<span>🎯 ${escapeHtml(recipe.level)}</span>` : ''}
+            ${recipe.servings ? `<span>🍚 ${escapeHtml(recipe.servings)}</span>` : ''}
+          </div>
+          <div class="recipe-scale" role="group" aria-label="份量换算">
+            <span>👥 换算份量</span>${scaleBtns}
+            <em>（用料按 2 人份为基准自动换算，下方"加多/加少"为该基准下的参考值）</em>
+          </div>
+        </div>
+        ${ings ? `<div class="recipe-sec-title">🧺 用料与用量</div><div class="recipe-ing-list">${ings}</div>` : ''}
+        ${steps ? `<div class="recipe-sec-title">👩‍🍳 做法步骤</div><ol class="recipe-steps">${steps}</ol>` : ''}
+        ${recipe.key ? `<div class="recipe-sec-title">🔑 关键窍门</div><div class="recipe-key">${escapeHtml(recipe.key)}</div>` : ''}
+        ${recipe.tip ? `<div class="recipe-sec-title">💡 用量微调建议</div><div class="recipe-tip">${escapeHtml(recipe.tip)}</div>` : ''}
+        <div class="recipe-foot">
+          <button class="btn" type="button" id="recipePickBtn">${state.menu.today.includes(name) ? '✅ 已点 · 取消' : '＋ 加入今天想吃'}</button>
+          <button class="btn secondary" type="button" id="recipeCloseBtn">返回菜单</button>
+        </div>`;
+      box.querySelectorAll('[data-scale]').forEach(btn => btn.addEventListener('click', () => {
+        recipeScale = Number(btn.dataset.scale);
+        renderRecipeBody(name);
+      }));
+      document.getElementById('recipePickBtn').addEventListener('click', () => {
+        toggleMenuToday(name);
+        renderRecipeBody(name);
+      });
+      document.getElementById('recipeCloseBtn').addEventListener('click', () => closeRecipe());
+    }
+    function openRecipe(name) {
+      renderRecipeBody(name);
+      document.getElementById('recipeDialog').classList.add('active');
+      document.getElementById('recipeBackdrop').classList.add('active');
+      syncPanelOpen();
+      const inner = document.getElementById('recipeInner');
+      if (inner) inner.scrollTop = 0;
+    }
+    function closeRecipe() {
+      document.getElementById('recipeDialog').classList.remove('active');
+      document.getElementById('recipeBackdrop').classList.remove('active');
+      syncPanelOpen();
+    }
 
     // -------------------- 媒体存储：IndexedDB 优先，受限环境自动降级到压缩本地存储 --------------------
     const DB_NAME = 'love-house-db', DB_VERSION = 3;
@@ -1536,9 +1819,11 @@
     }
     document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => {
       document.getElementById(button.dataset.close).classList.remove('active');
+      if (button.dataset.close === 'recipeDialog') document.getElementById('recipeBackdrop')?.classList.remove('active');
       syncPanelOpen();
       if (button.dataset.close === 'panel-house') { f3d.active = false; if (f3d.mode === 'walk') f3dExitWalk(true); }
     }));
+    document.getElementById('recipeBackdrop')?.addEventListener('click', () => closeRecipe());
     document.getElementById('albumBtn').addEventListener('click', () => { renderRiverPanel(); openPanel('panel-river'); });
     document.getElementById('settingsBtn').addEventListener('click', () => openPanel('panel-settings'));
     document.getElementById('environmentChip').addEventListener('click', () => openPanel('panel-environment'));
