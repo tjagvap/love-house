@@ -113,7 +113,11 @@
     #profileChip { max-width: 58%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     .ui-layer { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
-    .panel, .modal-overlay, .dialog-card, .recipe-backdrop { pointer-events: auto; }
+    .panel, .modal-overlay, .dialog-card, .recipe-backdrop,
+    .account-gate, .video-modal { pointer-events: auto; }
+    /* 账号门 / 视频弹窗激活时，顶栏必须让位（否则会浮在遮罩之上还能点到） */
+    body.account-locked .topbar,
+    body.video-open .topbar { opacity: 0; pointer-events: none; visibility: hidden; }
     .panel {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       display: none; flex-direction: column; gap: 12px; width: min(92%, 680px); max-height: 91%;

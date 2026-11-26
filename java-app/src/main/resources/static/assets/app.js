@@ -1824,6 +1824,7 @@
       if (title) title.textContent = video.name || '视频';
       modal.classList.add('active');
       modal.dataset.videoId = video.id || '';
+      document.body.classList.add('video-open');
       // iOS 微信里自动播放常被拦截，失败时保持暂停即可手动点播放
       const p = player.play();
       if (p && typeof p.catch === 'function') p.catch(() => {});
@@ -1833,6 +1834,7 @@
       const player = document.getElementById('videoPlayer');
       if (player) { player.pause(); player.removeAttribute('src'); player.load(); }
       if (modal) { modal.classList.remove('active'); modal.dataset.videoId = ''; }
+      document.body.classList.remove('video-open');
     }
     function renderTreePanel() {
       const list = document.getElementById('videoList'); list.innerHTML = '';
