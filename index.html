@@ -355,12 +355,55 @@
       .pet-main { min-width: 100%; }
     }
 
+    /* ===== 点菜菜单 ===== */
+    .menu-content { gap: 10px; }
+    .menu-tabs { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 4px; flex-wrap: nowrap; scrollbar-width: thin; flex-shrink: 0; }
+    .menu-tab {
+      white-space: nowrap; border: 1px solid rgba(117, 82, 49, .3); border-radius: 18px;
+      padding: 7px 15px; background: #fff8ec; color: #71543a; font-weight: 700; font-size: .88rem;
+    }
+    .menu-tab.active { background: #e8935c; border-color: #d97b41; color: #fff7e8; }
+    .menu-tab .badge { display: inline-block; min-width: 18px; margin-left: 4px; padding: 0 5px; border-radius: 9px; background: rgba(255, 90, 90, .92); color: #fff; font-size: .72rem; text-align: center; }
+    .menu-search-row { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+    .menu-search-row input {
+      flex: 1; min-width: 0; border: 1px solid #d8bd96; border-radius: 12px;
+      padding: 9px 13px; background: #fffdf7; color: #5a3d28; outline: none;
+    }
+    .menu-search-row input:focus { border-color: #e8935c; }
+    .menu-count { white-space: nowrap; color: #8a755f; font-size: .82rem; font-weight: 700; }
+    .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 9px; overflow-y: auto; align-content: start; padding: 2px; flex: 1 1 auto; min-height: 0; }
+    .menu-card {
+      position: relative; display: flex; flex-direction: column; gap: 4px; align-items: flex-start;
+      border: 1px solid #ecd9bd; border-radius: 13px; padding: 10px 12px;
+      background: #fffdf6; text-align: left; transition: transform .15s, box-shadow .15s;
+    }
+    .menu-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px #00000014; }
+    .menu-card.picked { border-color: #e8935c; background: #fff3e4; box-shadow: 0 0 0 1px #e8935c inset; }
+    .menu-card .m-name { font-weight: 800; color: #553722; font-size: .95rem; display: flex; align-items: center; gap: 6px; }
+    .menu-card .m-region { font-size: .7rem; font-weight: 700; color: #fff; background: #b98e5e; border-radius: 8px; padding: 1px 7px; white-space: nowrap; }
+    .menu-card .m-spicy { font-size: .74rem; color: #c2503a; letter-spacing: -1px; }
+    .menu-card .m-desc { color: #8a755f; font-size: .78rem; line-height: 1.45; }
+    .menu-card .m-pick {
+      align-self: stretch; margin-top: 4px; border-radius: 10px; padding: 6px 0; font-size: .78rem; font-weight: 800;
+      border: 1px solid #d8bd96; background: #fff8ec; color: #71543a;
+    }
+    .menu-card.picked .m-pick { background: #e8935c; border-color: #d97b41; color: #fff7e8; }
+    .menu-bar {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      border-top: 1px dashed #d8bd96; padding-top: 9px; color: #71543a; font-weight: 700; font-size: .86rem;
+    }
+    .menu-bar button {
+      border: 1px solid #d8bd96; border-radius: 12px; padding: 6px 14px;
+      background: #fff8ec; color: #71543a; font-weight: 700; white-space: nowrap;
+    }
+    .menu-bar button:hover { background: #ffefd8; }
+
     /* ===== 手机 / 平板：面板改为整屏，不再被正方形画面裁切 ===== */
     /* iOS 微信 WebView 里 100vh/100dvh 与 fixed 的表现和安卓不一致，会导致面板被压成中间一条：
        改由 JS 实测可视高度写入 --app-h，#app 直接撑满真实视口，面板用 absolute 相对 #app 定位 */
     :root { --app-h: 100vh; }
     .topbar { transition: opacity .25s; }
-    body.panel-open .topbar { opacity: 0; pointer-events: none; }
+    body.panel-open .topbar { opacity: 0; pointer-events: none; visibility: hidden; }
     body.touch-device { background: radial-gradient(circle at 50% 38%, #4b3a2a, #171310 78%); }
     body.touch-device #app {
       width: 100vw; height: var(--app-h); aspect-ratio: auto;
@@ -384,12 +427,27 @@
       top: 0; left: 0; right: 0; bottom: 0; transform: none; margin: auto;
       max-height: calc(var(--app-h) - 12px);
     }
+    /* 触屏下面板关闭按钮加大且避开安全区，防止与顶栏设置按钮误触 */
+    body.touch-device .close-btn {
+      top: calc(10px + env(safe-area-inset-top)); right: 10px;
+      width: 46px; height: 46px; font-size: 2rem;
+      background: rgba(255, 250, 241, .92); border-radius: 50%;
+      box-shadow: 0 3px 10px #0003; z-index: 5;
+    }
     body.touch-device .panel.house-panel {
       width: 100%; height: var(--app-h); max-height: var(--app-h);
       border-radius: 0; border-width: 0;
       padding: calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom));
     }
     body.touch-device .panel.house-panel h2 { font-size: 1.02rem; margin-bottom: 2px; }
+    body.touch-device .panel.menu-panel {
+      width: 100%; height: var(--app-h); max-height: var(--app-h);
+      border-radius: 0; border-width: 0;
+      padding: calc(8px + env(safe-area-inset-top)) 10px calc(8px + env(safe-area-inset-bottom));
+    }
+    body.touch-device .menu-grid { grid-template-columns: 1fr 1fr; gap: 7px; }
+    body.touch-device .menu-card { padding: 9px 10px; }
+    body.touch-device .menu-card .m-desc { font-size: .72rem; }
     body.touch-device .panel.house-panel.game-mode #real3dViewport {
       height: calc(var(--app-h) - 52px); min-height: 0;
     }
@@ -524,6 +582,7 @@
       <div class="top-actions">
         <button class="top-btn" id="environmentChip" title="天气与昼夜设置">☀️ 白天 10:00</button>
         <button class="top-btn" id="albumBtn">📷 相册</button>
+        <button class="top-btn" id="menuBtn" title="今天吃什么？点菜啦">🍜 点菜</button>
         <button class="top-btn" id="settingsBtn">⚙️ 设置</button>
       </div>
     </div>
@@ -790,6 +849,23 @@
         </div>
       </section>
 
+      <section class="panel menu-panel" id="panel-menu" aria-label="点菜菜单">
+        <button class="close-btn" data-close="panel-menu" aria-label="关闭">×</button>
+        <h2>🍜 今天吃什么</h2>
+        <div class="content menu-content">
+          <div class="menu-tabs" id="menuTabs"></div>
+          <div class="menu-search-row">
+            <input type="search" id="menuSearch" placeholder="搜索菜名，比如：酸汤鱼、螺蛳粉…" />
+            <span class="menu-count" id="menuCountLabel">0 道</span>
+          </div>
+          <div class="menu-grid" id="menuGrid"></div>
+        </div>
+        <div class="menu-bar" id="menuBar">
+          <span id="menuBarLabel">还没有点菜，逛逛看想吃啥～</span>
+          <button id="menuBarClear" type="button">清空</button>
+        </div>
+      </section>
+
       <section class="panel" id="panel-environment" aria-label="天气与昼夜">
         <button class="close-btn" data-close="panel-environment" aria-label="关闭">×</button>
         <h2>🌦 天气与昼夜系统</h2>
@@ -926,8 +1002,246 @@
     // -------------------- 数据与本地保存 --------------------
     const STORE = {
       pets: 'love_house_pets_v2', room: 'love_house_room_v2', profile: 'love_house_profile_v2',
-      settings: 'love_house_settings_v2', bottles: 'love_house_bottles_v2'
+      settings: 'love_house_settings_v2', bottles: 'love_house_bottles_v2', menu: 'love_house_menu_v1'
     };
+    // -------------------- 点菜菜单数据：贵州最全，其次各地菜系 / 网红 / 家常 --------------------
+    const MENU_CATS = [
+      { id: 'gz', name: '🍲 贵州美食' }, { id: 'gzh', name: '🥘 贵州家常' },
+      { id: 'home', name: '🍚 家常菜' }, { id: 'chuan', name: '🌶️ 川菜' },
+      { id: 'yue', name: '🦐 粤菜' }, { id: 'xiang', name: '🔥 湘菜' },
+      { id: 'lu', name: '🥟 鲁菜·北方' }, { id: 'regions', name: '🗺️ 各地特色' },
+      { id: 'netred', name: '✨ 网红美食' }, { id: 'today', name: '❤️ 今天想吃' }
+    ];
+    const MENU_CATALOG = [
+      // —— 贵州特色美食 ——
+      { c: 'gz', n: '凯里酸汤鱼', s: 3, d: '苗家招牌，红酸汤配嫩鱼，酸辣开胃' },
+      { c: 'gz', n: '花溪牛肉粉', s: 1, d: '汤清肉烂，贵阳人的一天从这碗开始' },
+      { c: 'gz', n: '遵义羊肉粉', s: 2, d: '羊汤配糊辣椒，冬天一碗浑身暖' },
+      { c: 'gz', n: '肠旺面', s: 2, d: '血旺脆臊红油亮，贵阳传统名面' },
+      { c: 'gz', n: '贵阳素粉', s: 2, d: '酸粉拌油辣椒，简单却上头' },
+      { c: 'gz', n: '酸粉', s: 1, d: '略带酸味的粗米粉，贵州独一份' },
+      { c: 'gz', n: '丝娃娃', s: 1, d: '薄饼包素菜丝，蘸酸汤一口一个' },
+      { c: 'gz', n: '恋爱豆腐果', s: 2, d: '烤豆腐夹折耳根辣椒水，名字浪漫味道冲' },
+      { c: 'gz', n: '豆腐圆子', s: 1, d: '外酥内嫩的炸豆腐丸，雷家最出名' },
+      { c: 'gz', n: '贵阳辣子鸡', s: 3, d: '糍粑辣椒炒出来，香辣糯口' },
+      { c: 'gz', n: '酸汤牛肉', s: 3, d: '红酸汤涮黄牛肉，酸香浓郁' },
+      { c: 'gz', n: '豆米火锅', s: 1, d: '红豆熬汤涮菜，豆香浓稠泡饭一绝' },
+      { c: 'gz', n: '酸菜豆米火锅', s: 2, d: '酸菜配豆米，贵州人最日常的火锅' },
+      { c: 'gz', n: '糟辣脆皮鱼', s: 2, d: '糟辣椒浇脆皮鱼，酸甜微辣' },
+      { c: 'gz', n: '青岩状元蹄', s: 1, d: '卤得软糯的猪脚，青岩古镇招牌' },
+      { c: 'gz', n: '青岩鸡辣角', s: 3, d: '辣子鸡丁的青岩版本，越辣越香' },
+      { c: 'gz', n: '水城烙锅', s: 2, d: '边烙边蘸辣椒面，洋芋臭豆腐都能烙' },
+      { c: 'gz', n: '手撕豆腐', s: 2, d: '炭火烤的豆腐，撕开蘸辣椒水' },
+      { c: 'gz', n: '洋芋粑', s: 1, d: '洋芋泥压饼煎到外壳酥脆' },
+      { c: 'gz', n: '炸洋芋', s: 2, d: '贵州人的洋芋情结，炸脆拌辣椒面' },
+      { c: 'gz', n: '冰浆', s: 0, d: '冰沙加水果糯米，夏天解暑神器' },
+      { c: 'gz', n: '杨梅汤', s: 0, d: '酸甜杨梅熬的汤，消暑解腻' },
+      { c: 'gz', n: '米豆腐', s: 1, d: '凉拌米豆腐，滑嫩酸辣' },
+      { c: 'gz', n: '红油米豆腐', s: 1, d: '红油酸辣浇米豆腐，清爽开胃' },
+      { c: 'gz', n: '绿豆粉', s: 1, d: '铜仁绿豆粉，滑溜带豆香' },
+      { c: 'gz', n: '铜仁社饭', s: 0, d: '青蒿腊肉糯米香，逢社日才吃的饭' },
+      { c: 'gz', n: '贵阳糯米饭', s: 1, d: '油辣椒脆哨折耳根全加上' },
+      { c: 'gz', n: '贞丰糯米饭', s: 1, d: '油亮糯米配脆哨，黔西南早点之王' },
+      { c: 'gz', n: '破酥包', s: 0, d: '层次分明的软包子，甜咸都好吃' },
+      { c: 'gz', n: '糊辣椒蘸水', s: 3, d: '贵州菜的灵魂，什么都想蘸一下' },
+      { c: 'gz', n: '牛瘪火锅', s: 3, d: '黔东南勇敢者的美味，草香发酵风味' },
+      { c: 'gz', n: '从江香猪', s: 2, d: '皮薄肉嫩，烤或白切都香' },
+      { c: 'gz', n: '三穗血浆鸭', s: 3, d: '鸭血入锅的炒鸭，香辣下饭' },
+      { c: 'gz', n: '镇远陈年道菜', s: 1, d: '腌了三年的青菜，蒸扣肉一绝' },
+      { c: 'gz', n: '安顺裹卷', s: 1, d: '米皮卷蔬菜蘸料，冰凉爽口' },
+      { c: 'gz', n: '夺夺粉', s: 2, d: '安顺名小吃，竹签夺着吃的锅' },
+      { c: 'gz', n: '镇宁波波糖', s: 0, d: '层层起酥的芝麻糖，落口酥' },
+      { c: 'gz', n: '刺梨汁', s: 0, d: '维C之王刺梨榨的汁，酸涩回甘' },
+      { c: 'gz', n: '苗家腌鱼', s: 3, d: '糯米腌出来的鱼，酸香发酵风味' },
+      { c: 'gz', n: '荔波酸肉', s: 3, d: '发酵酸肉，黔南特色' },
+      { c: 'gz', n: '榕江卷粉', s: 1, d: '软滑卷粉配酸汤' },
+      { c: 'gz', n: '五色糯米饭', s: 0, d: '布依族植物染色，好看又香' },
+      { c: 'gz', n: '打油茶', s: 0, d: '侗族油茶，茶香配米花' },
+      { c: 'gz', n: '遵义鸡蛋糕', s: 0, d: '百年老字号，松软香甜' },
+      { c: 'gz', n: '黄粑', s: 0, d: '竹叶香糯的黄粑，蒸着吃' },
+      { c: 'gz', n: '遵义甜酒酿', s: 0, d: '暖胃微醺，鸡蛋甜酒是标配吃法' },
+      { c: 'gz', n: '酸汤砂锅粉', s: 3, d: '酸汤煮的砂锅粉，酸辣烫嘴' },
+      { c: 'gz', n: '剪粉', s: 1, d: '剪成段的米皮，拌料开胃' },
+      { c: 'gz', n: '贵州烤鱼', s: 2, d: '糊辣椒烤鱼，外焦里嫩' },
+      { c: 'gz', n: '红酸汤锅底', s: 3, d: '苗家酸汤锅底，酸得正点' },
+      // —— 贵州家常菜 ——
+      { c: 'gzh', n: '折耳根炒腊肉', s: 3, d: '鱼腥味和腊香的灵魂组合' },
+      { c: 'gzh', n: '凉拌折耳根', s: 3, d: '生折耳根拌糊辣椒，外地人不敢夹第二筷' },
+      { c: 'gzh', n: '水豆豉拌折耳根', s: 3, d: '豆豉咸香加折耳根，重口下饭' },
+      { c: 'gzh', n: '糟辣蛋炒饭', s: 2, d: '糟辣椒炒的蛋炒饭，贵州夜宵标配' },
+      { c: 'gzh', n: '糟辣鱼', s: 2, d: '糟辣椒焖鱼，家常酸辣味' },
+      { c: 'gzh', n: '糟辣回锅肉', s: 3, d: '糟辣椒版回锅肉，更酸更冲' },
+      { c: 'gzh', n: '糍粑辣椒鸡', s: 3, d: '家常版辣子鸡，糯辣入味' },
+      { c: 'gzh', n: '酸汤白菜', s: 1, d: '清汤酸白菜，解腻神器' },
+      { c: 'gzh', n: '素瓜豆', s: 0, d: '清水煮瓜豆，贵州人上火的救星' },
+      { c: 'gzh', n: '豆豉火锅', s: 3, d: '水豆豉打底的家常小火锅' },
+      { c: 'gzh', n: '油渣炒白菜', s: 2, d: '猪油渣炒白菜，香得没道理' },
+      { c: 'gzh', n: '腊肉炒蒜苔', s: 1, d: '腊肉咸香蒜苔脆' },
+      { c: 'gzh', n: '腊肉炒洋芋', s: 2, d: '洋芋腊肉一锅炒' },
+      { c: 'gzh', n: '血豆腐炒蒜苗', s: 2, d: '熏香血豆腐配蒜苗' },
+      { c: 'gzh', n: '炸酥肉', s: 1, d: '面糊裹五花肉炸到金黄' },
+      { c: 'gzh', n: '烧椒皮蛋', s: 2, d: '烧糊的青椒拌皮蛋，下饭神器' },
+      { c: 'gzh', n: '泡酸萝卜', s: 1, d: '酸脆萝卜，饭前开胃' },
+      { c: 'gzh', n: '酸豆角炒肉末', s: 3, d: '酸脆豆角配肉末' },
+      { c: 'gzh', n: '冲菜', s: 3, d: '冲鼻子的芥菜，贵州人就好这口' },
+      { c: 'gzh', n: '青椒炒肉', s: 2, d: '贵州家常小炒肉，辣椒多一点' },
+      { c: 'gzh', n: '肉末豇豆', s: 2, d: '酸豇豆炒肉末，拌饭拌粉都行' },
+      { c: 'gzh', n: '洋芋饭', s: 0, d: '洋芋焖饭，锅巴最香' },
+      { c: 'gzh', n: '四季豆焖饭', s: 0, d: '豆香饭香一锅出' },
+      { c: 'gzh', n: '糟辣茄盒', s: 2, d: '茄盒酿肉浇糟辣' },
+      { c: 'gzh', n: '糊辣椒拌皮蛋', s: 2, d: '糊辣椒一浇，皮蛋也下饭' },
+      // —— 大众家常菜 ——
+      { c: 'home', n: '番茄炒蛋', s: 0, d: '国民第一菜，甜咸之争永远不减热度' },
+      { c: 'home', n: '酸辣土豆丝', s: 2, d: '脆爽酸辣，下饭界常青树' },
+      { c: 'home', n: '青椒肉丝', s: 1, d: '家常小炒的必修课' },
+      { c: 'home', n: '鱼香茄子', s: 1, d: '咸甜酸辣，没有鱼也有鱼味' },
+      { c: 'home', n: '可乐鸡翅', s: 0, d: '新手必会，甜香软嫩' },
+      { c: 'home', n: '糖醋排骨', s: 0, d: '酸甜挂汁，老少通吃' },
+      { c: 'home', n: '红烧带鱼', s: 1, d: '咸鲜浓赤，下饭海味' },
+      { c: 'home', n: '蒜苔炒肉', s: 1, d: '脆嫩咸香，快手硬菜' },
+      { c: 'home', n: '韭菜炒蛋', s: 0, d: '香上加香的三分钟快手菜' },
+      { c: 'home', n: '玉米排骨汤', s: 0, d: '清甜炖汤，暖心暖胃' },
+      { c: 'home', n: '凉拌黄瓜', s: 1, d: '拍碎更入味，夏天下饭' },
+      { c: 'home', n: '皮蛋豆腐', s: 0, d: '嫩豆腐拌皮蛋，浇点生抽就很好' },
+      { c: 'home', n: '虎皮青椒', s: 1, d: '青椒煎出虎皮纹，酸甜微辣' },
+      { c: 'home', n: '白灼菜心', s: 0, d: '清淡鲜甜，浇豉油就行' },
+      { c: 'home', n: '香菇青菜', s: 0, d: '素菜里的干净味道' },
+      { c: 'home', n: '木须肉', s: 0, d: '肉片鸡蛋木耳，北京人家的经典' },
+      { c: 'home', n: '水蒸蛋', s: 0, d: '滑嫩的鸡蛋羹，一勺一勺停不下来' },
+      { c: 'home', n: '土豆炖牛肉', s: 0, d: '炖到软烂，汤汁泡饭' },
+      { c: 'home', n: '萝卜炖羊肉', s: 1, d: '冬天炖一锅，汤鲜肉烂' },
+      { c: 'home', n: '葱油拌面', s: 0, d: '葱香焦香的最低成本快乐' },
+      { c: 'home', n: '蛋炒饭', s: 0, d: '考验功力的基础款' },
+      { c: 'home', n: '肉末茄子', s: 2, d: '茄子吸饱肉香，油亮下饭' },
+      { c: 'home', n: '红烧豆腐', s: 0, d: '家常烧法，咸鲜入味' },
+      { c: 'home', n: '干煸豆角', s: 2, d: '煸出虎皮的豆角，干香有嚼劲' },
+      { c: 'home', n: '酸汤肥牛', s: 2, d: '金汤肥牛卷，酸辣开胃' },
+      { c: 'home', n: '清炒时蔬', s: 0, d: '当天最嫩的绿叶菜，简单清炒' },
+      // —— 川菜 ——
+      { c: 'chuan', n: '麻婆豆腐', s: 3, d: '麻辣烫嫩酥，豆腐界的天花板' },
+      { c: 'chuan', n: '回锅肉', s: 2, d: '川菜之王，蒜苗豆瓣是灵魂' },
+      { c: 'chuan', n: '宫保鸡丁', s: 2, d: '糊辣荔枝口，花生脆鸡肉嫩' },
+      { c: 'chuan', n: '鱼香肉丝', s: 1, d: '泡椒打底的咸甜酸辣' },
+      { c: 'chuan', n: '水煮鱼', s: 3, d: '满盆红油辣椒，鱼片滑嫩' },
+      { c: 'chuan', n: '水煮牛肉', s: 3, d: '麻辣滚烫，最后那勺热油是精髓' },
+      { c: 'chuan', n: '重庆辣子鸡', s: 3, d: '辣椒里找鸡丁，越找越香' },
+      { c: 'chuan', n: '酸菜鱼', s: 2, d: '老坛酸菜配鱼片，汤都想喝掉' },
+      { c: 'chuan', n: '毛血旺', s: 3, d: '重庆江湖菜大杂烩，血旺毛肚鸭肠' },
+      { c: 'chuan', n: '夫妻肺片', s: 2, d: '红油凉拌牛肉牛杂，麻辣鲜香' },
+      { c: 'chuan', n: '担担面', s: 2, d: '脆哨芽菜红油，一碗就管饱' },
+      { c: 'chuan', n: '钟水饺', s: 1, d: '甜辣红油水饺，成都名点' },
+      { c: 'chuan', n: '龙抄手', s: 1, d: '皮薄馅嫩的川式馄饨' },
+      { c: 'chuan', n: '钵钵鸡', s: 2, d: '藤椒红油泡串串，冷吃也过瘾' },
+      { c: 'chuan', n: '冒菜', s: 3, d: '一个人的火锅，冒什么都好吃' },
+      { c: 'chuan', n: '蒜泥白肉', s: 2, d: '薄片五花肉浇蒜泥红油' },
+      { c: 'chuan', n: '干煸四季豆', s: 2, d: '煸到起皱，肉末芽菜提香' },
+      { c: 'chuan', n: '蚂蚁上树', s: 1, d: '肉末粉丝，下饭快手' },
+      { c: 'chuan', n: '粉蒸肉', s: 1, d: '米粉裹五花肉，蒸得酥糯' },
+      { c: 'chuan', n: '跷脚牛肉', s: 0, d: '乐山汤锅牛肉，蘸干碟吃' },
+      { c: 'chuan', n: '宜宾燃面', s: 2, d: '重油重辣的面条，据说能点燃' },
+      { c: 'chuan', n: '重庆小面', s: 3, d: '麻辣鲜香的早餐面，豌杂最经典' },
+      { c: 'chuan', n: '乐山甜皮鸭', s: 0, d: '刷糖皮的卤鸭，甜脆咸香' },
+      { c: 'chuan', n: '四川火锅', s: 3, d: '牛油锅底，涮什么都是麻辣' },
+      { c: 'chuan', n: '口水鸡', s: 2, d: '凉刮嫩鸡浇红油，名字就说明一切' },
+      // —— 粤菜 ——
+      { c: 'yue', n: '白切鸡', s: 0, d: '皮爽肉滑，蘸姜葱蓉见真章' },
+      { c: 'yue', n: '广式烧鹅', s: 0, d: '皮脆油香，斩件配酸梅酱' },
+      { c: 'yue', n: '蜜汁叉烧', s: 0, d: '半肥瘦的蜜香烤肉' },
+      { c: 'yue', n: '虾饺', s: 0, d: '水晶皮包整虾，早茶必点' },
+      { c: 'yue', n: '肠粉', s: 0, d: '滑嫩米皮浇豉油，布拉肠最正宗' },
+      { c: 'yue', n: '煲仔饭', s: 0, d: '腊味饭底带焦香锅巴' },
+      { c: 'yue', n: '云吞面', s: 0, d: '竹升面配鲜虾云吞，汤底大地鱼' },
+      { c: 'yue', n: '艇仔粥', s: 0, d: '料足绵滑的广州粥' },
+      { c: 'yue', n: '清蒸鲈鱼', s: 0, d: '淋热油豉油，鲜嫩本味' },
+      { c: 'yue', n: '白灼虾', s: 0, d: '最简单的鲜甜' },
+      { c: 'yue', n: '豉汁蒸排骨', s: 1, d: '早茶笼仔排骨，豉香入味' },
+      { c: 'yue', n: '老火靓汤', s: 0, d: '广东人的仪式感，炖足三小时' },
+      { c: 'yue', n: '双皮奶', s: 0, d: '两层奶皮，滑嫩奶香' },
+      { c: 'yue', n: '杨枝甘露', s: 0, d: '芒果西柚西米露，港式甜品' },
+      { c: 'yue', n: '糯米鸡', s: 0, d: '荷叶包糯米鸡肉，蒸出荷香' },
+      { c: 'yue', n: '干炒牛河', s: 0, d: '镬气十足，不油不断' },
+      // —— 湘菜 ——
+      { c: 'xiang', n: '剁椒鱼头', s: 2, d: '红剁椒铺满鱼头，汤拌面条是第二道菜' },
+      { c: 'xiang', n: '辣椒炒肉', s: 2, d: '湖南人的一日三餐，螺丝椒带皮炒' },
+      { c: 'xiang', n: '小炒黄牛肉', s: 2, d: '嫩牛肉大火爆炒，香辣镬气' },
+      { c: 'xiang', n: '口味虾', s: 3, d: '长沙夜宵之王，麻辣小龙虾' },
+      { c: 'xiang', n: '常德牛肉粉', s: 1, d: '湘北米粉代表，牛肉码子厚实' },
+      { c: 'xiang', n: '长沙臭豆腐', s: 1, d: '黑壳白心，浇汤汁蘸辣椒' },
+      { c: 'xiang', n: '糖油粑粑', s: 0, d: '糯米炸糕裹糖浆，长沙街头甜' },
+      { c: 'xiang', n: '毛氏红烧肉', s: 0, d: '不放酱油的糖色红烧肉' },
+      { c: 'xiang', n: '干锅肥肠', s: 2, d: '处理得干净，越嚼越香' },
+      { c: 'xiang', n: '东安鸡', s: 1, d: '湘菜名鸡，酸辣嫩滑' },
+      { c: 'xiang', n: '腊味合蒸', s: 1, d: '腊肉腊鱼腊肠一锅蒸，腊香扑鼻' },
+      { c: 'xiang', n: '外婆菜炒蛋', s: 1, d: '腌菜炒蛋，拌饭一绝' },
+      // —— 鲁菜·北方 ——
+      { c: 'lu', n: '九转大肠', s: 1, d: '酸甜苦辣咸五味俱全的鲁菜功夫菜' },
+      { c: 'lu', n: '糖醋鲤鱼', s: 0, d: '造型跳跃的糖醋浇汁鱼' },
+      { c: 'lu', n: '德州扒鸡', s: 0, d: '酥烂脱骨的百年扒鸡' },
+      { c: 'lu', n: '葱烧海参', s: 0, d: '大葱浓香衬海参软糯' },
+      { c: 'lu', n: '锅包肉', s: 0, d: '东北酸甜酥脆的炸肉片' },
+      { c: 'lu', n: '小鸡炖蘑菇', s: 0, d: '榛蘑炖笨鸡，东北炖菜之王' },
+      { c: 'lu', n: '猪肉炖粉条', s: 0, d: '东北铁锅的踏实味道' },
+      { c: 'lu', n: '地三鲜', s: 0, d: '土豆茄子青椒，过油烧汁' },
+      { c: 'lu', n: '铁锅炖大鹅', s: 1, d: '贴饼子炖大鹅，东北硬菜' },
+      { c: 'lu', n: '北京烤鸭', s: 0, d: '片皮卷饼，甜面酱葱丝' },
+      { c: 'lu', n: '老北京炸酱面', s: 0, d: '六必居酱配菜码' },
+      { c: 'lu', n: '铜锅涮羊肉', s: 0, d: '清汤铜锅，麻酱是灵魂' },
+      { c: 'lu', n: '煎饼果子', s: 0, d: '天津早点，加两个蛋脆皮多' },
+      { c: 'lu', n: '狗不理包子', s: 0, d: '天津名包，水馅半发面' },
+      { c: 'lu', n: '胡辣汤', s: 1, d: '河南早点的胡椒浓汤' },
+      { c: 'lu', n: '烤冷面', s: 1, d: '东北街头酸甜辣的三层口感' },
+      // —— 各地特色 ——
+      { c: 'regions', n: '兰州牛肉面', s: 1, d: '一清二白三红四绿五黄' },
+      { c: 'regions', n: '羊肉泡馍', s: 1, d: '自己掰馍，浓汤泡到入味' },
+      { c: 'regions', n: '肉夹馍', s: 0, d: '白吉馍夹腊汁肉，肥而不腻' },
+      { c: 'regions', n: '凉皮', s: 1, d: '陕西凉皮浇辣子，酸辣爽滑' },
+      { c: 'regions', n: '油泼面', s: 2, d: '一勺热油泼在辣子上，滋啦一声' },
+      { c: 'regions', n: '新疆大盘鸡', s: 2, d: '鸡块土豆皮带面，汤汁拌面最香' },
+      { c: 'regions', n: '烤羊肉串', s: 1, d: '红柳枝串的孜然羊肉' },
+      { c: 'regions', n: '手抓饭', s: 0, d: '羊肉胡萝卜黄萝卜焖饭' },
+      { c: 'regions', n: '过桥米线', s: 1, d: '滚汤烫生料，云南仪式感' },
+      { c: 'regions', n: '汽锅鸡', s: 0, d: '蒸汽凝汤，鲜美清亮' },
+      { c: 'regions', n: '野生菌火锅', s: 1, d: '云南雨季限定，菌子鲜掉眉毛' },
+      { c: 'regions', n: '鲜花饼', s: 0, d: '玫瑰花瓣做的酥饼' },
+      { c: 'regions', n: '热干面', s: 0, d: '芝麻酱拌碱水面，武汉过早' },
+      { c: 'regions', n: '清蒸武昌鱼', s: 0, d: '湖北名鱼，清鲜本味' },
+      { c: 'regions', n: '三鲜豆皮', s: 0, d: '武汉过早必备，糯米蛋皮焦香' },
+      { c: 'regions', n: '东坡肉', s: 0, d: '黄酒慢炖，酥而不碎' },
+      { c: 'regions', n: '西湖醋鱼', s: 0, d: '杭州名鱼，酸甜带蟹味' },
+      { c: 'regions', n: '松鼠桂鱼', s: 0, d: '造型松鼠的糖醋炸鱼' },
+      { c: 'regions', n: '龙井虾仁', s: 0, d: '茶香入菜，杭帮清雅' },
+      { c: 'regions', n: '腌笃鲜', s: 0, d: '春笋咸肉鲜肉同炖，江南春味' },
+      { c: 'regions', n: '蟹黄汤包', s: 0, d: '先喝汤再吃皮，小心烫' },
+      { c: 'regions', n: '小笼包', s: 0, d: '上海南翔小笼，一口爆汁' },
+      { c: 'regions', n: '扬州炒饭', s: 0, d: '颗粒分明的炒饭标准答案' },
+      { c: 'regions', n: '红烧狮子头', s: 0, d: '淮扬大肉圆，松而不散' },
+      { c: 'regions', n: '佛跳墙', s: 0, d: '闽菜之巅，鲍参翅肚一坛香' },
+      { c: 'regions', n: '沙茶面', s: 1, d: '厦门沙茶汤底，料随便加' },
+      { c: 'regions', n: '海蛎煎', s: 0, d: '闽南蚵仔煎，蘸甜辣酱' },
+      { c: 'regions', n: '生煎包', s: 0, d: '底脆汁多，撒芝麻葱花' },
+      { c: 'regions', n: '文昌鸡', s: 0, d: '海南四大名菜之首' },
+      { c: 'regions', n: '清补凉', s: 0, d: '海南椰奶甜品，消暑神器' },
+      { c: 'regions', n: '桂林米粉', s: 1, d: '卤水米粉，锅烧脆皮加料' },
+      { c: 'regions', n: '潮汕牛肉火锅', s: 1, d: '现切黄牛肉，吊龙匙柄分部位涮' },
+      { c: 'regions', n: '潮汕生腌', s: 0, d: '海鲜毒药，腌虾蟹冰凉爽鲜' },
+      { c: 'regions', n: '南昌瓦罐汤', s: 0, d: '瓦罐煨出来的排骨汤' },
+      // —— 网红美食 ——
+      { c: 'netred', n: '柳州螺蛳粉', s: 2, d: '闻着臭吃着香，酸笋是灵魂' },
+      { c: 'netred', n: '烤苕皮', s: 2, d: '外焦里糯，包酸萝卜粒刷辣油' },
+      { c: 'netred', n: '狼牙土豆', s: 1, d: '波浪土豆条，拌折耳根辣椒面' },
+      { c: 'netred', n: '天水麻辣烫', s: 3, d: '甘肃麻辣烫，甘谷辣椒香而不燥' },
+      { c: 'netred', n: '淄博小饼烧烤', s: 1, d: '小饼卷串加葱蘸酱，灵魂三件套' },
+      { c: 'netred', n: '铁板鱿鱼', s: 1, d: '街边酱香铁板鱿鱼须' },
+      { c: 'netred', n: '脆皮五花肉', s: 1, d: '烤到爆皮的五花肉块' },
+      { c: 'netred', n: '爆汁烤鸭肠', s: 2, d: '一把一把吃才过瘾' },
+      { c: 'netred', n: '炸串', s: 2, d: '刷甜辣酱的裹面炸串' },
+      { c: 'netred', n: '锅巴土豆', s: 2, d: '炸到起壳的土豆拌折耳根' },
+      { c: 'netred', n: '手搓冰粉', s: 0, d: '红糖山楂花生碎，夏天夜宵搭子' },
+      { c: 'netred', n: '手打柠檬茶', s: 0, d: '暴打香水柠檬，酸爽解辣' },
+      { c: 'netred', n: '竹筒奶茶', s: 0, d: '网红竹筒奶盖茶' },
+      { c: 'netred', n: '烤牛奶', s: 0, d: '外焦里嫩还能拉丝的奶块' },
+      { c: 'netred', n: '芝士烤红薯', s: 0, d: '红薯挖空填芝士，拉丝冬天限定' }
+    ];
     const state = {
       photos: [], videos: [], photoCapacity: 1000,
       pets: [
@@ -936,6 +1250,7 @@
       ],
       profile: null,
       bottles: [], currentBottleId: null, currentPetId: 'cat1',
+      menu: { today: [] },
       room: {
         currentRoom: 'living', currentStyle: 'raw', wallColor: '#e8e0d3', colorTarget: 'backWall', selectedFurnitureIndex: -1,
         mode: 'photo',
@@ -1018,6 +1333,82 @@
         saveBottles();
       }
     }
+
+    // -------------------- 点菜菜单：浏览 / 搜索 / 今天想吃 --------------------
+    function saveMenu() { localStorage.setItem(STORE.menu, JSON.stringify(state.menu)); }
+    function loadMenu() {
+      const saved = safeParse(STORE.menu, null);
+      if (saved && Array.isArray(saved.today)) state.menu.today = saved.today.filter(id => typeof id === 'string');
+    }
+    const menuUi = { cat: 'gz', query: '' };
+    const MENU_REGION_NAMES = { gz: '贵州', gzh: '贵州', home: '家常', chuan: '川', yue: '粤', xiang: '湘', lu: '北方', regions: '各地', netred: '网红' };
+    function menuSpicyHtml(s) { return s ? `<span class="m-spicy">${'🌶️'.repeat(s)}</span>` : '<span class="m-spicy" style="opacity:.55">不辣</span>'; }
+    function renderMenuTabs() {
+      const tabs = document.getElementById('menuTabs'); tabs.innerHTML = '';
+      MENU_CATS.forEach(cat => {
+        const count = cat.id === 'today' ? state.menu.today.length : MENU_CATALOG.filter(item => item.c === cat.id).length;
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'menu-tab' + (menuUi.cat === cat.id ? ' active' : '');
+        btn.innerHTML = `${cat.name}<span class="badge">${count}</span>`;
+        btn.addEventListener('click', () => { menuUi.cat = cat.id; menuUi.query = ''; document.getElementById('menuSearch').value = ''; renderMenuPanel(); });
+        tabs.appendChild(btn);
+      });
+    }
+    function menuFilteredItems() {
+      const query = menuUi.query.trim().toLowerCase();
+      if (menuUi.cat === 'today') return MENU_CATALOG.filter(item => state.menu.today.includes(item.n));
+      return query
+        ? MENU_CATALOG.filter(item => item.n.toLowerCase().includes(query) || item.d.includes(query))
+        : MENU_CATALOG.filter(item => item.c === menuUi.cat);
+    }
+    function renderMenuPanel() {
+      renderMenuTabs();
+      const grid = document.getElementById('menuGrid');
+      const items = menuFilteredItems();
+      document.getElementById('menuCountLabel').textContent = `${items.length} 道`;
+      grid.innerHTML = '';
+      if (!items.length) {
+        const empty = document.createElement('div');
+        empty.className = 'hint'; empty.style.gridColumn = '1/-1'; empty.style.textAlign = 'center';
+        empty.textContent = menuUi.cat === 'today' ? '还没点菜，去各个分类逛逛，看馋了就点一份～' : '没有找到这道菜，换个名字试试？';
+        grid.appendChild(empty);
+      }
+      items.forEach(item => {
+        const picked = state.menu.today.includes(item.n);
+        const card = document.createElement('div');
+        card.className = 'menu-card' + (picked ? ' picked' : '');
+        card.innerHTML = `
+          <div class="m-name">${item.n}<span class="m-region">${MENU_REGION_NAMES[item.c] || ''}</span></div>
+          ${menuSpicyHtml(item.s)}
+          <div class="m-desc">${item.d}</div>
+          <button class="m-pick" type="button">${picked ? '✅ 已点 · 取消' : '＋ 点这道'}</button>`;
+        card.querySelector('.m-pick').addEventListener('click', () => toggleMenuToday(item.n));
+        grid.appendChild(card);
+      });
+      renderMenuBar();
+    }
+    function renderMenuBar() {
+      const today = state.menu.today;
+      document.getElementById('menuBarLabel').textContent = today.length
+        ? `❤️ 今天想吃（${today.length}）：${today.slice(0, 4).join('、')}${today.length > 4 ? ` 等 ${today.length} 道` : ''}`
+        : '还没有点菜，逛逛看想吃啥～';
+    }
+    function toggleMenuToday(name) {
+      const index = state.menu.today.indexOf(name);
+      if (index >= 0) { state.menu.today.splice(index, 1); toast(`已把「${name}」从今天想吃里移除`); }
+      else { state.menu.today.push(name); toast(`「${name}」已加入今天想吃 🍽️`); }
+      saveMenu(); renderMenuPanel();
+    }
+    document.getElementById('menuSearch').addEventListener('input', event => {
+      menuUi.query = event.target.value;
+      if (menuUi.query.trim() && menuUi.cat === 'today') menuUi.cat = 'gz';
+      renderMenuPanel();
+    });
+    document.getElementById('menuBarClear').addEventListener('click', () => {
+      if (!state.menu.today.length) return;
+      state.menu.today = []; saveMenu(); renderMenuPanel(); toast('已清空今天想吃的菜单');
+    });
+    document.getElementById('menuBtn').addEventListener('click', () => openPanel('panel-menu'));
 
     // -------------------- 媒体存储：IndexedDB 优先，受限环境自动降级到压缩本地存储 --------------------
     const DB_NAME = 'love-house-db', DB_VERSION = 3;
@@ -1135,6 +1526,7 @@
     function openPanel(id) {
       closePanels(); document.getElementById(id).classList.add('active'); syncPanelOpen();
       if (id === 'panel-settings') fillSettings();
+      if (id === 'panel-menu') renderMenuPanel();
       if (id === 'panel-house') {
         renderHouseControls();
         applyRoomMode(state.room.mode || 'photo');
@@ -3890,7 +4282,7 @@
         console.error('本地媒体初始化失败，已切换到会话存储：', error);
         db = null; mediaFallback = true; restoreFallbackStores(); await loadMedia();
       }
-      loadPets(); loadRoom(); loadProfile(); loadBottles(); loadSettings(); loadEnvironment(); buildWeatherParticles();
+      loadPets(); loadRoom(); loadProfile(); loadBottles(); loadMenu(); loadSettings(); loadEnvironment(); buildWeatherParticles();
       try { await loadWallArtAssets(); } catch (error) { console.warn('墙面素材恢复失败：', error); }
       await loadRoomAssets();
       createBottleNodes(); resizeBottleCanvas(); window.addEventListener('resize', resizeBottleCanvas);
