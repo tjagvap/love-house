@@ -355,39 +355,59 @@
       .pet-main { min-width: 100%; }
     }
 
-    /* ===== 点菜菜单 ===== */
-    .menu-content { gap: 10px; }
-    .menu-tabs { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 4px; flex-wrap: nowrap; scrollbar-width: thin; flex-shrink: 0; }
-    .menu-tab {
-      white-space: nowrap; border: 1px solid rgba(117, 82, 49, .3); border-radius: 18px;
-      padding: 7px 15px; background: #fff8ec; color: #71543a; font-weight: 700; font-size: .88rem;
+    /* ===== 点菜菜单：温馨奶油风 + Hello Kitty / 库洛米元素 ===== */
+    .menu-panel {
+      background:
+        radial-gradient(circle at 9% 3%, rgba(255, 203, 219, .62), transparent 44%),
+        radial-gradient(circle at 95% 9%, rgba(214, 198, 246, .5), transparent 46%),
+        radial-gradient(circle at 58% 98%, rgba(255, 226, 200, .52), transparent 48%),
+        linear-gradient(165deg, #fffaf6 0%, #fff2e9 52%, #fdeef3 100%);
+      border-color: #f2c6b4; box-shadow: 0 16px 44px rgba(126, 74, 62, .24);
     }
-    .menu-tab.active { background: #e8935c; border-color: #d97b41; color: #fff7e8; }
-    .menu-tab .badge { display: inline-block; min-width: 18px; margin-left: 4px; padding: 0 5px; border-radius: 9px; background: rgba(255, 90, 90, .92); color: #fff; font-size: .72rem; text-align: center; }
+    .menu-head { display: flex; align-items: center; gap: 10px; padding: 0 42px 2px 0; flex: 0 0 auto; }
+    .menu-head-art { width: 46px; height: 46px; flex: 0 0 46px; object-fit: contain; filter: drop-shadow(0 3px 6px rgba(150, 90, 80, .2)); }
+    .menu-head-art.kitty { transform: rotate(-9deg); }
+    .menu-head-art.kuromi { transform: rotate(8deg); }
+    .menu-head-text { flex: 1; min-width: 0; text-align: center; }
+    .menu-head h2 { margin: 0; font-size: 1.3rem; color: #7a4a3c; letter-spacing: .4px; }
+    .menu-head p { margin: 3px 0 0; font-size: .74rem; color: #b1847a; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .menu-content { gap: 9px; }
+    .menu-tabs { display: flex; gap: 7px; overflow-x: auto; padding: 2px 2px 6px; flex-wrap: nowrap; scrollbar-width: thin; flex-shrink: 0; }
+    .menu-tab {
+      white-space: nowrap; border: 1px solid rgba(206, 150, 130, .45); border-radius: 20px;
+      padding: 7px 14px; background: rgba(255, 255, 255, .84); color: #8a5b4c; font-weight: 700; font-size: .85rem;
+      box-shadow: 0 2px 6px rgba(160, 110, 95, .1); transition: transform .14s, background .16s;
+    }
+    .menu-tab:hover { transform: translateY(-1px); background: #fff; }
+    .menu-tab.active { background: linear-gradient(135deg, #ff9db6, #ffb98a); border-color: #f088a6; color: #fff; box-shadow: 0 3px 10px rgba(240, 130, 160, .38); }
+    .menu-tab .badge { display: inline-block; min-width: 18px; margin-left: 4px; padding: 0 5px; border-radius: 9px; background: rgba(255, 107, 138, .95); color: #fff; font-size: .7rem; text-align: center; }
+    .menu-tab.active .badge { background: rgba(255, 255, 255, .92); color: #e0628a; }
     .menu-search-row { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
     .menu-search-row input {
-      flex: 1; min-width: 0; border: 1px solid #d8bd96; border-radius: 12px;
-      padding: 9px 13px; background: #fffdf7; color: #5a3d28; outline: none;
+      flex: 1; min-width: 0; border: 1px solid #edcfc0; border-radius: 16px;
+      padding: 9px 14px; background: rgba(255, 255, 255, .92); color: #6b4636; outline: none; font-size: .87rem;
     }
-    .menu-search-row input:focus { border-color: #e8935c; }
-    .menu-count { white-space: nowrap; color: #8a755f; font-size: .82rem; font-weight: 700; }
-    .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 9px; overflow-y: auto; align-content: start; padding: 2px; flex: 1 1 auto; min-height: 0; }
+    .menu-search-row input:focus { border-color: #ff9db6; box-shadow: 0 0 0 3px rgba(255, 157, 182, .22); }
+    .menu-count { white-space: nowrap; color: #b1847a; font-size: .8rem; font-weight: 700; }
+    .menu-views { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+    .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(202px, 1fr)); gap: 10px; overflow-y: auto; align-content: start; padding: 2px; flex: 1 1 auto; min-height: 0; }
     .menu-card {
       position: relative; display: flex; flex-direction: column; gap: 4px; align-items: flex-start;
-      border: 1px solid #ecd9bd; border-radius: 13px; padding: 10px 12px;
-      background: #fffdf6; text-align: left; transition: transform .15s, box-shadow .15s;
+      border: 1px solid #f0dcd0; border-radius: 16px; padding: 11px 13px;
+      background: rgba(255, 253, 250, .96); text-align: left; transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 3px 10px rgba(170, 120, 100, .08);
     }
-    .menu-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px #00000014; }
-    .menu-card.picked { border-color: #e8935c; background: #fff3e4; box-shadow: 0 0 0 1px #e8935c inset; }
-    .menu-card .m-name { font-weight: 800; color: #553722; font-size: .95rem; display: flex; align-items: center; gap: 6px; }
-    .menu-card .m-region { font-size: .7rem; font-weight: 700; color: #fff; background: #b98e5e; border-radius: 8px; padding: 1px 7px; white-space: nowrap; }
-    .menu-card .m-spicy { font-size: .74rem; color: #c2503a; letter-spacing: -1px; }
-    .menu-card .m-desc { color: #8a755f; font-size: .78rem; line-height: 1.45; }
+    .menu-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(190, 130, 105, .18); }
+    .menu-card.picked { border-color: #ff9db6; background: linear-gradient(160deg, #fff6f8, #fff0e6); box-shadow: 0 0 0 1px #ff9db6 inset, 0 6px 14px rgba(240, 140, 165, .18); }
+    .menu-card .m-name { font-weight: 800; color: #6b4130; font-size: .95rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .menu-card .m-region { font-size: .68rem; font-weight: 700; color: #fff; background: linear-gradient(135deg, #e8a87c, #d98f8f); border-radius: 8px; padding: 1px 7px; white-space: nowrap; }
+    .menu-card .m-spicy { font-size: .74rem; color: #d0604a; letter-spacing: -1px; }
+    .menu-card .m-desc { color: #ab8578; font-size: .77rem; line-height: 1.45; }
     .menu-card .m-pick {
-      align-self: stretch; margin-top: 4px; border-radius: 10px; padding: 6px 0; font-size: .78rem; font-weight: 800;
-      border: 1px solid #d8bd96; background: #fff8ec; color: #71543a;
+      align-self: stretch; margin-top: 4px; border-radius: 12px; padding: 7px 0; font-size: .78rem; font-weight: 800;
+      border: 1px solid #eec9b8; background: #fff6ee; color: #8a5b4c;
     }
-    .menu-card.picked .m-pick { background: #e8935c; border-color: #d97b41; color: #fff7e8; }
+    .menu-card.picked .m-pick { background: linear-gradient(135deg, #ff9db6, #ffb98a); border-color: #f088a6; color: #fff; box-shadow: 0 2px 6px rgba(240, 130, 160, .3); }
     /* ===== 菜谱详情弹窗 ===== */
     .m-recipe { border: 1px solid #e0c49c; background: #fff6e8; color: #7a5a34; border-radius: 14px; padding: 6px 11px; font-size: .76rem; font-weight: 800; }
     .m-recipe:hover { background: #ffeacd; }
@@ -423,19 +443,93 @@
     .recipe-tip { background: #eef6ee; border-left: 4px solid #7fae72; border-radius: 0 12px 12px 0; padding: 10px 12px; font-size: .82rem; line-height: 1.6; color: #4f6b46; }
     .recipe-none { padding: 26px 10px; text-align: center; color: #a58a70; font-size: .86rem; }
     .recipe-foot { display: flex; gap: 10px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+    /* 角色提示条：女生看到简要版，男生看到完整版 */
+    .recipe-role-tip { display: flex; align-items: center; gap: 9px; margin: 0 0 12px; padding: 9px 44px 9px 12px; border-radius: 15px; font-size: .8rem; line-height: 1.55; }
+    .recipe-role-tip img { width: 32px; height: 32px; flex: 0 0 32px; object-fit: contain; }
+    .recipe-role-tip.female { background: linear-gradient(135deg, #fff1f6, #f7f0ff); border: 1px solid #f7d6e6; color: #a2617f; }
+    .recipe-role-tip.female b { color: #d2608b; }
+    .recipe-role-tip.male { background: linear-gradient(135deg, #fff6e8, #f2f0ff); border: 1px solid #efdcbe; color: #7c5f3d; }
+    .recipe-role-tip.male b { color: #b9822f; }
+    .recipe-brief-steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .recipe-brief-steps li { display: flex; gap: 8px; align-items: flex-start; font-size: .85rem; line-height: 1.6; color: #6b523a; }
+    .recipe-brief-steps li i { flex: 0 0 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: .72rem; font-weight: 800; background: linear-gradient(135deg, #ffc2d2, #ffd9b8); color: #fff; }
+    .recipe-ing-simple { display: flex; flex-wrap: wrap; gap: 6px; }
+    .recipe-ing-simple span { border: 1px solid #ecd9ba; background: #fffaf1; border-radius: 999px; padding: 4px 11px; font-size: .78rem; color: #6d513a; font-weight: 700; }
+    .recipe-order-note { margin: 0 0 12px; padding: 8px 44px 8px 12px; border-radius: 14px; background: #fdf1f5; border: 1px solid #f5d9e4; color: #a06a85; font-size: .78rem; font-weight: 700; }
+    .recipe-lock { margin-top: 14px; padding: 10px 12px; border-radius: 14px; background: #f7f0f8; border: 1px dashed #ddc6e2; color: #8d6d94; font-size: .78rem; line-height: 1.6; text-align: center; }
     body.touch-device .recipe-dialog {
       top: 0; left: 0; right: 0; bottom: 0; transform: none; margin: auto;
       width: 100%; height: calc(var(--app-h) - 16px); max-height: calc(var(--app-h) - 16px); border-radius: 20px;
     }
-    body.touch-device .menu-card .m-recipe { padding: 7px 12px; }    .menu-bar {
+    body.touch-device .menu-card .m-recipe { padding: 7px 12px; }
+    /* ===== 底部购物车栏 ===== */
+    .menu-bar {
       display: flex; align-items: center; justify-content: space-between; gap: 10px;
-      border-top: 1px dashed #d8bd96; padding-top: 9px; color: #71543a; font-weight: 700; font-size: .86rem;
+      border-top: 1px dashed #e7c4b4; padding-top: 9px; color: #8a5b4c; font-weight: 700; font-size: .86rem; flex: 0 0 auto;
     }
+    .menu-bar-info { min-width: 0; flex: 1; }
+    .menu-bar-info span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .menu-bar-info em { display: block; font-style: normal; font-size: .72rem; color: #b1847a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .menu-bar-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
     .menu-bar button {
-      border: 1px solid #d8bd96; border-radius: 12px; padding: 6px 14px;
-      background: #fff8ec; color: #71543a; font-weight: 700; white-space: nowrap;
+      border: 1px solid #eec9b8; border-radius: 999px; padding: 7px 14px;
+      background: #fff6ee; color: #8a5b4c; font-weight: 800; white-space: nowrap; font-size: .8rem;
     }
-    .menu-bar button:hover { background: #ffefd8; }
+    .menu-bar button:hover { background: #ffeade; }
+    .menu-bar button.checkout { background: linear-gradient(135deg, #ff9db6, #ffb98a); border-color: #f088a6; color: #fff; box-shadow: 0 3px 10px rgba(240, 130, 160, .35); padding: 9px 20px; font-size: .88rem; }
+    .menu-bar button.checkout:disabled { opacity: .5; box-shadow: none; }
+    /* ===== 订单列表：双方共享 ===== */
+    .order-view[hidden] { display: none; }
+    .order-view { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 9px; }
+    .order-sync-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 11px; border-radius: 14px; background: rgba(255, 255, 255, .8); border: 1px dashed #edcfc0; color: #9b6f63; font-size: .76rem; font-weight: 700; }
+    .order-sync-bar span { flex: 1; min-width: 120px; }
+    .order-sync-bar button { border: 1px solid #edcfc0; background: #fff6ee; color: #8a5b4c; border-radius: 999px; padding: 5px 12px; font-size: .74rem; font-weight: 800; }
+    .order-sync-bar button:hover { background: #ffeade; }
+    .order-list { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 2px; flex: 1 1 auto; min-height: 0; }
+    .order-card { border: 1px solid #f0dcd0; border-radius: 18px; background: rgba(255, 253, 250, .97); padding: 12px 14px; box-shadow: 0 4px 12px rgba(170, 120, 100, .1); }
+    .order-card.mine { border-color: #ffc9d8; background: linear-gradient(160deg, #fff8fa, #fff4ec); }
+    .order-card-top { display: flex; align-items: center; gap: 10px; }
+    .order-avatar { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 50%; display: grid; place-items: center; font-size: 1.1rem; background: #ffeaf1; border: 1px solid #ffd0e0; }
+    .order-avatar.male { background: #efeafc; border-color: #d9cff5; }
+    .order-who { flex: 1; min-width: 0; }
+    .order-who b { display: block; color: #6b4130; font-size: .9rem; }
+    .order-who span { font-size: .72rem; color: #b1847a; font-weight: 700; }
+    .order-status { font-size: .7rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+    .order-status.placed { background: #fff0d6; color: #b9762f; }
+    .order-status.cooking { background: #ffe3ec; color: #d0547c; }
+    .order-status.done { background: #dff1e4; color: #4d8a5d; }
+    .order-no { margin-top: 5px; font-size: .7rem; color: #c0a49a; font-weight: 700; letter-spacing: .4px; }
+    .order-dishes { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
+    .order-dish { display: inline-flex; align-items: center; gap: 5px; border: 1px solid #f0d3c4; background: #fff8f3; color: #7a4a3c; border-radius: 999px; padding: 5px 11px; font-size: .78rem; font-weight: 700; }
+    .order-dish:hover { background: #ffeade; }
+    .order-dish em { font-style: normal; font-size: .7rem; color: #d78fa4; }
+    .order-note { margin-top: 8px; padding: 7px 10px; border-radius: 12px; background: #fffaf2; border-left: 3px solid #f3c9a9; color: #8d6a5c; font-size: .78rem; line-height: 1.5; }
+    .order-foot { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+    .order-foot button { border: 1px solid #edcfc0; background: #fff6ee; color: #8a5b4c; border-radius: 999px; padding: 5px 13px; font-size: .75rem; font-weight: 800; }
+    .order-foot button:hover { background: #ffeade; }
+    .order-foot button.danger { color: #b4574a; border-color: #f0c2b8; background: #fff1ee; }
+    .order-empty { padding: 26px 14px; text-align: center; color: #b1847a; font-size: .86rem; line-height: 1.7; }
+    .order-empty img { width: 78px; height: 78px; object-fit: contain; opacity: .9; margin-bottom: 6px; }
+    /* ===== 下单 / 同步弹窗 ===== */
+    .order-dialog { background: linear-gradient(165deg, #fffaf6, #fff1e8 60%, #fdeef3); border-color: #f2c6b4; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(94%, 440px); max-height: 90%; padding: 0; overflow: hidden; display: none; z-index: 72; box-shadow: 0 20px 60px #0006; }
+    .order-dialog.active { display: flex; }
+    .order-dialog-inner { padding: 20px 22px 22px; overflow-y: auto; min-height: 0; }
+    .order-form-title { text-align: center; margin: 0 0 4px; color: #6b4130; font-size: 1.16rem; padding-right: 30px; }
+    .order-form-sub { text-align: center; margin: 0 0 14px; color: #b1847a; font-size: .76rem; line-height: 1.6; }
+    .order-form-dishes { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin-bottom: 14px; }
+    .order-form-dishes span { background: #fff3e8; border: 1px solid #f2d6c4; border-radius: 999px; padding: 5px 12px; font-size: .8rem; color: #7a4a3c; font-weight: 700; }
+    .order-field { margin-bottom: 12px; }
+    .order-field > label { display: block; margin-bottom: 6px; font-size: .82rem; font-weight: 800; color: #8a5b4c; }
+    .order-scale-row { display: flex; gap: 7px; flex-wrap: wrap; }
+    .order-scale-row button { border: 1px solid #eec9b8; background: #fff6ee; color: #8a5b4c; border-radius: 999px; padding: 6px 15px; font-weight: 800; font-size: .82rem; }
+    .order-scale-row button.active { background: linear-gradient(135deg, #ff9db6, #ffb98a); border-color: #f088a6; color: #fff; }
+    .order-who-line { text-align: center; font-size: .78rem; color: #b1847a; margin-bottom: 12px; }
+    .order-share-box { width: 100%; min-height: 92px; margin-top: 8px; }
+    .order-share-hint { margin-top: 10px; font-size: .74rem; color: #b1847a; line-height: 1.6; text-align: center; }
+    body.touch-device .order-dialog {
+      top: 0; left: 0; right: 0; bottom: 0; transform: none; margin: auto;
+      width: 100%; height: calc(var(--app-h) - 16px); max-height: calc(var(--app-h) - 16px); border-radius: 20px;
+    }
 
     /* ===== 手机 / 平板：面板改为整屏，不再被正方形画面裁切 ===== */
     /* iOS 微信 WebView 里 100vh/100dvh 与 fixed 的表现和安卓不一致，会导致面板被压成中间一条：
@@ -890,20 +984,84 @@
 
       <section class="panel menu-panel" id="panel-menu" aria-label="点菜菜单">
         <button class="close-btn" data-close="panel-menu" aria-label="关闭">×</button>
-        <h2>🍜 今天吃什么</h2>
+        <header class="menu-head">
+          <img class="menu-head-art kitty" src="assets/wall_stickers/hello_kitty/hello_kitty_01.png" alt="Hello Kitty" />
+          <div class="menu-head-text">
+            <h2>🍜 今天吃什么</h2>
+            <p>和 TA 一起点菜 · 订单双方共享 💕</p>
+          </div>
+          <img class="menu-head-art kuromi" src="assets/wall_stickers/kuromi/kuromi_01.png" alt="库洛米" />
+        </header>
         <div class="content menu-content">
           <div class="menu-tabs" id="menuTabs"></div>
-          <div class="menu-search-row">
+          <div class="menu-search-row" id="menuSearchRow">
             <input type="search" id="menuSearch" placeholder="搜菜名、用料或做法，比如：酸汤鱼、折耳根、蒸" />
             <span class="menu-count" id="menuCountLabel">0 道</span>
           </div>
-          <div class="menu-grid" id="menuGrid"></div>
+          <div class="menu-views">
+            <div class="menu-grid" id="menuGrid"></div>
+            <div class="order-view" id="orderView" hidden>
+              <div class="order-sync-bar">
+                <span id="orderSyncLabel">订单双方共享：谁下的单都能看见 💕</span>
+                <button type="button" id="orderShareBtn">🔗 发给 TA</button>
+                <button type="button" id="orderImportBtn">📥 导入同步码</button>
+              </div>
+              <div class="order-list" id="orderList"></div>
+            </div>
+          </div>
         </div>
         <div class="menu-bar" id="menuBar">
-          <span id="menuBarLabel">还没有点菜，逛逛看想吃啥～</span>
-          <button id="menuBarClear" type="button">清空</button>
+          <div class="menu-bar-info">
+            <span id="menuBarLabel">还没有点菜，逛逛看想吃啥～</span>
+            <em id="menuBarMeta">选好后点「去下单」，TA 那边也会看到 💌</em>
+          </div>
+          <div class="menu-bar-actions">
+            <button id="menuBarClear" type="button">清空</button>
+            <button class="checkout" id="menuCheckoutBtn" type="button" disabled>去下单</button>
+          </div>
         </div>
       </section>
+
+      <section class="dialog-card order-dialog" id="orderDialog" aria-label="确认下单">
+        <button class="close-btn" data-close="orderDialog" aria-label="关闭">×</button>
+        <div class="order-dialog-inner" id="orderDialogInner"></div>
+      </section>
+      <div class="recipe-backdrop" id="orderBackdrop"></div>
+
+      <section class="dialog-card order-dialog" id="orderShareDialog" aria-label="分享订单">
+        <button class="close-btn" data-close="orderShareDialog" aria-label="关闭">×</button>
+        <div class="order-dialog-inner">
+          <h3 class="order-form-title">🔗 把订单发给 TA</h3>
+          <p class="order-form-sub">微信里把下面链接发给 TA，对方打开就会自动收到这份订单 💌</p>
+          <div class="order-field">
+            <label>订单链接</label>
+            <textarea class="text-area order-share-box" id="orderShareLink" readonly></textarea>
+          </div>
+          <div class="row">
+            <button class="btn" type="button" id="orderShareCopy">📋 复制链接</button>
+            <button class="btn secondary" type="button" id="orderShareCode">🔑 复制同步码</button>
+          </div>
+          <p class="order-share-hint">对方打开链接后订单会自动合并到「🧾 我们的订单」；也可以让 TA 在菜单里点「📥 导入同步码」粘贴同步码。</p>
+        </div>
+      </section>
+      <div class="recipe-backdrop" id="orderShareBackdrop"></div>
+
+      <section class="dialog-card order-dialog" id="orderImportDialog" aria-label="导入订单同步码">
+        <button class="close-btn" data-close="orderImportDialog" aria-label="关闭">×</button>
+        <div class="order-dialog-inner">
+          <h3 class="order-form-title">📥 导入 TA 的订单</h3>
+          <p class="order-form-sub">把 TA 发来的同步码或链接粘贴进来，订单会合并进你们的列表 💕</p>
+          <div class="order-field">
+            <label>同步码 / 链接</label>
+            <textarea class="text-area" id="orderImportText" placeholder="粘贴同步码或带 #order= 的链接"></textarea>
+          </div>
+          <div class="row">
+            <button class="btn" type="button" id="orderImportConfirm">导入订单</button>
+            <button class="btn secondary" type="button" id="orderImportCancel">取消</button>
+          </div>
+        </div>
+      </section>
+      <div class="recipe-backdrop" id="orderImportBackdrop"></div>
 
       <section class="dialog-card recipe-dialog" id="recipeDialog" aria-label="菜谱详情">
         <button class="close-btn" data-close="recipeDialog" aria-label="关闭">×</button>
@@ -958,7 +1116,8 @@
             <button class="btn" id="saveSettingsBtn">保存设置</button>
             <button class="btn danger" id="clearDataBtn">清空本机数据</button>
           </div>
-          <p class="hint">角色绑定和好感度目前保存在当前浏览器中。此版本没有接入账号服务器，因此不会自动跨设备同步。</p>
+          <p class="hint">角色绑定保存在<b>本机浏览器</b>：男生和女生请分别在各自设备上绑定角色，这样菜谱会按身份显示——女生看简要做法，男生看完整详细做法。好感度同样按各自身份记录。</p>
+              <p class="hint">点菜订单是<b>双方共享</b>的：通过小屋服务器部署时自动同步；用静态页面时，点「🔗 发给 TA」把链接发给对方，对方打开即可看到你的订单。</p>
         </div>
       </section>
 
@@ -1041,10 +1200,13 @@
     });
   </script>
   <script th:inline="none">
-    'use strict';
+
     window.__SERVER_MODE__ = true;
     // ===== Java 后端状态同步：拦截 localStorage 写入，批量同步到 Spring Boot；启动时先恢复服务器状态 =====
-    const SERVER_STATE_KEYS = ['love_house_pets_v2','love_house_room_v2','love_house_profile_v2','love_house_settings_v2','love_house_bottles_v2','love_house_environment_v1','love_house_menu_v1'];
+    // 注意：角色绑定 love_house_profile_v2 不参与服务端同步 —— 男生与女生各自在本机绑定，
+    // 菜谱才能按身份显示（女生看简要做法，男生看完整详细做法），宠物好感度也各看各的。
+    // 点菜订单走 /api/orders 接口按 id 合并，双方同时下单也不会互相覆盖。
+    const SERVER_STATE_KEYS = ['love_house_pets_v2','love_house_room_v2','love_house_settings_v2','love_house_bottles_v2','love_house_environment_v1','love_house_menu_v1'];
     let serverSyncTimer = null;
     const pendingServerKeys = new Set();
     const isServerMode = () => Boolean(window.__SERVER_MODE__);
@@ -1072,6 +1234,7 @@
         SERVER_STATE_KEYS.forEach(key => { if (data[key] !== undefined) nativeSetItem.call(localStorage, key, JSON.stringify(data[key])); });
       } catch (_) {}
     }
+    'use strict';
     let THREE = window.THREE || null;
     window.__threeLoadPromise.then(ready => { if (ready && window.THREE) THREE = window.THREE; });
 
@@ -1083,6 +1246,7 @@
     // -------------------- 点菜菜单数据：贵州最全，其次各地菜系 / 网红 / 家常 --------------------
     const MENU_CATS = [
       { id: 'today', name: '❤️ 今天想吃' },
+      { id: 'orders', name: '🧾 我们的订单' },
       { id: 'gz', name: '🍲 贵州美食' }, { id: 'gzh', name: '🥘 贵州家常' },
       { id: 'home', name: '🍚 家常菜' }, { id: 'chuan', name: '🌶️ 川菜' },
       { id: 'yue', name: '🦐 粤菜' }, { id: 'xiang', name: '🔥 湘菜' },
@@ -1439,6 +1603,7 @@
       profile: null,
       bottles: [], currentBottleId: null, currentPetId: 'cat1',
       menu: { today: [] },
+      orders: [],
       room: {
         currentRoom: 'living', currentStyle: 'raw', wallColor: '#e8e0d3', colorTarget: 'backWall', selectedFurnitureIndex: -1,
         mode: 'photo',
@@ -1522,19 +1687,79 @@
       }
     }
 
-    // -------------------- 点菜菜单：浏览 / 搜索 / 今天想吃 --------------------
+    // -------------------- 点菜菜单：浏览 / 搜索 / 下单 / 双方共享订单 --------------------
+    const STORE_ORDERS = 'love_house_orders_v1';
+    const ORDER_STATUS = {
+      placed: { label: '待下厨', cls: 'placed', next: 'cooking', nextLabel: '🍳 开始做菜' },
+      cooking: { label: '制作中', cls: 'cooking', next: 'done', nextLabel: '🍽 做好啦' },
+      done: { label: '已上桌', cls: 'done', next: '', nextLabel: '' }
+    };
+    const ORDER_STATUS_RANK = { placed: 0, cooking: 1, done: 2 };
+
     function saveMenu() { localStorage.setItem(STORE.menu, JSON.stringify(state.menu)); }
     function loadMenu() {
       const saved = safeParse(STORE.menu, null);
-      if (saved && Array.isArray(saved.today)) state.menu.today = saved.today.filter(id => typeof id === 'string');
+      if (saved && Array.isArray(saved.today)) {
+        const local = Array.isArray(state.menu.today) ? state.menu.today : [];
+        state.menu.today = Array.from(new Set(local.concat(saved.today.filter(id => typeof id === 'string'))));
+      }
     }
+    function saveOrders() {
+      try { localStorage.setItem(STORE_ORDERS, JSON.stringify(state.orders)); } catch (_) {}
+    }
+    function loadOrders() {
+      const saved = safeParse(STORE_ORDERS, []);
+      state.orders = Array.isArray(saved) ? saved.filter(o => o && o.id && Array.isArray(o.dishes)) : [];
+    }
+    // 合并两份订单列表（按 id 去重，状态取更靠后的那个），保证双方下单不会互相覆盖
+    function mergeOrders(base, incoming) {
+      const map = new Map();
+      (base || []).forEach(order => { if (order && order.id) map.set(order.id, order); });
+      (incoming || []).forEach(order => {
+        if (!order || !order.id) return;
+        const old = map.get(order.id);
+        if (!old) { map.set(order.id, order); return; }
+        const newer = (Number(order.at) || 0) >= (Number(old.at) || 0) ? order : old;
+        const rank = Math.max(ORDER_STATUS_RANK[order.status] ?? 0, ORDER_STATUS_RANK[old.status] ?? 0);
+        const status = Object.keys(ORDER_STATUS_RANK).find(key => ORDER_STATUS_RANK[key] === rank) || 'placed';
+        map.set(order.id, { ...old, ...newer, status });
+      });
+      return Array.from(map.values()).sort((a, b) => (Number(b.at) || 0) - (Number(a.at) || 0));
+    }
+    function nextOrderNo() {
+      let max = 0;
+      state.orders.forEach(order => {
+        const matched = String(order.no || '').match(/(\d+)\s*$/);
+        if (matched) max = Math.max(max, Number(matched[1]));
+      });
+      return '#' + String(max + 1).padStart(4, '0');
+    }
+    function formatOrderTime(ts) {
+      const date = new Date(Number(ts) || Date.now());
+      const pad = n => String(n).padStart(2, '0');
+      const today = new Date();
+      const sameDay = date.toDateString() === today.toDateString();
+      return sameDay
+        ? `今天 ${pad(date.getHours())}:${pad(date.getMinutes())}`
+        : `${date.getMonth() + 1}月${date.getDate()}日 ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+    function isMyOrder(order) {
+      if (!order || !order.by || !state.profile) return false;
+      return order.by.name === state.profile.name && order.by.gender === state.profile.gender;
+    }
+    // 当前视角：绑定为女生 → 只看简要做法；绑定为男生 → 看完整详细做法
+    function viewerIsFemale() { return Boolean(state.profile && state.profile.gender === 'female'); }
+    function viewerName() { return (state.profile && state.profile.name) || '我'; }
+
     const menuUi = { cat: 'today', query: '' };
     const MENU_REGION_NAMES = { gz: '贵州', gzh: '贵州', home: '家常', chuan: '川', yue: '粤', xiang: '湘', lu: '北方', regions: '各地', netred: '网红' };
     function menuSpicyHtml(s) { return s ? `<span class="m-spicy">${'🌶️'.repeat(s)}</span>` : '<span class="m-spicy" style="opacity:.55">不辣</span>'; }
     function renderMenuTabs() {
       const tabs = document.getElementById('menuTabs'); tabs.innerHTML = '';
       MENU_CATS.forEach(cat => {
-        const count = cat.id === 'today' ? state.menu.today.length : MENU_CATALOG.filter(item => item.c === cat.id).length;
+        const count = cat.id === 'today' ? state.menu.today.length
+          : cat.id === 'orders' ? state.orders.length
+          : MENU_CATALOG.filter(item => item.c === cat.id).length;
         const btn = document.createElement('button');
         btn.type = 'button'; btn.className = 'menu-tab' + (menuUi.cat === cat.id ? ' active' : '');
         btn.innerHTML = `${cat.name}<span class="badge">${count}</span>`;
@@ -1562,6 +1787,11 @@
     }
     function renderMenuPanel() {
       renderMenuTabs();
+      const showOrders = menuUi.cat === 'orders';
+      document.getElementById('menuSearchRow').style.display = showOrders ? 'none' : 'flex';
+      document.getElementById('menuGrid').style.display = showOrders ? 'none' : 'grid';
+      document.getElementById('orderView').hidden = !showOrders;
+      if (showOrders) { renderOrderList(); renderMenuBar(); return; }
       const grid = document.getElementById('menuGrid');
       const items = menuFilteredItems();
       document.getElementById('menuCountLabel').textContent = menuUi.query.trim() ? `${items.length} 道（全部分类搜索）` : `${items.length} 道`;
@@ -1592,9 +1822,23 @@
     }
     function renderMenuBar() {
       const today = state.menu.today;
-      document.getElementById('menuBarLabel').textContent = today.length
-        ? `❤️ 今天想吃（${today.length}）：${today.slice(0, 4).join('、')}${today.length > 4 ? ` 等 ${today.length} 道` : ''}`
+      const label = document.getElementById('menuBarLabel');
+      const meta = document.getElementById('menuBarMeta');
+      const checkout = document.getElementById('menuCheckoutBtn');
+      const clear = document.getElementById('menuBarClear');
+      if (menuUi.cat === 'orders') {
+        label.textContent = `🧾 我们的订单（${state.orders.length} 单）`;
+        meta.textContent = state.orders.length ? '谁下的单都能看到，做菜进度也会同步 💕' : '还没有订单，去挑几道菜吧～';
+        checkout.style.display = 'none'; clear.style.display = 'none';
+        return;
+      }
+      checkout.style.display = ''; clear.style.display = '';
+      label.textContent = today.length
+        ? `❤️ 今天想吃（${today.length}）：${today.slice(0, 3).join('、')}${today.length > 3 ? ` 等 ${today.length} 道` : ''}`
         : '还没有点菜，逛逛看想吃啥～';
+      meta.textContent = today.length ? '点「去下单」，TA 那边也会看到 💌' : '点「去下单」，双方都能看到 💕';
+      checkout.disabled = !today.length;
+      checkout.textContent = today.length ? `去下单（${today.length}）` : '去下单';
     }
     function toggleMenuToday(name) {
       const index = state.menu.today.indexOf(name);
@@ -1605,11 +1849,310 @@
     document.getElementById('menuSearch').addEventListener('input', event => {
       menuUi.query = event.target.value;
       renderMenuPanel();
-    });    document.getElementById('menuBarClear').addEventListener('click', () => {
+    });
+    document.getElementById('menuBarClear').addEventListener('click', () => {
       if (!state.menu.today.length) return;
       state.menu.today = []; saveMenu(); renderMenuPanel(); toast('已清空今天想吃的菜单');
     });
+    document.getElementById('menuCheckoutBtn').addEventListener('click', () => openCheckoutDialog());
     document.getElementById('menuBtn').addEventListener('click', () => openPanel('panel-menu'));
+
+    // -------------------- 订单：确认下单 / 双方共享列表 --------------------
+    const checkoutForm = { servings: 2, note: '' };
+    function openCheckoutDialog() {
+      const dishes = state.menu.today.slice();
+      if (!dishes.length) return toast('先选几道菜吧～');
+      checkoutForm.servings = 2; checkoutForm.note = '';
+      const role = state.profile ? `${state.profile.name}（${state.profile.gender === 'female' ? '女生' : '男生'}）` : '还没绑定角色';
+      const box = document.getElementById('orderDialogInner');
+      box.innerHTML = `
+        <h3 class="order-form-title">🧾 确认下单</h3>
+        <p class="order-form-sub">下单后 TA 那边也会收到，谁下的单双方都看得见 💕</p>
+        <div class="order-who-line">下单人：${escapeHtml(role)}</div>
+        <div class="order-form-dishes">${dishes.map(name => `<span>${escapeHtml(name)}</span>`).join('')}</div>
+        <div class="order-field">
+          <label>👥 份量</label>
+          <div class="order-scale-row" id="checkoutScale">
+            ${[1, 2, 3, 4].map(n => `<button type="button" data-servings="${n}" class="${n === 2 ? 'active' : ''}">${n} 人份</button>`).join('')}
+          </div>
+        </div>
+        <div class="order-field">
+          <label>💌 想对 TA 说的话（选填）</label>
+          <textarea class="text-area" id="checkoutNote" placeholder="例如：不要香菜，多放辣一点～"></textarea>
+        </div>
+        <div class="row">
+          <button class="btn" type="button" id="checkoutConfirm">确认下单</button>
+          <button class="btn secondary" type="button" id="checkoutCancel">再看看</button>
+        </div>`;
+      box.querySelectorAll('[data-servings]').forEach(btn => btn.addEventListener('click', () => {
+        checkoutForm.servings = Number(btn.dataset.servings);
+        box.querySelectorAll('[data-servings]').forEach(item => item.classList.toggle('active', item === btn));
+      }));
+      box.querySelector('#checkoutNote').addEventListener('input', event => { checkoutForm.note = event.target.value; });
+      box.querySelector('#checkoutConfirm').addEventListener('click', () => submitOrder());
+      box.querySelector('#checkoutCancel').addEventListener('click', () => closeOrderDialog());
+      document.getElementById('orderDialog').classList.add('active');
+      document.getElementById('orderBackdrop').classList.add('active');
+      syncPanelOpen();
+    }
+    function closeOrderDialog() {
+      document.getElementById('orderDialog').classList.remove('active');
+      document.getElementById('orderBackdrop').classList.remove('active');
+      syncPanelOpen();
+    }
+    async function submitOrder() {
+      const dishes = state.menu.today.slice();
+      if (!dishes.length) return toast('先选几道菜吧～');
+      const order = {
+        id: 'ord-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7),
+        no: nextOrderNo(),
+        dishes,
+        by: { name: viewerName(), gender: state.profile && state.profile.gender ? state.profile.gender : 'male' },
+        at: Date.now(),
+        servings: checkoutForm.servings,
+        note: (checkoutForm.note || '').trim(),
+        status: 'placed'
+      };
+      state.orders = mergeOrders(state.orders, [order]);
+      saveOrders(); updateMenuButton();
+      const synced = await postServerOrder(order);
+      if (synced) { state.orders = mergeOrders(state.orders, synced); saveOrders(); }
+      state.menu.today = []; saveMenu();
+      closeOrderDialog();
+      menuUi.cat = 'orders';
+      renderMenuPanel();
+      toast('下单成功！TA 那边也能看到啦 💕');
+    }
+    function renderOrderList() {
+      const list = document.getElementById('orderList');
+      const orders = state.orders;
+      if (!orders.length) {
+        list.innerHTML = `<div class="order-empty">
+          <img src="assets/wall_stickers/kuromi/kuromi_02.png" alt="" />
+          <div>还没有订单呢～<br>去「❤️ 今天想吃」挑几道菜，下单后 TA 也能看见 💕</div>
+        </div>`;
+        return;
+      }
+      list.innerHTML = '';
+      orders.forEach(order => {
+        const by = order.by || { name: 'TA', gender: 'male' };
+        const female = by.gender === 'female';
+        const status = ORDER_STATUS[order.status] || ORDER_STATUS.placed;
+        const card = document.createElement('div');
+        card.className = 'order-card' + (isMyOrder(order) ? ' mine' : '');
+        card.innerHTML = `
+          <div class="order-card-top">
+            <span class="order-avatar ${female ? 'female' : 'male'}">${female ? '🎀' : '🖤'}</span>
+            <div class="order-who">
+              <b>${escapeHtml(by.name || 'TA')}</b>
+              <span>${escapeHtml(formatOrderTime(order.at))} · ${Number(order.servings) || 2} 人份 · ${escapeHtml(status.label)}</span>
+            </div>
+            <span class="order-status ${status.cls}">${escapeHtml(status.label)}</span>
+          </div>
+          <div class="order-no">订单号 ${escapeHtml(order.no || '')}${isMyOrder(order) ? ' · 我点的' : ' · TA 点的'}</div>
+          <div class="order-dishes">
+            ${(order.dishes || []).map(name => `<button type="button" class="order-dish" data-dish="${escapeHtml(name)}">🍽 ${escapeHtml(name)}<em>看做法</em></button>`).join('')}
+          </div>
+          ${order.note ? `<div class="order-note">💌 ${escapeHtml(order.note)}</div>` : ''}
+          <div class="order-foot">
+            ${status.next ? `<button type="button" data-action="advance">${escapeHtml(status.nextLabel)}</button>` : ''}
+            <button type="button" data-action="again">🔁 再点一次</button>
+            <button type="button" data-action="share">🔗 发给 TA</button>
+            <button type="button" class="danger" data-action="delete">🗑 删除</button>
+          </div>`;
+        card.querySelectorAll('.order-dish').forEach(btn => btn.addEventListener('click', () => openRecipe(btn.dataset.dish, { order })));
+        card.querySelector('[data-action="advance"]')?.addEventListener('click', () => advanceOrder(order));
+        card.querySelector('[data-action="again"]').addEventListener('click', () => reorderDishes(order));
+        card.querySelector('[data-action="share"]').addEventListener('click', () => openShareDialog([order]));
+        card.querySelector('[data-action="delete"]').addEventListener('click', () => removeOrder(order));
+        list.appendChild(card);
+      });
+    }
+    async function advanceOrder(order) {
+      const current = ORDER_STATUS[order.status] || ORDER_STATUS.placed;
+      if (!current.next) return;
+      order.status = current.next;
+      state.orders = mergeOrders(state.orders, [order]);
+      saveOrders(); renderOrderList();
+      const synced = await patchServerOrder(order.id, { status: current.next });
+      if (synced) { state.orders = mergeOrders(state.orders, synced); saveOrders(); renderOrderList(); }
+      toast(current.next === 'cooking' ? '已开始做菜，TA 那边同步看到 🍳' : '做好啦，快去吃吧 🍽');
+    }
+    function reorderDishes(order) {
+      (order.dishes || []).forEach(name => { if (!state.menu.today.includes(name)) state.menu.today.push(name); });
+      saveMenu(); menuUi.cat = 'today'; renderMenuPanel();
+      toast('已把菜品放回「今天想吃」，可以直接下单 💕');
+    }
+    async function removeOrder(order) {
+      state.orders = state.orders.filter(item => item.id !== order.id);
+      saveOrders(); renderOrderList(); updateMenuButton();
+      await deleteServerOrder(order.id);
+      toast('订单已删除');
+    }
+    function updateMenuButton() {
+      const btn = document.getElementById('menuBtn');
+      if (!btn) return;
+      const pending = state.orders.filter(order => (order.status || 'placed') !== 'done').length;
+      btn.textContent = pending ? `🍜 点菜 ·${pending}` : '🍜 点菜';
+    }
+
+    // -------------------- 订单同步：服务端模式自动同步，静态站用同步码 / 链接 --------------------
+    function serverModeOn() { return Boolean(window.__SERVER_MODE__); }
+    async function fetchServerOrders() {
+      if (!serverModeOn()) return null;
+      try {
+        const res = await fetch('/api/orders', { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) return null;
+        const list = await res.json();
+        return Array.isArray(list) ? list : null;
+      } catch (_) { return null; }
+    }
+    async function postServerOrder(order) {
+      if (!serverModeOn() || !order) return null;
+      try {
+        const res = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(order) });
+        if (!res.ok) return null;
+        const list = await res.json();
+        return Array.isArray(list) ? list : null;
+      } catch (_) { return null; }
+    }
+    async function patchServerOrder(id, patch) {
+      if (!serverModeOn() || !id) return null;
+      try {
+        const res = await fetch(`/api/orders/${encodeURIComponent(id)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch || {}) });
+        if (!res.ok) return null;
+        const list = await res.json();
+        return Array.isArray(list) ? list : null;
+      } catch (_) { return null; }
+    }
+    async function deleteServerOrder(id) {
+      if (!serverModeOn() || !id) return null;
+      try {
+        const res = await fetch(`/api/orders/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        if (!res.ok) return null;
+        const list = await res.json();
+        return Array.isArray(list) ? list : null;
+      } catch (_) { return null; }
+    }
+    async function refreshOrders() {
+      const list = await fetchServerOrders();
+      if (!list) return;
+      const merged = mergeOrders(state.orders, list);
+      if (JSON.stringify(merged) !== JSON.stringify(state.orders)) {
+        state.orders = merged; saveOrders(); updateMenuButton();
+        if (document.getElementById('panel-menu').classList.contains('active')) renderMenuPanel();
+      }
+    }
+    function startOrderSync() {
+      if (!serverModeOn()) return;
+      setInterval(() => { if (!document.hidden) refreshOrders(); }, 15000);
+      window.addEventListener('focus', () => refreshOrders());
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshOrders(); });
+    }
+    function encodeOrdersPayload(orders) {
+      const compact = (orders || []).map(order => ({
+        id: order.id, no: order.no || '', d: Array.isArray(order.dishes) ? order.dishes : [],
+        b: order.by ? [order.by.name || '', order.by.gender || 'male'] : null,
+        t: Number(order.at) || 0, s: order.status || 'placed', n: order.note || '', p: Number(order.servings) || 2
+      }));
+      const bytes = new TextEncoder().encode(JSON.stringify(compact));
+      let binary = ''; bytes.forEach(byte => { binary += String.fromCharCode(byte); });
+      return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+    function decodeOrdersPayload(code) {
+      try {
+        let raw = String(code || '').trim();
+        if (!raw) return [];
+        const hashIndex = raw.indexOf('#order=');
+        if (hashIndex >= 0) raw = raw.slice(hashIndex + 7);
+        raw = raw.split('#')[0].split('&')[0].trim();
+        if (!raw) return [];
+        const base64 = raw.replace(/-/g, '+').replace(/_/g, '/');
+        const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+        const binary = atob(padded);
+        const bytes = Uint8Array.from(binary, ch => ch.charCodeAt(0));
+        const parsed = JSON.parse(new TextDecoder().decode(bytes));
+        if (!Array.isArray(parsed)) return [];
+        return parsed.filter(order => order && order.id).map(order => ({
+          id: order.id, no: order.no || '', dishes: Array.isArray(order.d) ? order.d : [],
+          by: order.b ? { name: order.b[0] || 'TA', gender: order.b[1] || 'male' } : null,
+          at: Number(order.t) || Date.now(), status: order.s || 'placed', note: order.n || '', servings: Number(order.p) || 2
+        }));
+      } catch (error) { console.warn('订单同步码解析失败：', error); return []; }
+    }
+    function buildShareLink(orders) {
+      const base = location.origin + location.pathname + (location.search || '');
+      return `${base}#order=${encodeOrdersPayload(orders)}`;
+    }
+    async function copyText(text) {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(text); return true; }
+      } catch (_) {}
+      try {
+        const area = document.createElement('textarea');
+        area.value = text; area.style.position = 'fixed'; area.style.opacity = '0';
+        document.body.appendChild(area); area.select();
+        const done = document.execCommand('copy');
+        document.body.removeChild(area);
+        return done;
+      } catch (_) { return false; }
+    }
+    function openShareDialog(orders) {
+      const list = orders && orders.length ? orders : state.orders;
+      if (!list.length) return toast('还没有订单可以分享～');
+      document.getElementById('orderShareLink').value = buildShareLink(list);
+      document.getElementById('orderShareDialog').classList.add('active');
+      document.getElementById('orderShareBackdrop').classList.add('active');
+      syncPanelOpen();
+    }
+    function closeShareDialog() {
+      document.getElementById('orderShareDialog').classList.remove('active');
+      document.getElementById('orderShareBackdrop').classList.remove('active');
+      syncPanelOpen();
+    }
+    function openImportDialog() {
+      document.getElementById('orderImportDialog').classList.add('active');
+      document.getElementById('orderImportBackdrop').classList.add('active');
+      syncPanelOpen();
+    }
+    function closeImportDialog() {
+      document.getElementById('orderImportDialog').classList.remove('active');
+      document.getElementById('orderImportBackdrop').classList.remove('active');
+      syncPanelOpen();
+    }
+    document.getElementById('orderShareBtn').addEventListener('click', () => openShareDialog(state.orders));
+    document.getElementById('orderImportBtn').addEventListener('click', () => openImportDialog());
+    document.getElementById('orderShareCopy').addEventListener('click', async () => {
+      const ok = await copyText(document.getElementById('orderShareLink').value);
+      toast(ok ? '链接已复制，发给 TA 吧 🔗' : '复制失败，请长按上方文字手动复制');
+    });
+    document.getElementById('orderShareCode').addEventListener('click', async () => {
+      const code = document.getElementById('orderShareLink').value.split('#order=')[1] || '';
+      const ok = await copyText(code);
+      toast(ok ? '同步码已复制 🔑' : '复制失败，请长按手动复制');
+    });
+    document.getElementById('orderImportConfirm').addEventListener('click', () => {
+      const incoming = decodeOrdersPayload(document.getElementById('orderImportText').value);
+      if (!incoming.length) return toast('没看懂这个同步码，检查一下有没有复制完整～');
+      state.orders = mergeOrders(state.orders, incoming);
+      saveOrders(); updateMenuButton(); closeImportDialog(); renderMenuPanel();
+      toast(`已导入 ${incoming.length} 单订单 💕`);
+    });
+    document.getElementById('orderImportCancel').addEventListener('click', () => closeImportDialog());
+    document.getElementById('orderBackdrop').addEventListener('click', () => closeOrderDialog());
+    document.getElementById('orderShareBackdrop').addEventListener('click', () => closeShareDialog());
+    document.getElementById('orderImportBackdrop').addEventListener('click', () => closeImportDialog());
+    function handleIncomingOrderLink() {
+      const hash = location.hash || '';
+      if (hash.indexOf('#order=') < 0) return;
+      const incoming = decodeOrdersPayload(hash);
+      if (incoming.length) {
+        state.orders = mergeOrders(state.orders, incoming);
+        saveOrders(); updateMenuButton();
+        toast(`收到 TA 的 ${incoming.length} 单订单，已并入「我们的订单」💕`);
+      }
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (_) {}
+    }
 
     // -------------------- 菜谱详情：用料用量 / 正宗步骤 / 用量增减影响 --------------------
     const MENU_RECIPES = window.MENU_RECIPES || {};
@@ -1657,9 +2200,23 @@
       src = src.replace(/@@R(\d+)@@/g, (m2, i) => ratios[Number(i)]);
       return src;
     }
-    function renderRecipeBody(name) {
+    // 把长步骤压缩成一句话要点（女生视角的简要做法）
+    function briefStep(text) {
+      const raw = String(text || '').trim();
+      if (!raw) return '';
+      const first = raw.split(/[。；;!！]/)[0] || raw;
+      const short = first.replace(/^\d+\s*[、.．)）]\s*/, '').trim();
+      return short.length > 32 ? short.slice(0, 32) + '…' : short;
+    }
+    function renderRecipeBody(name, ctx) {
+      const context = ctx || {};
       const box = document.getElementById('recipeInner');
+      const female = viewerIsFemale();
+      const order = context.order || null;
       const recipe = MENU_RECIPES[name];
+      const orderLine = order
+        ? `<div class="recipe-order-note">📋 来自订单 ${escapeHtml(order.no || '')} · ${escapeHtml((order.by && order.by.name) || 'TA')} 点的${Number(order.servings) > 2 ? `（${Number(order.servings)} 人份）` : ''}</div>`
+        : '';
       if (!recipe) {
         box.innerHTML = `<div class="recipe-none">这道菜的详细做法还在整理中～<br>先点「＋ 点这道」把它加进今天想吃吧 🍽️</div>
           <div class="recipe-foot"><button class="btn" type="button" id="recipeFallbackPick">＋ 加入今天想吃</button></div>`;
@@ -1668,49 +2225,78 @@
         return;
       }
       const factor = recipeScale / 2;   // 菜谱默认按 2 人份给出
-      const ings = (recipe.ing || []).map(item => `
-        <div class="recipe-ing">
-          <div class="recipe-ing-top">
-            <span class="recipe-ing-name">${escapeHtml(item.n)}</span>
-            <span class="recipe-ing-qty">${escapeHtml(factor === 1 ? item.q : scaleQuantity(item.q, factor))}</span>
-          </div>
-          ${item.a ? `<div class="recipe-ing-note">${highlightAdjust(factor === 1 ? item.a : scaleQuantity(item.a, factor))}</div>` : ''}
-        </div>`).join('');
-      const steps = (recipe.steps || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
       const scaleBtns = RECIPE_SCALES.map(n => `<button type="button" class="${recipeScale === n ? 'active' : ''}" data-scale="${n}">${n} 人份</button>`).join('');
-      box.innerHTML = `
+      const meta = `
+        ${recipe.time ? `<span>⏱ ${escapeHtml(recipe.time)}</span>` : ''}
+        ${recipe.level ? `<span>🎯 ${escapeHtml(recipe.level)}</span>` : ''}
+        ${recipe.servings ? `<span>🍚 ${escapeHtml(recipe.servings)}</span>` : ''}`;
+      const roleTip = female
+        ? `<div class="recipe-role-tip female">
+             <img src="assets/wall_stickers/hello_kitty/hello_kitty_02.png" alt="" />
+             <span>你绑定的是<b>女生角色</b>，这里显示<b>简要做法</b>；精确用量、加减量影响和关键窍门属于完整版，由男生那边查看 💕</span>
+           </div>`
+        : `<div class="recipe-role-tip male">
+             <img src="assets/wall_stickers/kuromi/kuromi_03.png" alt="" />
+             <span>你绑定的是<b>男生角色</b>，这里显示<b>完整详细做法</b>：精确用量、加多/加少的影响与关键窍门都在这儿 👨‍🍳</span>
+           </div>`;
+      const head = `
         <div class="recipe-head">
           <h3>${escapeHtml(name)}</h3>
-          <div class="recipe-meta">
-            ${recipe.time ? `<span>⏱ ${escapeHtml(recipe.time)}</span>` : ''}
-            ${recipe.level ? `<span>🎯 ${escapeHtml(recipe.level)}</span>` : ''}
-            ${recipe.servings ? `<span>🍚 ${escapeHtml(recipe.servings)}</span>` : ''}
-          </div>
-          <div class="recipe-scale" role="group" aria-label="份量换算">
+          <div class="recipe-meta">${meta}</div>
+          ${female ? '' : `<div class="recipe-scale" role="group" aria-label="份量换算">
             <span>👥 换算份量</span>${scaleBtns}
             <em>（用料按 2 人份为基准自动换算，下方"加多/加少"为该基准下的参考值）</em>
-          </div>
-        </div>
-        ${ings ? `<div class="recipe-sec-title">🧺 用料与用量</div><div class="recipe-ing-list">${ings}</div>` : ''}
-        ${steps ? `<div class="recipe-sec-title">👩‍🍳 做法步骤</div><ol class="recipe-steps">${steps}</ol>` : ''}
-        ${recipe.key ? `<div class="recipe-sec-title">🔑 关键窍门</div><div class="recipe-key">${escapeHtml(recipe.key)}</div>` : ''}
-        ${recipe.tip ? `<div class="recipe-sec-title">💡 用量微调建议</div><div class="recipe-tip">${escapeHtml(recipe.tip)}</div>` : ''}
+          </div>`}
+        </div>`;
+      const foot = `
         <div class="recipe-foot">
           <button class="btn" type="button" id="recipePickBtn">${state.menu.today.includes(name) ? '✅ 已点 · 取消' : '＋ 加入今天想吃'}</button>
+          ${order ? `<button class="btn soft" type="button" id="recipeOrderAgain">🔁 再点一次这道</button>` : ''}
           <button class="btn secondary" type="button" id="recipeCloseBtn">返回菜单</button>
         </div>`;
+      let body = '';
+      if (female) {
+        // 女生视角：简要做法（食材清单 + 要点步骤），不展示精确用量、增减说明与完整步骤
+        const simpleIngs = (recipe.ing || []).map(item => `<span>${escapeHtml(item.n)}</span>`).join('');
+        const briefSteps = (recipe.steps || []).map(briefStep).filter(Boolean);
+        body = `
+          ${simpleIngs ? `<div class="recipe-sec-title">🧺 需要哪些食材</div><div class="recipe-ing-simple">${simpleIngs}</div>` : ''}
+          ${briefSteps.length ? `<div class="recipe-sec-title">👩‍🍳 简要做法</div><ol class="recipe-brief-steps">${briefSteps.map((step, i) => `<li><i>${i + 1}</i><span>${escapeHtml(step)}</span></li>`).join('')}</ol>` : ''}
+          <div class="recipe-lock">🔒 精确用量、加多/加少的影响与关键窍门属于「完整做法」，留给男生那边查看；想吃什么直接点「＋ 加入今天想吃」告诉 TA 吧 💕</div>`;
+      } else {
+        // 男生视角：完整详细做法（精确用量 + 加减量影响 + 全部步骤 + 窍门）
+        const ings = (recipe.ing || []).map(item => `
+          <div class="recipe-ing">
+            <div class="recipe-ing-top">
+              <span class="recipe-ing-name">${escapeHtml(item.n)}</span>
+              <span class="recipe-ing-qty">${escapeHtml(factor === 1 ? item.q : scaleQuantity(item.q, factor))}</span>
+            </div>
+            ${item.a ? `<div class="recipe-ing-note">${highlightAdjust(factor === 1 ? item.a : scaleQuantity(item.a, factor))}</div>` : ''}
+          </div>`).join('');
+        const steps = (recipe.steps || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
+        body = `
+          ${ings ? `<div class="recipe-sec-title">🧺 用料与用量</div><div class="recipe-ing-list">${ings}</div>` : ''}
+          ${steps ? `<div class="recipe-sec-title">👩‍🍳 做法步骤</div><ol class="recipe-steps">${steps}</ol>` : ''}
+          ${recipe.key ? `<div class="recipe-sec-title">🔑 关键窍门</div><div class="recipe-key">${escapeHtml(recipe.key)}</div>` : ''}
+          ${recipe.tip ? `<div class="recipe-sec-title">💡 用量微调建议</div><div class="recipe-tip">${escapeHtml(recipe.tip)}</div>` : ''}`;
+      }
+      box.innerHTML = `${roleTip}${orderLine}${head}${body}${foot}`;
       box.querySelectorAll('[data-scale]').forEach(btn => btn.addEventListener('click', () => {
         recipeScale = Number(btn.dataset.scale);
-        renderRecipeBody(name);
+        renderRecipeBody(name, context);
       }));
       document.getElementById('recipePickBtn').addEventListener('click', () => {
         toggleMenuToday(name);
-        renderRecipeBody(name);
+        renderRecipeBody(name, context);
+      });
+      document.getElementById('recipeOrderAgain')?.addEventListener('click', () => {
+        if (!state.menu.today.includes(name)) state.menu.today.push(name);
+        saveMenu(); toast(`已把「${name}」放回今天想吃`);
       });
       document.getElementById('recipeCloseBtn').addEventListener('click', () => closeRecipe());
     }
-    function openRecipe(name) {
-      renderRecipeBody(name);
+    function openRecipe(name, ctx) {
+      renderRecipeBody(name, ctx);
       document.getElementById('recipeDialog').classList.add('active');
       document.getElementById('recipeBackdrop').classList.add('active');
       syncPanelOpen();
@@ -1848,8 +2434,11 @@
       if (id === 'panel-environment') fillEnvironmentPanel();
     }
     document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => {
-      document.getElementById(button.dataset.close).classList.remove('active');
+      document.getElementById(button.dataset.close)?.classList.remove('active');
       if (button.dataset.close === 'recipeDialog') document.getElementById('recipeBackdrop')?.classList.remove('active');
+      if (button.dataset.close === 'orderDialog') document.getElementById('orderBackdrop')?.classList.remove('active');
+      if (button.dataset.close === 'orderShareDialog') document.getElementById('orderShareBackdrop')?.classList.remove('active');
+      if (button.dataset.close === 'orderImportDialog') document.getElementById('orderImportBackdrop')?.classList.remove('active');
       syncPanelOpen();
       if (button.dataset.close === 'panel-house') { f3d.active = false; if (f3d.mode === 'walk') f3dExitWalk(true); }
     }));
@@ -4597,7 +5186,7 @@
         console.error('本地媒体初始化失败，已切换到会话存储：', error);
         db = null; mediaFallback = true; restoreFallbackStores(); await loadMedia();
       }
-      loadPets(); loadRoom(); loadProfile(); loadBottles(); loadMenu(); loadSettings(); loadEnvironment(); buildWeatherParticles();
+      loadPets(); loadRoom(); loadProfile(); loadBottles(); loadMenu(); loadOrders(); loadSettings(); loadEnvironment(); buildWeatherParticles();
       try { await loadWallArtAssets(); } catch (error) { console.warn('墙面素材恢复失败：', error); }
       await loadRoomAssets();
       createBottleNodes(); resizeBottleCanvas(); window.addEventListener('resize', resizeBottleCanvas);
@@ -4607,6 +5196,7 @@
       if (!state.profile || !state.profile.name || !['male', 'female'].includes(state.profile.gender)) showProfileGate(true);
       else setTimeout(() => toast('欢迎回到恋爱小屋，河面上有新的漂流瓶'), 500);
       renderRiverPanel();
+      updateMenuButton(); startOrderSync(); handleIncomingOrderLink();
     })();
   </script>
 </body>
