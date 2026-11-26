@@ -139,3 +139,27 @@
 3. 静态资源同步：app.js / villa.js / villa-bridge.js / account.js / workbuddy-cloud.js / bg_night.jpg 已同步到 java-app static 与 wechat-dist，并移除旧 bg_night.png。
 4. 验证：mvnw 离线打包成功（target/love-house-1.0.0.jar）；无头 Edge 对 Spring Boot 部署版端到端全项通过（14 房间 / 41 墙 / threeInstances=1 / 装修 / 拆建墙 / 昼夜光影 / 行走 / 拾取 / 持久化），控制台 0 报错。
 5. 跨设备同步回归测试（全新浏览器 profile、零本地存储）：设备 A 装修并保存 → Java 后端收到 love_house_villa_v1（14 房间 / 2 家具 / 2 贴纸）→ 设备 B 刷新后自动拉回全部装修成果（房间数、家具数、贴纸数、墙色、地板材质完全一致），12 项判定全通过。
+
+恋爱小屋 V20 修复：账号门与视频弹窗完全无法点击（pointer-events 继承缺陷）
+【现象】
+1. 进入站点后账号门弹出，但「登录 / 创建账号 / 邮箱 / 密码 / 记住我 / 登录小屋 / 先离线体验一下」全部点击无任何反应，连输入框都无法聚焦。
+2. 视频播放弹窗打开后关不掉、退不出（对应用户第 4 个问题的直接成因）。
+
+【根因】
+.account-gate 与 .video-modal 位于 .ui-layer 容器内，而 .ui-layer 设有 `pointer-events: none`（本意是让空白区域点击穿透到 3D 场景热区）。CSS 的 pointer-events 会继承，子元素必须显式声明 auto 才能重新接收事件，但白名单 `.panel, .modal-overlay, .dialog-card, .recipe-backdrop` 遗漏了这两个元素 —— 导致它们整条子树都是 pointer-events:none，命中测试时全部被下层 #app 抢走。
+附带发现：.topbar 的 z-index(12) 高于 .ui-layer(10)，顶栏浮在遮罩之上且仍可点击（用户截图中顶部被截断的元素即来自此处）。
+
+【修复】
+1. pointer-events 白名单补入 .account-gate 与 .video-modal。
+2. 新增 body.account-locked / body.video-open 时隐藏顶栏，让遮罩真正成为模态。
+3. 视频弹窗打开/关闭时同步切换 body.video-open。
+
+【验证】
+1. 新增全页面命中审计（203 个交互元素）：修复前 4 个账号门元素被遮挡，修复后账号门内元素全部位于命中栈顶层。
+2. 新增真实鼠标点击回归（CDP Input.dispatchMouseEvent，走完整命中测试链路而非 JS 直调 click）：8/8 通过 —— 创建账号切换、直接登录切回、输入框聚焦、登录小屋有明确反馈、离线体验可关闭账号门、视频 × 可关闭弹窗、账号门激活时顶栏隐藏。
+3. 原 11 项端到端回归全部通过，控制台 0 报错。
+4. Spring Boot 部署版（Thymeleaf 渲染后）、GitHub Pages 线上、微信备用站线上均 8/8 通过。
+5. 深度扫描全部面板，确认 pointer-events:none 容器内无其他交互元素遗漏。
+
+【方法论教训】
+此前的端到端验证全部用 JS 直接调用 el.click()，绕过了浏览器真实的命中测试，因此无法发现「元素渲染正常但点不动」这类缺陷。涉及点击可达性的验证必须走 CDP Input.dispatchMouseEvent 真实鼠标事件，或用 document.elementFromPoint 做命中测试。
